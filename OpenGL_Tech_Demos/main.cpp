@@ -1,10 +1,11 @@
 // ImGui - standalone example application for Glfw + OpenGL 2, using fixed pipeline
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 
-#include "imgui/imgui.h"
-#include "imgui_impl_glfw.h"
+#include "Imgui/imgui.h"
+#include "Imgui_impl_glfw.h"
 #include <stdio.h>
 #include <GLFW/glfw3.h>
+#include "Math/vector3.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -79,6 +80,11 @@ int main(int, char**)
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui::Render();
         glfwSwapBuffers(window);
+
+		vector3 vector(0.0f, 1.0f, 0.0f);
+		vector3 otherVector(0.0f, 0.0f, 1.0f);
+
+		vector3 answer = vector * otherVector;
     }
 
     // Cleanup
