@@ -161,6 +161,7 @@
     <ClCompile Include="Math\vector2.cpp" />
     <ClCompile Include="Math\vector3.cpp" />
     <ClCompile Include="Math\vector4.cpp" />
+    <ClCompile Include="shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Math\vector2.h" />
     <ClInclude Include="Math\vector3.h" />
     <ClInclude Include="Math\vector4.h" />
+    <ClInclude Include="shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -48,6 +48,9 @@
     <ClCompile Include="Math\vector4.cpp">
       <Filter>Math</Filter>
     </ClCompile>
+    <ClCompile Include="shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="Math\vector4.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
