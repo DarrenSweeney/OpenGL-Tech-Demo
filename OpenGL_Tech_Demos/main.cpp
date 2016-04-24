@@ -5,7 +5,6 @@
 #include "Imgui_impl_glfw.h"
 #include <stdio.h>
 #include <GLFW/glfw3.h>
-#include "Math/vector3.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -18,67 +17,86 @@ int main(int, char**)
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
         return 1;
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "ImGui OpenGL2 example", NULL, NULL);
+
+    GLFWwindow* window = glfwCreateWindow(1100, 600, "OpenGL Tech Demo - Darren Sweeney", NULL, NULL);
+	glfwSetWindowPos(window, 80, 80);
     glfwMakeContextCurrent(window);
 
     // Setup ImGui binding
     ImGui_ImplGlfw_Init(window, true);
 
-    // Load Fonts
-    // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
-    //ImGuiIO& io = ImGui::GetIO();
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-
-    bool show_test_window = true;
-    bool show_another_window = false;
+	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        ImGui_ImplGlfw_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
 
-        // 1. Show a simple window
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        {
-            static float f = 0.0f;
-            ImGui::Text("Hello, world!");
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            ImGui::ColorEdit3("clear color", (float*)&clear_color);
-            if (ImGui::Button("Test Window")) show_test_window ^= 1;
-            if (ImGui::Button("Another Window")) show_another_window ^= 1;
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        }
+		#pragma region ImGui
+		ImGui::Begin("Darren Sweeney", &windowOpened, 0);
+		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-        // 2. Show another simple window, this time using an explicit Begin/End pair
-        if (show_another_window)
-        {
-            ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-            ImGui::Begin("Another Window", &show_another_window);
-            ImGui::Text("Hello");
-            ImGui::End();
-        }
-
-        // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (show_test_window)
-        {
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-            ImGui::ShowTestWindow(&show_test_window);
-        }
-
-		ImGui::Text("Hello, World %d", 123);
-
-		if (ImGui::Button("ok"))
+		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
-			// ---
+			if (ImGui::TreeNode("Cube Mapping"))
+			{
+				ImGui::Button("Cube Mapping Demo");
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Instancing"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Defered Rendering"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Model Loading"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Stencil Reflections"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Parralxing Mapping"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("HDR Lighting"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Shadow Maps"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("SSAO"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Toon Outline"))
+			{
+				// --- 
+				ImGui::TreePop();
+			}
 		}
-		
+		if (ImGui::CollapsingHeader("Info", 0, true, true))
+		{
+			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
+		}
+		ImGui::End();
+#pragma endregion
 
         // Rendering
         int display_w, display_h;
@@ -87,12 +105,8 @@ int main(int, char**)
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui::Render();
+
         glfwSwapBuffers(window);
-
-		vector3 vector(0.0f, 1.0f, 0.0f);
-		vector3 otherVector(0.0f, 0.0f, 1.0f);
-
-		vector3 answer = vector * otherVector;
     }
 
     // Cleanup
