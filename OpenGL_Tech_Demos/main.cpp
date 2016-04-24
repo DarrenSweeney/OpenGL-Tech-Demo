@@ -72,6 +72,14 @@ int main(int, char**)
             ImGui::ShowTestWindow(&show_test_window);
         }
 
+		ImGui::Text("Hello, World %d", 123);
+
+		if (ImGui::Button("ok"))
+		{
+			// ---
+		}
+		
+
         // Rendering
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
