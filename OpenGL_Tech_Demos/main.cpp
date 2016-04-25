@@ -1,6 +1,10 @@
-#include "Imgui/imgui.h"
-#include "Imgui_impl_glfw.h"
+// ImGui - standalone example application for Glfw + OpenGL 3, using programmable pipeline
+// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+
+#include "Imgui\imgui.h"
+#include "imgui_impl_glfw_gl3.h"
 #include <stdio.h>
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
 static void error_callback(int error, const char* description)
@@ -10,17 +14,28 @@ static void error_callback(int error, const char* description)
 
 int main(int, char**)
 {
+	GLuint screenWidth = 1100, screenHeight = 600;
+
     // Setup window
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
         return 1;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
-    GLFWwindow* window = glfwCreateWindow(1100, 600, "OpenGL Tech Demo - Darren Sweeney", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", NULL, NULL);
 	glfwSetWindowPos(window, 80, 80);
     glfwMakeContextCurrent(window);
+    gl3wInit();
+
+	// TODO(Darren): Set up required callback functions for input
 
     // Setup ImGui binding
-    ImGui_ImplGlfw_Init(window, true);
+    ImGui_ImplGlfwGL3_Init(window, true);
 
 	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
@@ -29,9 +44,9 @@ int main(int, char**)
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-		ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplGlfwGL3_NewFrame();
 
-		#pragma region ImGui
+#pragma region ImGui
 		ImGui::Begin("Darren Sweeney", &windowOpened, 0);
 		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
@@ -107,7 +122,7 @@ int main(int, char**)
     }
 
     // Cleanup
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplGlfwGL3_Shutdown();
     glfwTerminate();
 
     return 0;
