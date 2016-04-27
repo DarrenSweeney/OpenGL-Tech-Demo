@@ -4,7 +4,8 @@
 #include <math.h>
 #include "Math\vector3.h"
 #include "Math\matrix4.h"
-#include <GLFW\glfw3.h>
+#include <GL/gl3w.h>
+#include <GLFW/glfw3.h>
 
 using namespace std;
 

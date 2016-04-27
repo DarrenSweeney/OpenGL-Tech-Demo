@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 
-#include <GL\glew.h>
+#include <GL/gl3w.h>
 
 class Shader
 {
@@ -14,7 +14,8 @@ public:
 	// The program ID
 	GLuint Program;
 
-	Shader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath);
+	Shader();
+	void InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath = NULL);
 	void Use();
 };
 

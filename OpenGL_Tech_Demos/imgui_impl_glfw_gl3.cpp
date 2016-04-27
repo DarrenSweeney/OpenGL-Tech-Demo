@@ -332,7 +332,7 @@ bool    ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks)
     {
         glfwSetMouseButtonCallback(window, ImGui_ImplGlfwGL3_MouseButtonCallback);
         glfwSetScrollCallback(window, ImGui_ImplGlfwGL3_ScrollCallback);
-        glfwSetKeyCallback(window, ImGui_ImplGlfwGL3_KeyCallback);
+		glfwSetKeyCallback(window, ImGui_ImplGlfwGL3_KeyCallback);
         glfwSetCharCallback(window, ImGui_ImplGlfwGL3_CharCallback);
     }
 

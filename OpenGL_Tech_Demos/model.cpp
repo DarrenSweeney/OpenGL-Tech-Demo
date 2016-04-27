@@ -1,20 +1,25 @@
 #include "model.h"
 
-Model::Model(GLchar *path)
+Model::Model()
 {
-	LoadModel(path);
+
+}
+
+void Model::LoadModel(GLchar *path)
+{
+	loadModel(path);
 }
 
 void Model::Draw(Shader shader)
 {
-	for (GLuint i = 0; i < meshes.size(); i++)
+	for (int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader);
 }
 
-void Model::LoadModel(string path)
+void Model::loadModel(string path)
 {
 	Assimp::Importer importer;
-	// The aiProcess_FlipUVs flips the texture coordinates on the y-axis. (Soil flips images up side down)
+	// The aiPorcess_FlipUVs flips the texture coordinates on the y-axis. (Soil flips images upsidedown)
 	const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -24,36 +29,35 @@ void Model::LoadModel(string path)
 	}
 
 	directory = path.substr(0, path.find_last_of('/'));
-	ProcessNode(scene->mRootNode, scene);
+	processNode(scene->mRootNode, scene);
 }
 
-void Model::ProcessNode(aiNode *node, const aiScene *scene)
+void Model::processNode(aiNode *node, const aiScene *scene)
 {
-	// Process all the nodes meshes (if any)
+	// Process all the node's meshes (if any)
 	for (GLuint i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(ProcessMesh(mesh, scene));
+		meshes.push_back(processMesh(mesh, scene));
 	}
-
 	// Do the same for each of it's children
 	for (GLuint i = 0; i < node->mNumChildren; i++)
 	{
-		ProcessNode(node->mChildren[i], scene);
+		processNode(node->mChildren[i], scene);
 	}
 }
 
-Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
+Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 {
+	// TODO Should i use pointers here.
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
 	vector<Texture> textures;
 
-	for (GLuint i = 0; i < mesh->mNumVertices; i++)
+	for (int i = 0; i < mesh->mNumVertices; i++)
 	{
 		Vertex vertex;
 		vector3 vector;
-
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
@@ -64,7 +68,7 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
 		vector.z = mesh->mNormals[i].z;
 		vertex.Normal = vector;
 
-		// Check if mesh contains texture coords
+		// Check if the mesh contains texture coords
 		if (mesh->mTextureCoords[0])
 		{
 			vector2 vec;
@@ -80,7 +84,7 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
 
 	for (GLuint i = 0; i < mesh->mNumFaces; i++)
 	{
-		aiFace face = mesh->mFaces[i];	
+		aiFace face = mesh->mFaces[i];
 		for (GLuint j = 0; j < face.mNumIndices; j++)
 			indices.push_back(face.mIndices[j]);
 	}
@@ -90,22 +94,22 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
 		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
 		// Diffuse maps
-		vector<Texture> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+		vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
 		// Specular maps
-		vector<Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+		vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		// Reflection maps									// aiTextureType_Reflection will not work.
-		vector<Texture>  reflectionMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_reflection");
+		// Reflection maps
+		vector<Texture>  reflectionMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_reflection");	// TODO: Check why aiTextureType_Reflection will not work.
 		textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
 	}
 
 	return Mesh(vertices, indices, textures);
 }
 
-vector<Texture> Model::LoadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
+vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
 {
 	vector<Texture> textures;
 	for (GLuint i = 0; i < mat->GetTextureCount(type); i++)

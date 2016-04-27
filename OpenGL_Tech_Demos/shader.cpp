@@ -1,6 +1,8 @@
 #include "shader.h"
 
-Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
+Shader::Shader() {}
+
+void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
 {
 	// Replace the vertex/fragment source code from filepath
 	std::string vertexCode, fragmentCode, geometryCode;

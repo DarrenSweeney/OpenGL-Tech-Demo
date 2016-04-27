@@ -191,6 +191,12 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="model.frag" />
+    <None Include="model.vert" />
+    <None Include="skybox.frag" />
+    <None Include="skybox.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

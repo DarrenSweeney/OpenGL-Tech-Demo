@@ -2,15 +2,28 @@
 #define CUBE_MAP_DEMO_H
 
 #include <vector>
-#include <GL\glew.h>
-#include <GLFW\glfw3.h>
+#include "camera.h"
+#include <SOIL/SOIL.h>
+#include "Math/vector3.h"
+#include "shader.h"
+#include "model.h"
 
 class CubeMapDemo
 {
 public:
 	CubeMapDemo();
+	~CubeMapDemo();
+	void InitalizeScene();
+	void UpdateScene();
+	Camera camera;
 
 private:
+	GLuint skyboxVAO, skyboxVBO;
+	std::vector<const GLchar*> faces;
+	GLuint cubeMapTexture;
+	Shader shaderModel, shaderSkyBox;
+	Model modelUtahTeaPot;
+
 	GLuint LoadCubeMap(std::vector<const GLchar*> faces);
 };
 

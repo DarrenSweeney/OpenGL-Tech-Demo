@@ -1,15 +1,27 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <string>
+#include <string>	
 #include <vector>
-#include <GL/glew.h>
+
 #include <assimp\Importer.hpp>
-#include "Math\vector2.h"
-#include "Math\vector3.h"
+
+#include "math/vector3.h"
+#include "math/vector2.h"
 #include "shader.h"
 
 using namespace std;
+
+/*
+A struct memory layout is sequential.
+If we have a filled Vertex struct its memory layout would be equal to:
+
+Vertex vertex;
+vertex.Position = glm::vec3(0.2f, 0.4f, 0.6f);
+vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+vertex.TexCoords = glm::vec2(1.0f, 0.0f);
+// = [0.2f, 0.4f, 0.6f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f];
+*/
 
 struct Vertex
 {
@@ -33,14 +45,14 @@ public:
 	vector<GLuint> indices;
 	vector<Texture> textures;
 
-	Mesh(vector<Vertex> _verticies, vector<GLuint> _indices, vector<Texture> _textures);
+	// Functions
+	Mesh(vector<Vertex> verticies, vector<GLuint> indices, vector<Texture> textures);
 	void Draw(Shader shader);
 
 private:
 	// Render Data
 	GLuint VAO, VBO, EBO;
-
-	void SetUpMesh();
+	// Functions
+	void setupMesh();
 };
-
 #endif

@@ -110,9 +110,6 @@
     <ClInclude Include="shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -131,5 +128,14 @@
     <ClInclude Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\glcorearb.h">
       <Filter>gl3w</Filter>
     </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="model.vert" />
+    <None Include="model.frag" />
+    <None Include="skybox.vert" />
+    <None Include="skybox.frag" />
   </ItemGroup>
 </Project>

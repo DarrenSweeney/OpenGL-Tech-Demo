@@ -16,17 +16,20 @@ Matrix4 &Camera::Camera::GetViewMatrix()
 	return view.lookAt(position, position + frontVec, upVec);
 }
 
+const float Speed = 8.0f;
 void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 {
 	GLfloat velocity = movementSpeed * deltaTime;
 	if (keys[GLFW_KEY_W])
-		position += frontVec * velocity;
+		position += (frontVec * velocity) * Speed;
 	if (keys[GLFW_KEY_S])
-		position -= frontVec * velocity;
+		position -= (frontVec * velocity) * Speed;
 	if (keys[GLFW_KEY_A])
-		position -= (frontVec.vectorProduct(upVec).normalise() * velocity);
+		position -= (frontVec.vectorProduct(upVec).normalise() * velocity) * Speed;
 	if (keys[GLFW_KEY_D])
-		position += (frontVec.vectorProduct(upVec).normalise() * velocity);
+		position += (frontVec.vectorProduct(upVec).normalise() * velocity) * Speed;
+
+	UpdateCameraVectors();
 }
 
 const float SPEED = 5.3f;
@@ -102,7 +105,7 @@ GLfloat DegressToRadians(GLfloat degrees)
 void Camera::UpdateCameraVectors()
 {
 	vector3 frontVec;
-	frontVec.x = cos(DegressToRadians(yaw)) * sin(DegressToRadians(pitch));
+	frontVec.x = cos(DegressToRadians(yaw)) * cos(DegressToRadians(pitch));
 	frontVec.y = sin(DegressToRadians(pitch));
 	frontVec.z = sin(DegressToRadians(yaw)) * cos(DegressToRadians(pitch));
 	frontVec.normalise();
