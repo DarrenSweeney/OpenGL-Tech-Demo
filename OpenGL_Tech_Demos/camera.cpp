@@ -52,9 +52,9 @@ void Camera::ControllerMovement()
 
 		// Camera - Right Stick.
 		if (axis[2] > 0.3 || axis[2] < -0.3)
-			yaw += axis[2] * (SPEED / 2.9f);
+			yaw += axis[2] * (SPEED / 15.0f);
 		if (axis[3] > 0.3 || axis[3] < -0.3)
-			pitch -= axis[3] * (SPEED / 2.9f);
+			pitch -= axis[3] * (SPEED / 15.0f);
 
 		if (axis[4] > 0.3)	// R2
 			zoom -= 0.01f;

@@ -97,6 +97,9 @@ void CubeMapDemo::InitalizeScene()
 	faces.push_back("Resources/skybox/front.jpg");
 
 	cubeMapTexture = LoadCubeMap(faces);
+
+	// Cull the back face of the utah-tea pot.
+	glEnable(GL_CULL_FACE);
 }
 
 // TODO(Darren): Will need to take out camera and put in main class.
@@ -110,7 +113,7 @@ void CubeMapDemo::UpdateScene()
 	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 projection;
-	projection = projection.perspectiveProjection(camera.zoom, (float)1100 / (float)600, 0.1f, 100.0f);
+	projection = projection.perspectiveProjection(camera.zoom, (float)1100 / (float)600, 0.1f, 1000.0f);
 	Matrix4 model;
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "projection"), 1, GL_FALSE, projection.data);
@@ -149,7 +152,7 @@ GLuint CubeMapDemo::LoadCubeMap(std::vector<const GLchar*> faces)
 
 	int width, height;
 	unsigned char* image;
-	
+
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	for (int i = 0; i < faces.size(); i++)
 	{
@@ -168,7 +171,3 @@ GLuint CubeMapDemo::LoadCubeMap(std::vector<const GLchar*> faces)
 
 	return textureID;
 }
-
-/*
-	TODO(Darren): Create a keycall back function for this demo.
-*/

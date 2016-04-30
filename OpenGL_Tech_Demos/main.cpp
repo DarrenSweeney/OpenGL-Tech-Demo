@@ -33,6 +33,7 @@ void Do_Movement();
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
+bool activeCamera;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
@@ -67,6 +68,7 @@ int main(int, char**)
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", NULL, NULL);
 
+	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
@@ -84,7 +86,7 @@ int main(int, char**)
 	}
 
     // Setup ImGui binding
-	// Set the install_callbacks to false as i am seeting up the GLFW input callbacks myself above.
+	// Set the install_callbacks to false as i am setting up the GLFW input callbacks myself above.
     ImGui_ImplGlfwGL3_Init(window, false);
 
 	bool windowOpened = true;
@@ -105,6 +107,7 @@ int main(int, char**)
 
         glfwPollEvents();
 		Do_Movement();
+		cubeMapDemo.camera.ControllerMovement();
 
         ImGui_ImplGlfwGL3_NewFrame();
 
@@ -241,7 +244,8 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos)
 	lastX = xPos;
 	lastY = yPos;
 
-	cubeMapDemo.camera.MouseMovement(xOffset, yOffset);
+	if(activeCamera)
+		cubeMapDemo.camera.MouseMovement(xOffset, yOffset);
 }
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 {
@@ -251,7 +255,9 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-		std::cout << "Input" << std::endl;
+		activeCamera = true;
+	else
+		activeCamera = false;
 }
 
 #pragma endregion
