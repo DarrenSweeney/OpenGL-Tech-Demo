@@ -8,7 +8,7 @@
 CubeMapDemo::CubeMapDemo()
 	: camera(vector3(0.0f, 0.0f, 70.0f))
 {
-	//InitalizeScene();
+	
 }
 
 CubeMapDemo::~CubeMapDemo()
@@ -70,7 +70,10 @@ void CubeMapDemo::InitalizeScene()
 
 	// Setup some OpenGL opitions
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LESS);	// Note(Darren): Do i need this???
+
+	// Cull the back face of the utah-tea pot.
+	glEnable(GL_CULL_FACE);
 
 	shaderModel.InitShader("model.vert", "model.frag");
 	shaderSkyBox.InitShader("skybox.vert", "skybox.frag");
@@ -97,17 +100,11 @@ void CubeMapDemo::InitalizeScene()
 	faces.push_back("Resources/skybox/front.jpg");
 
 	cubeMapTexture = LoadCubeMap(faces);
-
-	// Cull the back face of the utah-tea pot.
-	glEnable(GL_CULL_FACE);
 }
 
 // TODO(Darren): Will need to take out camera and put in main class.
 void CubeMapDemo::UpdateScene()
 {
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	camera.ControllerMovement();
 
 	shaderModel.Use();

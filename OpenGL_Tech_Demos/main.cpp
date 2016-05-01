@@ -3,6 +3,7 @@
 // Cube Map Demo
 // NOTE(Darren): May seperate these from the main class.
 #include "CubeMapDemo.h"
+#include "ShadowMapping.h"
 
 #include "Imgui\imgui.h"
 #include "imgui_impl_glfw_gl3.h"
@@ -21,6 +22,8 @@
 #include "math.h"
 
 #include <SOIL\SOIL.h>
+
+// TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
 
 GLuint screenWidth = 1100, screenHeight = 600;
 
@@ -45,6 +48,7 @@ static void error_callback(int error, const char* description)
 
 // Demos
 CubeMapDemo cubeMapDemo;
+ShadowMapping shadowMappingDemo;
 
 int main(int, char**)
 {
@@ -92,10 +96,10 @@ int main(int, char**)
 	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
 
-	cubeMapDemo.InitalizeScene();
-
-	// TODO(Darren): Need to cull faces.
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//cubeMapDemo.InitalizeScene();
+	shadowMappingDemo.InitalizeScene();
+	
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -105,9 +109,13 @@ int main(int, char**)
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		glClearColor(0.3f, 0.4f, 0.7f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glfwPollEvents();
 		Do_Movement();
-		cubeMapDemo.camera.ControllerMovement();
+		//cubeMapDemo.camera.ControllerMovement();
+		shadowMappingDemo.camera.ControllerMovement();
 
         ImGui_ImplGlfwGL3_NewFrame();
 
@@ -175,15 +183,16 @@ int main(int, char**)
 		ImGui::End();
 #pragma endregion		
 
-		// Rendering
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT);
+		//// Rendering
+		//int display_w, display_h;
+		//glfwGetFramebufferSize(window, &display_w, &display_h);
+		//glViewport(0, 0, display_w, display_h);
+		//glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+		//glClear(GL_COLOR_BUFFER_BIT);
 
 		// Render the demo scenes.
-		cubeMapDemo.UpdateScene();
+		//cubeMapDemo.UpdateScene();
+		shadowMappingDemo.UpdateScene();
 
 		// Render the UI.
 		ImGui::Render();
@@ -219,7 +228,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void Do_Movement()
 {
-	cubeMapDemo.camera.KeyboardMovement(keys, deltaTime);
+	//cubeMapDemo.camera.KeyboardMovement(keys, deltaTime);
+	shadowMappingDemo.camera.KeyboardMovement(keys, deltaTime);
 }
 
 bool first_entered_window = true;
@@ -245,16 +255,17 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos)
 	lastY = yPos;
 
 	if(activeCamera)
-		cubeMapDemo.camera.MouseMovement(xOffset, yOffset);
+		shadowMappingDemo.camera.MouseMovement(xOffset, yOffset);
 }
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 {
-	cubeMapDemo.camera.MouseScroll(yOffset);
+	//cubeMapDemo.camera.MouseScroll(yOffset);
+	shadowMappingDemo.camera.MouseScroll(yOffset);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && action == GLFW_PRESS)
 		activeCamera = true;
 	else
 		activeCamera = false;

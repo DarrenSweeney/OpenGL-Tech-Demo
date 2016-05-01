@@ -169,6 +169,7 @@
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="ShadowMapping.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\gl3w.h" />
@@ -190,10 +191,17 @@
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="ShadowMapping.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="debugQuadDepth.frag" />
+    <None Include="debugQuadDepth.vert" />
     <None Include="model.frag" />
     <None Include="model.vert" />
+    <None Include="ShadowMapping.frag" />
+    <None Include="ShadowMapping.vert" />
+    <None Include="ShadowMappingDepth.frag" />
+    <None Include="ShadowMappingDepth.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
   </ItemGroup>

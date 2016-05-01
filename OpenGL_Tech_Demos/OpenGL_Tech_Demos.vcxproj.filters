@@ -72,6 +72,9 @@
     <ClCompile Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\gl3w.c">
       <Filter>gl3w</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowMapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -131,11 +134,20 @@
     <ClInclude Include="mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="model.vert" />
     <None Include="model.frag" />
     <None Include="skybox.vert" />
     <None Include="skybox.frag" />
+    <None Include="ShadowMappingDepth.vert" />
+    <None Include="ShadowMappingDepth.frag" />
+    <None Include="debugQuadDepth.vert" />
+    <None Include="debugQuadDepth.frag" />
+    <None Include="ShadowMapping.vert" />
+    <None Include="ShadowMapping.frag" />
   </ItemGroup>
 </Project>
