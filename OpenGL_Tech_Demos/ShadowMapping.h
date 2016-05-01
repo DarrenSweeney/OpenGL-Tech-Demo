@@ -25,6 +25,8 @@ private:
 	const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	GLuint depthMap, depthMapFBO;
 	GLuint planeVAO, planeVBO;
+	GLuint cubeVAO, cubeVBO;
+	GLuint quadVAO, quadVBO;
 
 	void RenderScene(Shader &shader);
 	void RenderQuad();

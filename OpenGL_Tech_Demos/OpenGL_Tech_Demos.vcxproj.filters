@@ -75,6 +75,9 @@
     <ClCompile Include="ShadowMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HDR_Demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -137,6 +140,9 @@
     <ClInclude Include="ShadowMapping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HDR_Demo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="model.vert" />
@@ -149,5 +155,9 @@
     <None Include="debugQuadDepth.frag" />
     <None Include="ShadowMapping.vert" />
     <None Include="ShadowMapping.frag" />
+    <None Include="HDR.vert" />
+    <None Include="HDR.frag" />
+    <None Include="BlinnPhong.vert" />
+    <None Include="BlinnPhong.frag" />
   </ItemGroup>
 </Project>

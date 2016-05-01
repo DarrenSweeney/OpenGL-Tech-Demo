@@ -156,6 +156,7 @@
     <ClCompile Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\gl3w.c" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="CubeMapDemo.cpp" />
+    <ClCompile Include="HDR_Demo.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\glcorearb.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="CubeMapDemo.h" />
+    <ClInclude Include="HDR_Demo.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
@@ -194,8 +196,12 @@
     <ClInclude Include="ShadowMapping.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BlinnPhong.frag" />
+    <None Include="BlinnPhong.vert" />
     <None Include="debugQuadDepth.frag" />
     <None Include="debugQuadDepth.vert" />
+    <None Include="HDR.frag" />
+    <None Include="HDR.vert" />
     <None Include="model.frag" />
     <None Include="model.vert" />
     <None Include="ShadowMapping.frag" />

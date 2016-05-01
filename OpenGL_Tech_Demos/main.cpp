@@ -4,6 +4,7 @@
 // NOTE(Darren): May seperate these from the main class.
 #include "CubeMapDemo.h"
 #include "ShadowMapping.h"
+#include "HDR_Demo.h"
 
 #include "Imgui\imgui.h"
 #include "imgui_impl_glfw_gl3.h"
@@ -49,6 +50,7 @@ static void error_callback(int error, const char* description)
 // Demos
 CubeMapDemo cubeMapDemo;
 ShadowMapping shadowMappingDemo;
+HDR_DEMO hdrDemo;
 
 int main(int, char**)
 {
@@ -96,10 +98,12 @@ int main(int, char**)
 	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
 
+	// *** SCENES ***
 	//cubeMapDemo.InitalizeScene();
-	shadowMappingDemo.InitalizeScene();
+	//shadowMappingDemo.InitalizeScene();
+	hdrDemo.InitalizeScene();
 	
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -157,12 +161,12 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("HDR Lighting"))
 			{
-				// --- 
+				ImGui::Button("HDR Demo");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Shadow Maps"))
 			{
-				// --- 
+				ImGui::Button("Directional Shadow Mapping Demo");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("SSAO"))
@@ -178,21 +182,24 @@ int main(int, char**)
 		}
 		if (ImGui::CollapsingHeader("Info", 0, true, true))
 		{
-			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
+			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\
+							nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
 		ImGui::End();
 #pragma endregion		
 
-		//// Rendering
-		//int display_w, display_h;
-		//glfwGetFramebufferSize(window, &display_w, &display_h);
-		//glViewport(0, 0, display_w, display_h);
-		//glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-		//glClear(GL_COLOR_BUFFER_BIT);
+		// Rendering
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+		glClear(GL_COLOR_BUFFER_BIT);
 
+		// *** SCENES ***
 		// Render the demo scenes.
 		//cubeMapDemo.UpdateScene();
-		shadowMappingDemo.UpdateScene();
+		//shadowMappingDemo.UpdateScene();
+		hdrDemo.UpdateScene();
 
 		// Render the UI.
 		ImGui::Render();
@@ -229,7 +236,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void Do_Movement()
 {
 	//cubeMapDemo.camera.KeyboardMovement(keys, deltaTime);
-	shadowMappingDemo.camera.KeyboardMovement(keys, deltaTime);
+	hdrDemo.camera.KeyboardMovement(keys, deltaTime);
 }
 
 bool first_entered_window = true;
@@ -255,12 +262,12 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos)
 	lastY = yPos;
 
 	if(activeCamera)
-		shadowMappingDemo.camera.MouseMovement(xOffset, yOffset);
+		hdrDemo.camera.MouseMovement(xOffset, yOffset);
 }
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 {
 	//cubeMapDemo.camera.MouseScroll(yOffset);
-	shadowMappingDemo.camera.MouseScroll(yOffset);
+	hdrDemo.camera.MouseScroll(yOffset);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

@@ -175,8 +175,6 @@ void ShadowMapping::RenderScene(Shader &shader)
 
 // RenderQuad() Renders a 1x1 quad in NDC, best used for framebuffer color targets
 // and post-processing effects.
-GLuint quadVAO = 0;
-GLuint quadVBO;
 void ShadowMapping::RenderQuad()
 {
 	if (quadVAO == 0)
@@ -205,8 +203,6 @@ void ShadowMapping::RenderQuad()
 }
 
 // RenderCube() Renders a 1x1 3D cube in NDC.
-GLuint cubeVAO = 0;
-GLuint cubeVBO = 0;
 void ShadowMapping::RenderCube()
 {
 	// Initialize (if necessary)
