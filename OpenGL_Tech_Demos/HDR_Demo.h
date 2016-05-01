@@ -17,12 +17,11 @@ public:
 	HDR_DEMO();
 	~HDR_DEMO();
 	void InitalizeScene();
-	void UpdateScene();
-	Camera camera;
+	void UpdateScene(Camera &camera);
 
 private:
 	GLboolean hrd = true;
-	GLfloat exposure = 5.0f;
+	GLfloat exposure = 0.05f;
 	Shader shaderBlinnPhong, shaderHDR;
 	GLuint woodTexture, endTexture;
 	//std::vector<vector3> lightPositions;

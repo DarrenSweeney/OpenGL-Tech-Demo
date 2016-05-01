@@ -75,8 +75,8 @@ void CubeMapDemo::InitalizeScene()
 	// Cull the back face of the utah-tea pot.
 	glEnable(GL_CULL_FACE);
 
-	shaderModel.InitShader("model.vert", "model.frag");
-	shaderSkyBox.InitShader("skybox.vert", "skybox.frag");
+	shaderModel.InitShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
+	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
 	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
 
 	glGenVertexArrays(1, &skyboxVAO);

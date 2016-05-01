@@ -1,7 +1,6 @@
 #include "HDR_Demo.h"
 
 HDR_DEMO::HDR_DEMO()
-	: camera(vector3(0.0f, 0.0f, 3.0f))
 {
 
 }
@@ -26,8 +25,8 @@ void HDR_DEMO::InitalizeScene()
 	lightColors.push_back(glm::vec3(0.0f, 0.1f, 0.0f));
 
 	// Load textures
-	woodTexture = LoadTexture("brickwall.jpg");
-	endTexture = LoadTexture("marble.jpg");
+	woodTexture = LoadTexture("Resources/brickwall.jpg");
+	endTexture = LoadTexture("Resources/marble.jpg");
 
 	// Set up floating point framebuffer to render scene to
 	glGenFramebuffers(1, &hdrFBO);
@@ -49,11 +48,11 @@ void HDR_DEMO::InitalizeScene()
 		std::cout << "Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	shaderBlinnPhong.InitShader("BlinnPhong.vert", "BlinnPhong.frag");
-	shaderHDR.InitShader("HDR.vert", "HDR.frag");
+	shaderBlinnPhong.InitShader("Shaders/HDR_Demo/BlinnPhong.vert", "Shaders/HDR_Demo/BlinnPhong.frag");
+	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
 }
 
-void HDR_DEMO::UpdateScene()
+void HDR_DEMO::UpdateScene(Camera &camera)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -61,9 +60,12 @@ void HDR_DEMO::UpdateScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
+	Matrix4 _projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
 	Matrix4 view = camera.GetViewMatrix();
-	glm::mat4 model;
+	//glm::mat4 model;
+	Matrix4 model;
 	shaderBlinnPhong.Use();
+	// &_projection.data[0]
 	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "view"), 1, GL_FALSE, view.data);
 	glActiveTexture(GL_TEXTURE0);
@@ -77,10 +79,10 @@ void HDR_DEMO::UpdateScene()
 	float data[] = { camera.position.x, camera.position.y, camera.position.z };
 	glUniform3fv(glGetUniformLocation(shaderBlinnPhong.Program, "viewPos"), 1, &data[0]);
 	// - render tunnel
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 25.0));
-	model = glm::scale(model, glm::vec3(5.0f, 5.0f, 55.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	model = model.translate(vector3(0.0f, 0.0f, 25.0f));
+	model = model.scale(vector3(5.0f, 5.0f, 55.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glUniform1i(glGetUniformLocation(shaderBlinnPhong.Program, "inverse_normals"), GL_TRUE);
 	RenderCube();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

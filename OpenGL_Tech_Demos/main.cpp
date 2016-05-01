@@ -1,10 +1,9 @@
-
-
-// Cube Map Demo
 // NOTE(Darren): May seperate these from the main class.
 #include "CubeMapDemo.h"
 #include "ShadowMapping.h"
 #include "HDR_Demo.h"
+
+#include "camera.h"
 
 #include "Imgui\imgui.h"
 #include "imgui_impl_glfw_gl3.h"
@@ -41,6 +40,8 @@ bool activeCamera;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
+
+Camera camera(vector3(0.0f, 0.0f, 0.0f));
 
 static void error_callback(int error, const char* description)
 {
@@ -162,6 +163,8 @@ int main(int, char**)
 			if (ImGui::TreeNode("HDR Lighting"))
 			{
 				ImGui::Button("HDR Demo");
+				float f1 = 0.1f;
+				ImGui::SliderFloat("Exposure", &f1, 0.0f, 5.0f, "ratio = %.3f");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Shadow Maps"))
@@ -182,8 +185,7 @@ int main(int, char**)
 		}
 		if (ImGui::CollapsingHeader("Info", 0, true, true))
 		{
-			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\
-							nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
+			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
 		ImGui::End();
 #pragma endregion		
@@ -199,7 +201,7 @@ int main(int, char**)
 		// Render the demo scenes.
 		//cubeMapDemo.UpdateScene();
 		//shadowMappingDemo.UpdateScene();
-		hdrDemo.UpdateScene();
+		hdrDemo.UpdateScene(camera);
 
 		// Render the UI.
 		ImGui::Render();
@@ -236,7 +238,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void Do_Movement()
 {
 	//cubeMapDemo.camera.KeyboardMovement(keys, deltaTime);
-	hdrDemo.camera.KeyboardMovement(keys, deltaTime);
+	camera.KeyboardMovement(keys, deltaTime);
 }
 
 bool first_entered_window = true;
@@ -262,12 +264,12 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos)
 	lastY = yPos;
 
 	if(activeCamera)
-		hdrDemo.camera.MouseMovement(xOffset, yOffset);
+		camera.MouseMovement(xOffset, yOffset);
 }
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 {
 	//cubeMapDemo.camera.MouseScroll(yOffset);
-	hdrDemo.camera.MouseScroll(yOffset);
+	camera.MouseScroll(yOffset);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

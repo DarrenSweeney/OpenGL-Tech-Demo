@@ -25,9 +25,9 @@ void ShadowMapping::InitalizeScene()
 	glEnable(GL_CULL_FACE);
 
 	// Set up and compile shaders.
-	shaderDepth.InitShader("ShadowMappingDepth.vert", "ShadowMappingDepth.frag");
-	shaderDebugQuad.InitShader("debugQuadDepth.vert", "debugQuadDepth.frag");
-	shaderShadowMap.InitShader("ShadowMapping.vert", "ShadowMapping.frag");
+	shaderDepth.InitShader("Shaders/ShadowMapping/ShadowMappingDepth.vert", "Shaders/ShadowMapping/ShadowMappingDepth.frag");
+	shaderDebugQuad.InitShader("Shaders/ShadowMapping/debugQuadDepth.vert", "Shaders/ShadowMapping/debugQuadDepth.frag");
+	shaderShadowMap.InitShader("Shaders/ShadowMapping/ShadowMapping.vert", "Shaders/ShadowMapping/ShadowMapping.frag");
 
 	// Pass in uniforms
 	shaderShadowMap.Use();
