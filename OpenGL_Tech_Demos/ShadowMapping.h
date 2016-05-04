@@ -12,8 +12,7 @@ public:
 	ShadowMapping();
 	~ShadowMapping();
 	void InitalizeScene();
-	void UpdateScene();
-	Camera camera;
+	void UpdateScene(Camera &camera);
 
 private:
 	Shader shaderDepth, shaderShadowMap;

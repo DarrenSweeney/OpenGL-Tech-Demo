@@ -54,13 +54,16 @@ void HDR_DEMO::InitalizeScene()
 
 void HDR_DEMO::UpdateScene(Camera &camera)
 {
+	camera.ControllerMovement();
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 1. Render scene into floating point framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
-	Matrix4 _projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
+	Matrix4 _projection;
+	_projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
 	Matrix4 view = camera.GetViewMatrix();
 	//glm::mat4 model;
 	Matrix4 model;

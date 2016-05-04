@@ -103,8 +103,11 @@ int main(int, char**)
 	//cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
 	hdrDemo.InitalizeScene();
+
+	// ImGui
+	float f1 = 0.1f;
 	
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -119,8 +122,6 @@ int main(int, char**)
 
         glfwPollEvents();
 		Do_Movement();
-		//cubeMapDemo.camera.ControllerMovement();
-		shadowMappingDemo.camera.ControllerMovement();
 
         ImGui_ImplGlfwGL3_NewFrame();
 
@@ -163,8 +164,7 @@ int main(int, char**)
 			if (ImGui::TreeNode("HDR Lighting"))
 			{
 				ImGui::Button("HDR Demo");
-				float f1 = 0.1f;
-				ImGui::SliderFloat("Exposure", &f1, 0.0f, 5.0f, "ratio = %.3f");
+				ImGui::SliderFloat("Exposure", &f1, 0.0f, 5.0f, "%.3f");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Shadow Maps"))
@@ -199,8 +199,8 @@ int main(int, char**)
 
 		// *** SCENES ***
 		// Render the demo scenes.
-		//cubeMapDemo.UpdateScene();
-		//shadowMappingDemo.UpdateScene();
+		//cubeMapDemo.UpdateScene(camera);
+		//shadowMappingDemo.UpdateScene(camera);
 		hdrDemo.UpdateScene(camera);
 
 		// Render the UI.
@@ -268,13 +268,12 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos)
 }
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 {
-	//cubeMapDemo.camera.MouseScroll(yOffset);
 	camera.MouseScroll(yOffset);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && action == GLFW_PRESS)
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
 		activeCamera = true;
 	else
 		activeCamera = false;

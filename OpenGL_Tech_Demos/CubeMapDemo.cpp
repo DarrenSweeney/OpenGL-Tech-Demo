@@ -6,7 +6,6 @@
 */
 
 CubeMapDemo::CubeMapDemo()
-	: camera(vector3(0.0f, 0.0f, 70.0f))
 {
 	
 }
@@ -77,7 +76,7 @@ void CubeMapDemo::InitalizeScene()
 
 	shaderModel.InitShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
 	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
-	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
+	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");	//"Resources/utah-teapot.obj"
 
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
@@ -92,18 +91,25 @@ void CubeMapDemo::InitalizeScene()
 		Order is based on the Layered Rendering specfic order.
 		https://www.opengl.org/wiki/Cubemap_Texture
 	*/
-	faces.push_back("Resources/skybox/right.jpg");
-	faces.push_back("Resources/skybox/left.jpg");
-	faces.push_back("Resources/skybox/top.jpg");
-	faces.push_back("Resources/skybox/bottom.jpg");
-	faces.push_back("Resources/skybox/back.jpg");
-	faces.push_back("Resources/skybox/front.jpg");
+	faces.push_back("Resources/skybox/posx.jpg");
+	faces.push_back("Resources/skybox/negx.jpg");
+	faces.push_back("Resources/skybox/posy.jpg");
+	faces.push_back("Resources/skybox/negy.jpg");
+	faces.push_back("Resources/skybox/posz.jpg");
+	faces.push_back("Resources/skybox/negz.jpg");
+
+	//faces.push_back("Resources/skybox/right.jpg");
+	//faces.push_back("Resources/skybox/left.jpg");
+	//faces.push_back("Resources/skybox/top.jpg");
+	//faces.push_back("Resources/skybox/bottom.jpg");
+	//faces.push_back("Resources/skybox/back.jpg");
+	//faces.push_back("Resources/skybox/front.jpg");
 
 	cubeMapTexture = LoadCubeMap(faces);
 }
 
 // TODO(Darren): Will need to take out camera and put in main class.
-void CubeMapDemo::UpdateScene()
+void CubeMapDemo::UpdateScene(Camera &camera)
 {
 	camera.ControllerMovement();
 
@@ -112,6 +118,7 @@ void CubeMapDemo::UpdateScene()
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (float)1100 / (float)600, 0.1f, 1000.0f);
 	Matrix4 model;
+	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "projection"), 1, GL_FALSE, projection.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);

@@ -234,6 +234,14 @@ Matrix4 &Matrix4::perspectiveProjection(float fov, float aspectRatio, float near
 	
 	setFrustrum(-width, width, -height, height, nearPlane, farPlane);
 
+	//const float tanHalfFOV = tanf(fov / 2.0);
+	//// http://www.ogldev.org/www/tutorial12/tutorial12.html
+	//data[0] = 1.0f / (tanHalfFOV * aspectRatio);
+	//data[5] = 1.0f / tanHalfFOV;
+	//data[10] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+	//data[11] = -1.0f;
+	//data[14] = -(2.0f * farPlane * nearPlane) / (farPlane - nearPlane);
+
 	return *this;
 }
 

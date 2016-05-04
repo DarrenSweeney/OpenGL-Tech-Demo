@@ -7,7 +7,6 @@
 
 
 ShadowMapping::ShadowMapping()
-	: camera(vector3(0.0f, 0.0f, 3.0f))
 {
 
 }
@@ -25,9 +24,9 @@ void ShadowMapping::InitalizeScene()
 	glEnable(GL_CULL_FACE);
 
 	// Set up and compile shaders.
-	shaderDepth.InitShader("Shaders/ShadowMapping/ShadowMappingDepth.vert", "Shaders/ShadowMapping/ShadowMappingDepth.frag");
-	shaderDebugQuad.InitShader("Shaders/ShadowMapping/debugQuadDepth.vert", "Shaders/ShadowMapping/debugQuadDepth.frag");
-	shaderShadowMap.InitShader("Shaders/ShadowMapping/ShadowMapping.vert", "Shaders/ShadowMapping/ShadowMapping.frag");
+	shaderDepth.InitShader("Shaders/ShadowMapDemo/ShadowMappingDepth.vert", "Shaders/ShadowMapDemo/ShadowMappingDepth.frag");
+	shaderDebugQuad.InitShader("Shaders/ShadowMapDemo/debugQuadDepth.vert", "Shaders/ShadowMapDemo/debugQuadDepth.frag");
+	shaderShadowMap.InitShader("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag");
 
 	// Pass in uniforms
 	shaderShadowMap.Use();
@@ -67,10 +66,10 @@ void ShadowMapping::InitalizeScene()
 	cubeTexture = LoadTexture("Resources/grid.png", false);
 
 	// Configure depth map FBO
-	GLuint depthMapFBO;
+	depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
 	// - Create depth texture
-	GLuint depthMap;
+	depthMap;
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 
@@ -89,14 +88,14 @@ void ShadowMapping::InitalizeScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapping::UpdateScene()
+void ShadowMapping::UpdateScene(Camera &camera)
 {
 	camera.ControllerMovement();
 
 	// Change light position over time
-	lightPosition.x = sin(glfwGetTime()) * 3.0f;
-	lightPosition.z = cos(glfwGetTime()) * 2.0f;
-	lightPosition.y = 5.0 + cos(glfwGetTime()) * 1.0f;
+	//lightPosition.x = sin(glfwGetTime()) * 3.0f;
+	//lightPosition.z = cos(glfwGetTime()) * 2.0f;
+	//lightPosition.y = 5.0 + cos(glfwGetTime()) * 1.0f;
 
 	// 1. Render depth of scene to texture (from ligth's perspective)
 	// - Get light projection/view matrix.
@@ -121,6 +120,7 @@ void ShadowMapping::UpdateScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderShadowMap.Use();
 	glm::mat4 projection = glm::perspective(camera.zoom, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+	Matrix4 _projection = _projection.perspectiveProjection(camera.zoom, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
 	//glm::mat4 view = camera.getViewMatrix();
 	Matrix4 view = camera.GetViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(shaderShadowMap.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -136,12 +136,12 @@ void ShadowMapping::UpdateScene()
 	RenderScene(shaderShadowMap);
 
 	// 3. DEBUG: visualize depth map by rendering it to plane
-	/*shaderDebugQuad.Use();
+	shaderDebugQuad.Use();
 	glUniform1f(glGetUniformLocation(shaderDebugQuad.Program, "near_plane"), near_plane);
 	glUniform1f(glGetUniformLocation(shaderDebugQuad.Program, "far_plane"), far_plane);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	RenderQuad();*/
+	RenderQuad();
 }
 
 void ShadowMapping::RenderScene(Shader &shader)
@@ -181,10 +181,10 @@ void ShadowMapping::RenderQuad()
 	{
 		GLfloat quadVertices[] = {
 			// Positions        // Texture Coords
-			-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-			1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
-			1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+			0.35f,  -0.35f, 0.0f,  0.0f, 1.0f,	// 
+			0.35f, -0.95f, 0.0f,  0.0f, 0.0f,	// 
+			0.95f,  -0.35f, 0.0f,  1.0f, 1.0f,		// 
+			0.95f, -0.95f, 0.0f,  1.0f, 0.0f,		// 
 		};
 		// Setup plane VAO
 		glGenVertexArrays(1, &quadVAO);
