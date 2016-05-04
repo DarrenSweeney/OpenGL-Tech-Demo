@@ -64,9 +64,6 @@ void CubeMapDemo::InitalizeScene()
 	};
 #pragma endregion 
 
-	// Define the viewports dimensions
-	glViewport(0, 0, 1100, 600);
-
 	// Setup some OpenGL opitions
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);	// Note(Darren): Do i need this???
@@ -109,14 +106,14 @@ void CubeMapDemo::InitalizeScene()
 }
 
 // TODO(Darren): Will need to take out camera and put in main class.
-void CubeMapDemo::UpdateScene(Camera &camera)
+void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	camera.ControllerMovement();
 
 	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 projection;
-	projection = projection.perspectiveProjection(camera.zoom, (float)1100 / (float)600, 0.1f, 1000.0f);
+	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
 	Matrix4 model;
 	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "view"), 1, GL_FALSE, view.data);

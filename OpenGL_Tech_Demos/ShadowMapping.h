@@ -12,15 +12,13 @@ public:
 	ShadowMapping();
 	~ShadowMapping();
 	void InitalizeScene();
-	void UpdateScene(Camera &camera);
+	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
 	Shader shaderDepth, shaderShadowMap;
 	Shader shaderDebugQuad;
 	vector3 lightPosition;
 	GLuint floorTexture, cubeTexture;
-	int SCREEN_WIDTH = 1100;
-	int SCREEN_HEIGHT = 600;
 	const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	GLuint depthMap, depthMapFBO;
 	GLuint planeVAO, planeVBO;

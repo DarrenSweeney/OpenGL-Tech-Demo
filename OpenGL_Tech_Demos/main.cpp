@@ -23,9 +23,10 @@
 
 #include <SOIL\SOIL.h>
 
-// TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
+#include <iostream>
+using namespace std;
 
-GLuint screenWidth = 1100, screenHeight = 600;
+// TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
@@ -53,9 +54,11 @@ CubeMapDemo cubeMapDemo;
 ShadowMapping shadowMappingDemo;
 HDR_DEMO hdrDemo;
 
+#define FULLSCREEN false
+
 int main(int, char**)
 {
-	GLuint screenWidth = 1100, screenHeight = 600;
+	GLsizei screenWidth = 1100, screenHeight = 600;
 
     // Setup window
     glfwSetErrorCallback(error_callback);
@@ -73,7 +76,7 @@ int main(int, char**)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", FULLSCREEN ? glfwGetPrimaryMonitor() : NULL, NULL);
 
 	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
@@ -100,9 +103,9 @@ int main(int, char**)
     ImVec4 clear_color = ImColor(114, 144, 154);
 
 	// *** SCENES ***
-	//cubeMapDemo.InitalizeScene();
+	cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
-	hdrDemo.InitalizeScene();
+	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 
 	// ImGui
 	float f1 = 0.1f;
@@ -191,17 +194,14 @@ int main(int, char**)
 #pragma endregion		
 
 		// Rendering
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
+		glViewport(0, 0, screenWidth, screenHeight);
 
 		// *** SCENES ***
 		// Render the demo scenes.
-		//cubeMapDemo.UpdateScene(camera);
-		//shadowMappingDemo.UpdateScene(camera);
-		hdrDemo.UpdateScene(camera);
+		cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
+		//shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
+		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
 
 		// Render the UI.
 		ImGui::Render();

@@ -14,7 +14,7 @@ public:
 	CubeMapDemo();
 	~CubeMapDemo();
 	void InitalizeScene();
-	void UpdateScene(Camera &camera);
+	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
 	GLuint skyboxVAO, skyboxVBO;

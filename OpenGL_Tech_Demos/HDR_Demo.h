@@ -16,8 +16,8 @@ class HDR_DEMO
 public:
 	HDR_DEMO();
 	~HDR_DEMO();
-	void InitalizeScene();
-	void UpdateScene(Camera &camera);
+	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
+	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
 	GLboolean hrd = true;

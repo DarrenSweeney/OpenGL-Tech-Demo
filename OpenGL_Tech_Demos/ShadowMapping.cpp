@@ -18,8 +18,6 @@ ShadowMapping::~ShadowMapping()
 
 void ShadowMapping::InitalizeScene()
 {
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
@@ -88,7 +86,7 @@ void ShadowMapping::InitalizeScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapping::UpdateScene(Camera &camera)
+void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	camera.ControllerMovement();
 
@@ -116,11 +114,11 @@ void ShadowMapping::UpdateScene(Camera &camera)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 2. Render scene as normal 
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glViewport(0, 0, screenWidth, screenHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderShadowMap.Use();
-	glm::mat4 projection = glm::perspective(camera.zoom, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-	Matrix4 _projection = _projection.perspectiveProjection(camera.zoom, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	Matrix4 _projection = _projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	//glm::mat4 view = camera.getViewMatrix();
 	Matrix4 view = camera.GetViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(shaderShadowMap.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));

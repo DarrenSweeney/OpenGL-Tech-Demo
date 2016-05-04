@@ -32,7 +32,7 @@ void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 	UpdateCameraVectors();
 }
 
-const float SPEED = 5.3f;
+const float SPEED = 2.3f;
 void Camera::ControllerMovement()
 {
 	// PlayStation Controller

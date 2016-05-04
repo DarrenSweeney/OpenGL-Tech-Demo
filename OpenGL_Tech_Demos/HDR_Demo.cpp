@@ -10,7 +10,7 @@ HDR_DEMO::~HDR_DEMO()
 
 }
 
-void HDR_DEMO::InitalizeScene()
+void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
 	// Light sources
 	// - Positions
@@ -33,13 +33,13 @@ void HDR_DEMO::InitalizeScene()
 	// - Create floating point color buffer
 	glGenTextures(1, &colorBuffer);
 	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 1100, 600, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenWidth, screenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// - Create depth buffer (renderbuffer)
 	glGenRenderbuffers(1, &rboDepth);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1100, 600);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
 	// - Attach buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
@@ -52,7 +52,7 @@ void HDR_DEMO::InitalizeScene()
 	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
 }
 
-void HDR_DEMO::UpdateScene(Camera &camera)
+void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	camera.ControllerMovement();
 
@@ -61,9 +61,9 @@ void HDR_DEMO::UpdateScene(Camera &camera)
 	// 1. Render scene into floating point framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
 	Matrix4 _projection;
-	_projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)1100 / (GLfloat)600, 0.1f, 100.0f);
+	_projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
 	Matrix4 view = camera.GetViewMatrix();
 	//glm::mat4 model;
 	Matrix4 model;
