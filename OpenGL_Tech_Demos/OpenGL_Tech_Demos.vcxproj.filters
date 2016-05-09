@@ -93,6 +93,9 @@
     <ClCompile Include="HDR_Demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StencilReflectionDemo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -156,6 +159,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HDR_Demo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StencilReflectionsDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -244,5 +250,7 @@
     <None Include="Shaders\CubeMapDemo\skybox.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Object.vert" />
+    <None Include="Object.frag" />
   </ItemGroup>
 </Project>

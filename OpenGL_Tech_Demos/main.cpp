@@ -2,6 +2,7 @@
 #include "CubeMapDemo.h"
 #include "ShadowMapping.h"
 #include "HDR_Demo.h"
+#include "StencilReflectionsDemo.h"
 
 #include "camera.h"
 
@@ -22,9 +23,6 @@
 #include "math.h"
 
 #include <SOIL\SOIL.h>
-
-#include <iostream>
-using namespace std;
 
 // TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
 
@@ -53,6 +51,7 @@ static void error_callback(int error, const char* description)
 CubeMapDemo cubeMapDemo;
 ShadowMapping shadowMappingDemo;
 HDR_DEMO hdrDemo;
+StencilReflectionDemo stencilReflectionDemo;
 
 #define FULLSCREEN false
 
@@ -103,9 +102,10 @@ int main(int, char**)
     ImVec4 clear_color = ImColor(114, 144, 154);
 
 	// *** SCENES ***
-	cubeMapDemo.InitalizeScene();
-	//shadowMappingDemo.InitalizeScene();
+	//cubeMapDemo.InitalizeScene();
+	// shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	stencilReflectionDemo.InitalizeScene();
 
 	// ImGui
 	float f1 = 0.1f;
@@ -199,9 +199,10 @@ int main(int, char**)
 
 		// *** SCENES ***
 		// Render the demo scenes.
-		cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
+		//cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
+		stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
 
 		// Render the UI.
 		ImGui::Render();

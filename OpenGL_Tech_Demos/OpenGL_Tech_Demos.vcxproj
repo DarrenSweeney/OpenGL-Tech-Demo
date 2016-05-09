@@ -171,6 +171,7 @@
     <ClCompile Include="model.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="ShadowMapping.cpp" />
+    <ClCompile Include="StencilReflectionDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\gl3w.h" />
@@ -194,6 +195,7 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShadowMapping.h" />
+    <ClInclude Include="StencilReflectionsDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BlinnPhong.frag" />
@@ -204,6 +206,8 @@
     <None Include="HDR.vert" />
     <None Include="model.frag" />
     <None Include="model.vert" />
+    <None Include="Object.frag" />
+    <None Include="Object.vert" />
     <None Include="Shaders\CubeMapDemo\model.frag" />
     <None Include="Shaders\CubeMapDemo\model.vert" />
     <None Include="Shaders\CubeMapDemo\skybox.frag" />
