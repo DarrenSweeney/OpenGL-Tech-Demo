@@ -37,6 +37,9 @@
     <Filter Include="Demo_Shaders\ShadowMapping_Shaders">
       <UniqueIdentifier>{bfee764a-99d5-4f20-b129-c1f740889710}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\InstancingDemo">
+      <UniqueIdentifier>{54c0ddfc-e77b-463f-acc4-7661a91d970e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui_draw.cpp">
@@ -94,6 +97,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StencilReflectionDemo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancingDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -162,6 +168,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StencilReflectionsDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InstancingDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -252,5 +261,14 @@
     </None>
     <None Include="Object.vert" />
     <None Include="Object.frag" />
+    <None Include="instance.vert">
+      <Filter>Shaders\InstancingDemo</Filter>
+    </None>
+    <None Include="planet.vert">
+      <Filter>Shaders\InstancingDemo</Filter>
+    </None>
+    <None Include="planet.frag">
+      <Filter>Shaders\InstancingDemo</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -40,6 +40,9 @@ struct Texture
 class Mesh
 {
 public:
+	// Render Data
+	GLuint VAO, VBO, EBO;
+
 	// Mesh Data
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
@@ -50,8 +53,6 @@ public:
 	void Draw(Shader shader);
 
 private:
-	// Render Data
-	GLuint VAO, VBO, EBO;
 	// Functions
 	void setupMesh();
 };

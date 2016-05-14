@@ -105,26 +105,21 @@ void StencilReflectionDemo::InitalizeScene()
 	glBindVertexArray(0);
 
 	cubeTexture = LoadTexture("Resources/grid.png");
-	planeTexture = LoadTexture("Resources/grid.png");
+	planeTexture = LoadTexture("Resources/chess_board.jpg");
 
 	shaderObject.InitShader("Object.vert", "Object.frag");
 }
 
 void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	// Clear the color buffer
-	glClearColor(0.4f, 0.4f, 0.7f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	// Draw objects
-	//outlineShader.Use();
 	Matrix4 model;
 	Matrix4 view;
 	view = camera.GetViewMatrix();
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-	//glUniformMatrix4fv(glGetUniformLocation(outlineShader.Program, "view"), 1, GL_FALSE, view.data);
-	//glUniformMatrix4fv(glGetUniformLocation(outlineShader.Program, "projection"), 1, GL_FALSE, projection.data);
 	shaderObject.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "projection"), 1, GL_FALSE, projection.data);
@@ -133,8 +128,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 
 	// Cubes 
 	glBindVertexArray(cubeVAO);
-	// We omit the glActiveTexture part since TEXTURE0 is already the default active 
-	// texture unit. (sampler used in fragment is set to 0 as well as default)	
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
@@ -159,9 +152,9 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
 	glDepthMask(GL_FALSE);
 	glClear(GL_STENCIL_BUFFER_BIT);
-	glUniform3f(uniColor, 0.0f, 0.0f, 0.0f);
+	//glUniform3f(uniColor, 0.0f, 0.0f, 0.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 66);
-	glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
+	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
 	glBindVertexArray(0);
 
 	// 2nd. Render pass, draw slightly scaled versions of the objects, this time disabling stencil writing.
@@ -170,7 +163,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthMask(GL_TRUE);
-	//shader.Use();
 	Matrix4 reflection_Y = Matrix4(1, 0, 0, 0,
 		0, -1, 0, 0,
 		0, 0, 1, 0,
@@ -193,7 +185,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glBindVertexArray(0);
 
 	glDisable(GL_STENCIL_TEST);
-
 }
 
 GLuint StencilReflectionDemo::LoadTexture(GLchar* path)

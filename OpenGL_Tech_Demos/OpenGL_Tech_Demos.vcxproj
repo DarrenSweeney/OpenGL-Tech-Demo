@@ -162,6 +162,7 @@
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui_impl_glfw_gl3.cpp" />
+    <ClCompile Include="InstancingDemo.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math\matrix4.cpp" />
     <ClCompile Include="Math\vector2.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="imgui\stb_truetype.h" />
     <ClInclude Include="imgui_impl_glfw.h" />
     <ClInclude Include="imgui_impl_glfw_gl3.h" />
+    <ClInclude Include="InstancingDemo.h" />
     <ClInclude Include="Math\matrix4.h" />
     <ClInclude Include="Math\vector2.h" />
     <ClInclude Include="Math\vector3.h" />
@@ -204,10 +206,13 @@
     <None Include="debugQuadDepth.vert" />
     <None Include="HDR.frag" />
     <None Include="HDR.vert" />
+    <None Include="instance.vert" />
     <None Include="model.frag" />
     <None Include="model.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
+    <None Include="planet.frag" />
+    <None Include="planet.vert" />
     <None Include="Shaders\CubeMapDemo\model.frag" />
     <None Include="Shaders\CubeMapDemo\model.vert" />
     <None Include="Shaders\CubeMapDemo\skybox.frag" />

@@ -3,6 +3,7 @@
 #include "ShadowMapping.h"
 #include "HDR_Demo.h"
 #include "StencilReflectionsDemo.h"
+#include "InstancingDemo.h"
 
 #include "camera.h"
 
@@ -52,6 +53,7 @@ CubeMapDemo cubeMapDemo;
 ShadowMapping shadowMappingDemo;
 HDR_DEMO hdrDemo;
 StencilReflectionDemo stencilReflectionDemo;
+InstancingDemo instancingDemo;
 
 #define FULLSCREEN false
 
@@ -103,9 +105,10 @@ int main(int, char**)
 
 	// *** SCENES ***
 	//cubeMapDemo.InitalizeScene();
-	// shadowMappingDemo.InitalizeScene();
+	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
-	stencilReflectionDemo.InitalizeScene();
+	//stencilReflectionDemo.InitalizeScene();
+	instancingDemo.InitalizeScene(screenWidth, screenHeight);
 
 	// ImGui
 	float f1 = 0.1f;
@@ -156,7 +159,7 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("Stencil Reflections"))
 			{
-				// --- 
+				ImGui::Button("Stencil Reflection Demo");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Parralxing Mapping"))
@@ -191,7 +194,7 @@ int main(int, char**)
 			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
 		ImGui::End();
-#pragma endregion		
+#pragma endregion	
 
 		// Rendering
 		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
@@ -202,7 +205,8 @@ int main(int, char**)
 		//cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
-		stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
+		//stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
+		instancingDemo.Update(camera);
 
 		// Render the UI.
 		ImGui::Render();

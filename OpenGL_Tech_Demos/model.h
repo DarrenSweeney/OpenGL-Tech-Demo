@@ -20,12 +20,13 @@ public:
 	void LoadModel(GLchar *path);
 	void Draw(Shader shader);
 
-private:
 	// Model Data
 	vector<Mesh> meshes;
-	string directory;
 	// Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 	vector<Texture> textures_loaded;
+
+private:
+	string directory;
 	// Model Functions
 	void loadModel(string path);
 	void processNode(aiNode *node, const aiScene *scene);
