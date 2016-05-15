@@ -13,6 +13,7 @@ InstancingDemo::~InstancingDemo()
 void InstancingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 	shaderPlanet.InitShader("planet.vert", "planet.frag");
 	shaderRock.InitShader("instance.vert", "planet.frag");
@@ -21,24 +22,24 @@ void InstancingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	planet.LoadModel("Resources/planet/planet.obj");
 
 	Matrix4 projection;
-	projection = projection.perspectiveProjection(45.0f, screenWidth / screenHeight, 1.0f, 300.0f);
+	projection = projection.perspectiveProjection(45.0f, screenWidth / screenHeight, 1.0f, 3000.0f);
 	shaderPlanet.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderPlanet.Program, "projection"), 1, GL_FALSE, projection.data);
 	shaderRock.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderRock.Program, "projection"), 1, GL_FALSE, projection.data);
 
 	srand(glfwGetTime());
-	GLfloat radius = 100.0f;
-	GLfloat offset = 55.0f;
+	GLfloat radius = 150.0f;
+	GLfloat offset = 35.0f;
 	for (GLuint i = 0; i < amount; i++)
 	{
 		Matrix4 model;
 		// 1. Translation: Displace along circle with 'radius' in range [-offset, offset]
 		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
 		GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
-		GLfloat x = sin(angle) * radius + displacement * 2.5f;
+		GLfloat x = sin(angle) * radius + displacement;
 		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
-		GLfloat y = displacement * 2.4f;	// Y value has smaller displacement
+		GLfloat y = -2.5f + displacement * 0.4f;// Y value has smaller displacement
 		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
 		GLfloat z = cos(angle) * radius + displacement;
 		model = model.translate(vector3(x, y, z));

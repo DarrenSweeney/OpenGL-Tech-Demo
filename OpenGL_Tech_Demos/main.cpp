@@ -4,6 +4,7 @@
 #include "HDR_Demo.h"
 #include "StencilReflectionsDemo.h"
 #include "InstancingDemo.h"
+#include "DeferredRenderingDemo.h"
 
 #include "camera.h"
 
@@ -54,12 +55,14 @@ ShadowMapping shadowMappingDemo;
 HDR_DEMO hdrDemo;
 StencilReflectionDemo stencilReflectionDemo;
 InstancingDemo instancingDemo;
+DeferredRenderingDemo deferredRenderingDemo;
 
 #define FULLSCREEN false
 
 int main(int, char**)
 {
-	GLsizei screenWidth = 1100, screenHeight = 600;
+	//GLsizei screenWidth = 1100, screenHeight = 600;
+	GLsizei screenWidth = 1500, screenHeight = 800;
 
     // Setup window
     glfwSetErrorCallback(error_callback);
@@ -77,7 +80,8 @@ int main(int, char**)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", FULLSCREEN ? glfwGetPrimaryMonitor() : NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", 
+		FULLSCREEN ? glfwGetPrimaryMonitor() : NULL, NULL);
 
 	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
@@ -108,10 +112,13 @@ int main(int, char**)
 	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//stencilReflectionDemo.InitalizeScene();
-	instancingDemo.InitalizeScene(screenWidth, screenHeight);
+	//instancingDemo.InitalizeScene(screenWidth, screenHeight);
+	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 
 	// ImGui
 	float f1 = 0.1f;
+	int i1 = 20;
+	bool b1 = false;
 	
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -144,12 +151,13 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("Instancing"))
 			{
-				// --- 
+				ImGui::Button("Instancing Demo");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Defered Rendering"))
 			{
-				// --- 
+				ImGui::Button("Defered Rendering Demo");
+				ImGui::SliderInt("Lights", &i1, 20, 200, "%.3f");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Model Loading"))
@@ -175,7 +183,19 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("Shadow Maps"))
 			{
-				ImGui::Button("Directional Shadow Mapping Demo");
+				if (ImGui::TreeNode("Directional Shadow Maps"))
+				{
+					ImGui::Button("Directional Shadow Mapping Demo");
+					ImGui::Checkbox("Move Light Source", &b1);
+					ImGui::TreePop();
+				}
+
+				/*if (ImGui::TreeNode("Bidirectional Shadow Maps"))
+				{
+					ImGui::Button("Bidirectional Shadow Mapping Demo");
+					ImGui::TreePop();
+				}*/
+
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("SSAO"))
@@ -190,6 +210,14 @@ int main(int, char**)
 			}
 		}
 		if (ImGui::CollapsingHeader("Info", 0, true, true))
+		{
+			char* version = (char*)glGetString(GL_VERSION);
+			char* renderer = (char*)glGetString(GL_RENDERER);
+
+			ImGui::Text(version);
+			ImGui::Text(renderer);
+		}
+		if (ImGui::CollapsingHeader("About", 0, true, true))
 		{
 			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
@@ -206,7 +234,8 @@ int main(int, char**)
 		//shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
-		instancingDemo.Update(camera);
+		//instancingDemo.Update(camera);
+		deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
 
 		// Render the UI.
 		ImGui::Render();

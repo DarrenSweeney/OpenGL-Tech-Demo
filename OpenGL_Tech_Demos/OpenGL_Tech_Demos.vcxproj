@@ -156,6 +156,7 @@
     <ClCompile Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\gl3w.c" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="CubeMapDemo.cpp" />
+    <ClCompile Include="DeferredRenderingDemo.cpp" />
     <ClCompile Include="HDR_Demo.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\glcorearb.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="CubeMapDemo.h" />
+    <ClInclude Include="DeferredRenderingDemo.h" />
     <ClInclude Include="HDR_Demo.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -204,6 +206,12 @@
     <None Include="BlinnPhong.vert" />
     <None Include="debugQuadDepth.frag" />
     <None Include="debugQuadDepth.vert" />
+    <None Include="deferred_light_box.frag" />
+    <None Include="deferred_light_box.vert" />
+    <None Include="deferred_shading.frag" />
+    <None Include="deferred_shading.vert" />
+    <None Include="g_buffer.frag" />
+    <None Include="g_buffer.vert" />
     <None Include="HDR.frag" />
     <None Include="HDR.vert" />
     <None Include="instance.vert" />

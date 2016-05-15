@@ -32,7 +32,7 @@ void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 	UpdateCameraVectors();
 }
 
-const float SPEED = 2.3f;
+const float SPEED = 27.3f;
 void Camera::ControllerMovement()
 {
 	// PlayStation Controller
@@ -52,9 +52,9 @@ void Camera::ControllerMovement()
 
 		// Camera - Right Stick.
 		if (axis[2] > 0.3 || axis[2] < -0.3)
-			yaw += axis[2] * (SPEED / 15.0f);
+			yaw += axis[2] * (SPEED / 25.0f);
 		if (axis[3] > 0.3 || axis[3] < -0.3)
-			pitch -= axis[3] * (SPEED / 15.0f);
+			pitch -= axis[3] * (SPEED / 25.0f);
 
 		if (axis[4] > 0.3)	// R2
 			zoom -= 0.01f;

@@ -102,6 +102,9 @@
     <ClCompile Include="InstancingDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DeferredRenderingDemo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -171,6 +174,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InstancingDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredRenderingDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -270,5 +276,13 @@
     <None Include="planet.frag">
       <Filter>Shaders\InstancingDemo</Filter>
     </None>
+    <None Include="g_buffer.vert" />
+    <None Include="g_buffer.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="deferred_light_box.frag" />
+    <None Include="deferred_light_box.vert" />
+    <None Include="deferred_shading.frag" />
+    <None Include="deferred_shading.vert" />
   </ItemGroup>
 </Project>
