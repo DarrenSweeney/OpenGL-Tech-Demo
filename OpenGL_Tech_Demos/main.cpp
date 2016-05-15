@@ -5,6 +5,7 @@
 #include "StencilReflectionsDemo.h"
 #include "InstancingDemo.h"
 #include "DeferredRenderingDemo.h"
+#include "ObjectOutlineDemo.h"
 
 #include "camera.h"
 
@@ -56,6 +57,7 @@ HDR_DEMO hdrDemo;
 StencilReflectionDemo stencilReflectionDemo;
 InstancingDemo instancingDemo;
 DeferredRenderingDemo deferredRenderingDemo;
+ObjectOutlineDemo objectOutlineDemo;
 
 #define FULLSCREEN false
 
@@ -113,7 +115,8 @@ int main(int, char**)
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene(screenWidth, screenHeight);
-	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
+	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
+	objectOutlineDemo.InitalizeScene();
 
 	// ImGui
 	float f1 = 0.1f;
@@ -190,7 +193,7 @@ int main(int, char**)
 					ImGui::TreePop();
 				}
 
-				/*if (ImGui::TreeNode("Bidirectional Shadow Maps"))
+				/*if (ImGui::TreeNode("Bidirection al Shadow Maps"))
 				{
 					ImGui::Button("Bidirectional Shadow Mapping Demo");
 					ImGui::TreePop();
@@ -203,7 +206,7 @@ int main(int, char**)
 				// --- 
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("Toon Outline"))
+			if (ImGui::TreeNode("Object Outline"))
 			{
 				// --- 
 				ImGui::TreePop();
@@ -235,10 +238,13 @@ int main(int, char**)
 		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
 		//instancingDemo.Update(camera);
-		deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
+		//deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
+		objectOutlineDemo.Update(camera, screenWidth, screenHeight);
 
+		glDisable(GL_STENCIL_TEST);
 		// Render the UI.
 		ImGui::Render();
+		glEnable(GL_STENCIL_TEST);
 
         glfwSwapBuffers(window);
     }

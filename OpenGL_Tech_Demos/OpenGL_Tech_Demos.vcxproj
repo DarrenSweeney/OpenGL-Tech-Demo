@@ -171,6 +171,7 @@
     <ClCompile Include="Math\vector4.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="ObjectOutlineDemo.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="ShadowMapping.cpp" />
     <ClCompile Include="StencilReflectionDemo.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="Math\vector4.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="ObjectOutlineDemo.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShadowMapping.h" />
     <ClInclude Include="StencilReflectionsDemo.h" />
