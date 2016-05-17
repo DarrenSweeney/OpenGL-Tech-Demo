@@ -146,6 +146,7 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	// Also send light relevant uniforms
 	for (GLuint i = 0; i < lightPositions.size(); i++)
 	{
+		// TODO(Darren): Replace all float data as GLfloat
 		// Get the light position data.
 		float lightPosData[] = {lightPositions[i].x, lightPositions[i].y, lightPositions[i].z};
 		// Get the light color data.

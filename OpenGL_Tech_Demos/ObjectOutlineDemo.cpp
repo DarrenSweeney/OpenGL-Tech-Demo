@@ -119,6 +119,8 @@ void ObjectOutlineDemo::InitalizeScene()
 
 void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
+	camera.ControllerMovement();
+
 	glClear(GL_STENCIL_BUFFER_BIT);
 
 	// Set uniforms

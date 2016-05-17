@@ -7,6 +7,11 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
+// GLM Mathemtics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 using namespace std;
 
 /*
@@ -35,6 +40,9 @@ public:
 		GLfloat pitch = 0.0f, GLfloat speed = 2.0f, GLfloat sensitivity = 0.1f, GLfloat zoom = 45.0f);
 	// Returns the view martrix calculated using Euler Angles and the LookAt matrix
 	Matrix4 &GetViewMatrix();
+
+	// TODO(Darren): Take this out.
+	glm::mat4 GetViewMatrix2();
 
 	void KeyboardMovement(bool keys[], GLfloat deltaTime);
 	void ControllerMovement();

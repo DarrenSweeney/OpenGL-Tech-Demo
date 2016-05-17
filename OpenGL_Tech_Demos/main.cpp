@@ -6,6 +6,7 @@
 #include "InstancingDemo.h"
 #include "DeferredRenderingDemo.h"
 #include "ObjectOutlineDemo.h"
+#include "SSAO_Demo.h"
 
 #include "camera.h"
 
@@ -58,6 +59,7 @@ StencilReflectionDemo stencilReflectionDemo;
 InstancingDemo instancingDemo;
 DeferredRenderingDemo deferredRenderingDemo;
 ObjectOutlineDemo objectOutlineDemo;
+SSAO_Demo ssao_Demo;
 
 #define FULLSCREEN false
 
@@ -116,7 +118,8 @@ int main(int, char**)
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene(screenWidth, screenHeight);
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
-	objectOutlineDemo.InitalizeScene();
+	//objectOutlineDemo.InitalizeScene();
+	ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 
 	// ImGui
 	float f1 = 0.1f;
@@ -203,12 +206,12 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("SSAO"))
 			{
-				// --- 
+				ImGui::Button("SSAO Demo");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Object Outline"))
 			{
-				// --- 
+				ImGui::Button("Object Outline Demo");
 				ImGui::TreePop();
 			}
 		}
@@ -239,7 +242,8 @@ int main(int, char**)
 		//stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
 		//instancingDemo.Update(camera);
 		//deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
-		objectOutlineDemo.Update(camera, screenWidth, screenHeight);
+		//objectOutlineDemo.Update(camera, screenWidth, screenHeight);
+		ssao_Demo.Update(camera, screenWidth, screenHeight);
 
 		glDisable(GL_STENCIL_TEST);
 		// Render the UI.

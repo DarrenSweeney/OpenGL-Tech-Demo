@@ -16,6 +16,13 @@ Matrix4 &Camera::Camera::GetViewMatrix()
 	return view.lookAt(position, position + frontVec, upVec);
 }
 
+// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
+glm::mat4 Camera::GetViewMatrix2()
+{
+	return glm::lookAt(glm::vec3(position.x, position.y, position.z),
+		glm::vec3(position.x, position.y, position.z) + glm::vec3(frontVec.x, frontVec.y, frontVec.z), glm::vec3(upVec.x, upVec.y, upVec.z));
+}
+
 const float Speed = 8.0f;
 void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 {
@@ -32,7 +39,7 @@ void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 	UpdateCameraVectors();
 }
 
-const float SPEED = 27.3f;
+const float SPEED = 0.3f;
 void Camera::ControllerMovement()
 {
 	// PlayStation Controller
@@ -52,9 +59,9 @@ void Camera::ControllerMovement()
 
 		// Camera - Right Stick.
 		if (axis[2] > 0.3 || axis[2] < -0.3)
-			yaw += axis[2] * (SPEED / 25.0f);
+			yaw += axis[2] * (SPEED / 5.0f);
 		if (axis[3] > 0.3 || axis[3] < -0.3)
-			pitch -= axis[3] * (SPEED / 25.0f);
+			pitch -= axis[3] * (SPEED / 5.0f);
 
 		if (axis[4] > 0.3)	// R2
 			zoom -= 0.01f;

@@ -174,6 +174,7 @@
     <ClCompile Include="ObjectOutlineDemo.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="ShadowMapping.cpp" />
+    <ClCompile Include="SSAO_Demo.cpp" />
     <ClCompile Include="StencilReflectionDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -201,6 +202,7 @@
     <ClInclude Include="ObjectOutlineDemo.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShadowMapping.h" />
+    <ClInclude Include="SSAO_Demo.h" />
     <ClInclude Include="StencilReflectionsDemo.h" />
   </ItemGroup>
   <ItemGroup>
@@ -243,6 +245,12 @@
     <None Include="ShadowMappingDepth.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
+    <None Include="ssao.frag" />
+    <None Include="ssao.vert" />
+    <None Include="ssao_blur.frag" />
+    <None Include="ssao_geometry.frag" />
+    <None Include="ssao_geometry.vert" />
+    <None Include="ssao_lighting.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

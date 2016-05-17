@@ -108,6 +108,9 @@
     <ClCompile Include="ObjectOutlineDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SSAO_Demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -183,6 +186,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ObjectOutlineDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAO_Demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -288,5 +294,11 @@
     <None Include="deferred_shading.frag" />
     <None Include="deferred_shading.vert" />
     <None Include="g_buffer.frag" />
+    <None Include="ssao_geometry.vert" />
+    <None Include="ssao_lighting.frag" />
+    <None Include="ssao.frag" />
+    <None Include="ssao.vert" />
+    <None Include="ssao_blur.frag" />
+    <None Include="ssao_geometry.frag" />
   </ItemGroup>
 </Project>
