@@ -1,7 +1,7 @@
 #include "camera.h"
 
 Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitch, GLfloat speed, GLfloat sensitivity, GLfloat zoom)
-	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom)
+	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), controllerSpeed(2.0f), ampletude(0.036f), frequincy(0.077f)
 {
 	position = _position;
 	upVec = worldUp;
@@ -39,9 +39,11 @@ void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 	UpdateCameraVectors();
 }
 
-const float SPEED = 0.3f;
+float camHeadBob = 0;
+const GLfloat PI = 3.141592;
 void Camera::ControllerMovement()
 {
+	bool moving = false;
 	// PlayStation Controller
 	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
 	const float *axis = NULL;
@@ -53,21 +55,42 @@ void Camera::ControllerMovement()
 
 		// Movement - Left Stick
 		if (axis[0] > 0.2 || axis[0] < -0.2)
-			position += (frontVec.vectorProduct(upVec)).normalise()  * (axis[0] / 50.0) * SPEED;
+		{
+			moving = true;
+			position += (frontVec.vectorProduct(upVec)).normalise()  * (axis[0] / 50.0) * controllerSpeed;
+		}
+
 		if (axis[1] > 0.2 || axis[1] < -0.2)
-			position -= frontVec * (axis[1] / 50.0) * SPEED;
+		{
+			moving = true;
+			position -= frontVec * (axis[1] / 50.0) * controllerSpeed;
+		}
 
 		// Camera - Right Stick.
 		if (axis[2] > 0.3 || axis[2] < -0.3)
-			yaw += axis[2] * (SPEED / 5.0f);
+			yaw += axis[2] * (controllerSpeed / 5.0f);
 		if (axis[3] > 0.3 || axis[3] < -0.3)
-			pitch -= axis[3] * (SPEED / 5.0f);
+			pitch -= axis[3] * (controllerSpeed / 5.0f);
 
 		if (axis[4] > 0.3)	// R2
 			zoom -= 0.01f;
 		if (axis[5] > 0.3)	// L2
 			zoom += 0.01f;
 	}
+
+	if (camHeadBob > 4 * PI)
+	{ 
+		camHeadBob -= 4 * PI; 
+	}
+
+	if (moving)
+	{
+		camHeadBob += frequincy;
+	}
+	else
+		camHeadBob = 0.0f;
+
+	position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;
@@ -103,7 +126,6 @@ void Camera::MouseScroll(GLfloat yOffset)
 		zoom = 45.0f;
 }
 
-const GLfloat PI = 3.141592;
 GLfloat DegressToRadians(GLfloat degrees)
 {
 	return degrees * (PI / 180.0f);

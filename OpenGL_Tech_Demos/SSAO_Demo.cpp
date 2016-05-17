@@ -19,6 +19,7 @@ SSAO_Demo::~SSAO_Demo()
 void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 	// Setup and compile our shaders
 	shaderGeometryPass.InitShader("ssao_geometry.vert", "ssao_geometry.frag");

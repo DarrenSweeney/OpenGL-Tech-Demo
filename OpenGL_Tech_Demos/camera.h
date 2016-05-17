@@ -31,8 +31,11 @@ public:
 	GLfloat pitch;
 
 	GLfloat movementSpeed;
+	GLfloat controllerSpeed;
 	GLfloat mouseSensitivity;
 	GLfloat zoom;
+
+	float ampletude, frequincy;
 
 	Matrix4 view;
 

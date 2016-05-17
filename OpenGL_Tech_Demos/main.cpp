@@ -113,13 +113,13 @@ int main(int, char**)
 
 	// *** SCENES ***
 	//cubeMapDemo.InitalizeScene();
-	//shadowMappingDemo.InitalizeScene();
+	shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene(screenWidth, screenHeight);
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
-	ssao_Demo.InitalizeScene(screenWidth, screenHeight);
+	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 
 	// ImGui
 	float f1 = 0.1f;
@@ -196,7 +196,7 @@ int main(int, char**)
 					ImGui::TreePop();
 				}
 
-				/*if (ImGui::TreeNode("Bidirection al Shadow Maps"))
+				/*if (ImGui::TreeNode("Bidirectional Shadow Maps"))
 				{
 					ImGui::Button("Bidirectional Shadow Mapping Demo");
 					ImGui::TreePop();
@@ -227,6 +227,20 @@ int main(int, char**)
 		{
 			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
+
+		if (ImGui::CollapsingHeader("Debug", 0, true, true))
+		{
+			ImGui::Checkbox("Fly Camera", &b1);
+
+			ImGui::Text("camera_controller_speed");
+			ImGui::SliderFloat("1", &camera.controllerSpeed, 0.0f, 30.0f, "%.3f");
+
+			// Camera Bobing
+			ImGui::Text("camera_ampletude");
+			ImGui::SliderFloat("2", &camera.ampletude, 0.0f, 1.0f, "%.36f");
+			ImGui::Text("camera_frequincy");
+			ImGui::SliderFloat("3", &camera.frequincy, 0.0f, 1.0f, "%.36f");
+		}
 		ImGui::End();
 #pragma endregion	
 
@@ -237,13 +251,13 @@ int main(int, char**)
 		// *** SCENES ***
 		// Render the demo scenes.
 		//cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
-		//shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
+		shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
 		//stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
 		//instancingDemo.Update(camera);
 		//deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
 		//objectOutlineDemo.Update(camera, screenWidth, screenHeight);
-		ssao_Demo.Update(camera, screenWidth, screenHeight);
+		//ssao_Demo.Update(camera, screenWidth, screenHeight);
 
 		glDisable(GL_STENCIL_TEST);
 		// Render the UI.
