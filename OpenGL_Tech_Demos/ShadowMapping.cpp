@@ -88,6 +88,9 @@ void ShadowMapping::InitalizeScene()
 
 void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
+	// NOTE(Darren): From the CPU dignostic test _glfwPlatformJoystickPresent is using 71.09% 
+	// of 74.18%, why is the joystick using so much resources?
+	// TODO(Darren): Fix this issue and see if the CPU usage dramaticly does down.
 	camera.ControllerMovement();
 
 	// Change light position over time

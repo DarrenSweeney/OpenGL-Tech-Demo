@@ -63,6 +63,20 @@ SSAO_Demo ssao_Demo;
 
 #define FULLSCREEN false
 
+enum Demos
+{
+	cubeMap,
+	shadowMap,
+	hdr,
+	stencilReflection,
+	instancing,
+	deferredRendering,
+	objectOutline,
+	ssao
+};
+
+Demos demos;
+
 int main(int, char**)
 {
 	//GLsizei screenWidth = 1100, screenHeight = 600;
@@ -80,9 +94,6 @@ int main(int, char**)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-#if __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", 
 		FULLSCREEN ? glfwGetPrimaryMonitor() : NULL, NULL);
@@ -111,15 +122,15 @@ int main(int, char**)
 	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
 
-	// *** SCENES ***
-	//cubeMapDemo.InitalizeScene();
+	// Initializes scenes.
+	cubeMapDemo.InitalizeScene();
 	shadowMappingDemo.InitalizeScene();
-	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
-	//stencilReflectionDemo.InitalizeScene();
-	//instancingDemo.InitalizeScene(screenWidth, screenHeight);
-	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
-	//objectOutlineDemo.InitalizeScene();
-	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
+	hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	/*stencilReflectionDemo.InitalizeScene();
+	instancingDemo.InitalizeScene(screenWidth, screenHeight);
+	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
+	objectOutlineDemo.InitalizeScene();
+	ssao_Demo.InitalizeScene(screenWidth, screenHeight);*/
 
 	// ImGui
 	float f1 = 0.1f;
@@ -145,24 +156,32 @@ int main(int, char**)
         ImGui_ImplGlfwGL3_NewFrame();
 
 #pragma region ImGui
-		ImGui::Begin("Darren Sweeney", &windowOpened, 0);
+		ImGui::Begin("Darren Sweeney", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+		ImGui::SetWindowPos(ImVec2(5, 5));
+		ImGui::SetWindowSize(ImVec2(255, screenHeight - 10));
 		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
 			if (ImGui::TreeNode("Cube Mapping"))
 			{
-				ImGui::Button("Cube Mapping Demo");
+				bool clicked = ImGui::Button("Cube Mapping Demo");
+				if(clicked)
+					demos = Demos::cubeMap;
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Instancing"))
 			{
-				ImGui::Button("Instancing Demo");
+				bool clicked = ImGui::Button("Instancing Demo");
+				if (clicked)
+					demos = Demos::instancing;
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Defered Rendering"))
 			{
-				ImGui::Button("Defered Rendering Demo");
+				bool clicked = ImGui::Button("Defered Rendering Demo");
+				if (clicked)
+					demos = Demos::deferredRendering;
 				ImGui::SliderInt("Lights", &i1, 20, 200, "%.3f");
 				ImGui::TreePop();
 			}
@@ -173,7 +192,9 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("Stencil Reflections"))
 			{
-				ImGui::Button("Stencil Reflection Demo");
+				bool clicked = ImGui::Button("Stencil Reflection Demo");
+				if(clicked)
+					demos = Demos::stencilReflection;
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Parralxing Mapping"))
@@ -183,7 +204,9 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("HDR Lighting"))
 			{
-				ImGui::Button("HDR Demo");
+				bool clicked = ImGui::Button("HDR Demo");
+				if (clicked)
+					demos = Demos::hdr;
 				ImGui::SliderFloat("Exposure", &f1, 0.0f, 5.0f, "%.3f");
 				ImGui::TreePop();
 			}
@@ -191,7 +214,9 @@ int main(int, char**)
 			{
 				if (ImGui::TreeNode("Directional Shadow Maps"))
 				{
-					ImGui::Button("Directional Shadow Mapping Demo");
+					bool clicked = ImGui::Button("Directional Shadow Mapping Demo");
+					if(clicked)
+						demos = Demos::shadowMap;
 					ImGui::Checkbox("Move Light Source", &b1);
 					ImGui::TreePop();
 				}
@@ -206,12 +231,16 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("SSAO"))
 			{
-				ImGui::Button("SSAO Demo");
+				bool clicked = ImGui::Button("SSAO Demo");
+				if (clicked)
+					demos = Demos::ssao;
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Object Outline"))
 			{
-				ImGui::Button("Object Outline Demo");
+				bool clicked = ImGui::Button("Object Outline Demo");
+				if (clicked)
+					demos = Demos::objectOutline;
 				ImGui::TreePop();
 			}
 		}
@@ -248,16 +277,69 @@ int main(int, char**)
 		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 		glViewport(0, 0, screenWidth, screenHeight);
 
-		// *** SCENES ***
 		// Render the demo scenes.
-		//cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
-		shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
-		//hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
-		//stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
-		//instancingDemo.Update(camera);
-		//deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
-		//objectOutlineDemo.Update(camera, screenWidth, screenHeight);
-		//ssao_Demo.Update(camera, screenWidth, screenHeight);
+		switch (demos)
+		{
+			case Demos::cubeMap:
+			{
+				cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+			case Demos::shadowMap:
+			{
+				shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+			case Demos::hdr:
+			{
+				hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+			case Demos::stencilReflection:
+			{
+				stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+			case Demos::instancing:
+			{
+				instancingDemo.Update(camera);
+
+				break;
+			}
+
+			case Demos::deferredRendering:
+			{
+				deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+
+			case Demos::objectOutline:
+			{
+				objectOutlineDemo.Update(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+			case Demos::ssao:
+			{
+				ssao_Demo.Update(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+		default:
+			break;
+		}
 
 		glDisable(GL_STENCIL_TEST);
 		// Render the UI.

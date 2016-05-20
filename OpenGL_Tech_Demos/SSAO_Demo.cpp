@@ -38,7 +38,7 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	glUniform1i(glGetUniformLocation(shaderSSAO.Program, "gNormal"), 1);
 	glUniform1i(glGetUniformLocation(shaderSSAO.Program, "texNoise"), 2);
 
-	sceneModel.LoadModel("Resources/statue.obj");
+	sceneModel.LoadModel("Resources/clicker_fem_01.obj");
 
 	// Lights
 	lightPos = vector3(2.0f, 4.0f, -2.0f);
@@ -150,7 +150,7 @@ GLfloat SSAO_Demo::Lerp(GLfloat a, GLfloat b, GLfloat f)
 
 void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	camera.ControllerMovement();
+	//camera.ControllerMovement();
 
 	// 1. Geometry Pass: render scene's geometry/color data into gbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
