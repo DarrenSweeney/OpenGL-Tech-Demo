@@ -30,8 +30,7 @@ public:
 	GLfloat yaw;
 	GLfloat pitch;
 
-	GLfloat movementSpeed;
-	GLfloat controllerSpeed;
+	GLfloat cameraSpeed, movementSpeed;
 	GLfloat mouseSensitivity;
 	GLfloat zoom;
 

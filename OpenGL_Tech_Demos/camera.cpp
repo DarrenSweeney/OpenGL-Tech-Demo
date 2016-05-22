@@ -1,7 +1,7 @@
 #include "camera.h"
 
 Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitch, GLfloat speed, GLfloat sensitivity, GLfloat zoom)
-	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), controllerSpeed(2.0f), ampletude(0.036f), frequincy(0.077f)
+	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), cameraSpeed(2.0f), ampletude(0.036f), frequincy(0.077f)
 {
 	position = _position;
 	upVec = worldUp;
@@ -57,20 +57,20 @@ void Camera::ControllerMovement()
 		if (axis[0] > 0.2 || axis[0] < -0.2)
 		{
 			moving = true;
-			position += (frontVec.vectorProduct(upVec)).normalise()  * (axis[0] / 50.0) * controllerSpeed;
+			position += (frontVec.vectorProduct(upVec)).normalise()  * (axis[0] / 50.0) * movementSpeed;
 		}
 
 		if (axis[1] > 0.2 || axis[1] < -0.2)
 		{
 			moving = true;
-			position -= frontVec * (axis[1] / 50.0) * controllerSpeed;
+			position -= frontVec * (axis[1] / 50.0) * movementSpeed;
 		}
 
 		// Camera - Right Stick.
 		if (axis[2] > 0.3 || axis[2] < -0.3)
-			yaw += axis[2] * (controllerSpeed / 5.0f);
+			yaw += axis[2] * (cameraSpeed);
 		if (axis[3] > 0.3 || axis[3] < -0.3)
-			pitch -= axis[3] * (controllerSpeed / 5.0f);
+			pitch -= axis[3] * (cameraSpeed);
 
 		if (axis[4] > 0.3)	// R2
 			zoom -= 0.01f;

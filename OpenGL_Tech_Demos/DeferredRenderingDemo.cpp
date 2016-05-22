@@ -63,15 +63,18 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 		lightColors.push_back(vector3(rColor, gColor, bColor));
 	}
 
+	SetupBuffers(screenWidth, screenHeight);
+}
+
+void DeferredRenderingDemo::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
+{
 	// Set up G-Buffer
 	// 3 textures:
 	// 1. Positions (RGB)
 	// 2. Color (RGB) + Specular (A)
 	// 3. Normals (RGB) 
-	gBuffer;
 	glGenFramebuffers(1, &gBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	gPosition, gNormal, gAlbedoSpec;
 	// - Position color buffer
 	glGenTextures(1, &gPosition);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -97,7 +100,6 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, attachments);
 	// - Create and attach depth buffer (renderbuffer)
-	rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
@@ -108,9 +110,12 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
+void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized)
 {
 	camera.ControllerMovement();
+
+	if (resized)
+		SetupBuffers(screenWidth, screenHeight);
 
 	// 1. Geometry Pass: render scene's geometry/color data into gbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);

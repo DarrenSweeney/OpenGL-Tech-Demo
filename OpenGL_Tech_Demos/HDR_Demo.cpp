@@ -109,7 +109,6 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 	RenderQuad();
 }
 
-
 GLuint HDR_DEMO::LoadTexture(GLchar *path)
 {
 	// Generate a texture ID and load texture data

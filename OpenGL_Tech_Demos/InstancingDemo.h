@@ -11,8 +11,8 @@ class InstancingDemo
 public:
 	InstancingDemo();
 	~InstancingDemo();
-	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
-	void Update(Camera &camera);
+	void InitalizeScene();
+	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
 	Model planet, rock;

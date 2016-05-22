@@ -83,10 +83,12 @@ enum Demos
 	deferredRendering,
 	objectOutline,
 	ssao,
-	parallaxingMappingDemo
+	parallaxingMappingDemo,
+	bidirectionalShadowDemo,
+	modelLoadingDemo
 };
 
-Demos demos = Demos::hdr;
+Demos demos = Demos::ssao;
 
 int main(int, char**)
 {
@@ -137,13 +139,13 @@ int main(int, char**)
 	// Initializes scenes.
 	//cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
-	hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
-	/*stencilReflectionDemo.InitalizeScene();
-	instancingDemo.InitalizeScene(screenWidth, screenHeight);
-	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
-	objectOutlineDemo.InitalizeScene();
-	ssao_Demo.InitalizeScene(screenWidth, screenHeight);*/
+	//stencilReflectionDemo.InitalizeScene();
+	//instancingDemo.InitalizeScene();
+	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
+	//objectOutlineDemo.InitalizeScene();
+	ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 
 	// ImGui
 	float f1 = 0.1f;
@@ -200,9 +202,12 @@ int main(int, char**)
 				ImGui::SliderInt("Lights", &i1, 20, 200, "%.3f");
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("Model Loading"))
+			if (ImGui::TreeNode("NOT DONE - Model Loading"))
 			{
-				// --- 
+				bool clicked = ImGui::Button("Model Loading Demo");
+				if (clicked)
+					demos = Demos::bidirectionalShadowDemo;
+				ImGui::Checkbox("Display Normals", &b1);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Stencil Reflections"))
@@ -240,11 +245,14 @@ int main(int, char**)
 					ImGui::TreePop();
 				}
 
-				/*if (ImGui::TreeNode("Bidirectional Shadow Maps"))
+				if (ImGui::TreeNode("NOT DONE - Bidirectional Shadow Maps"))
 				{
-					ImGui::Button("Bidirectional Shadow Mapping Demo");
+					bool clicked = ImGui::Button("Bidirectional Shadow Mapping Demo");
+					if (clicked)
+						demos = Demos::bidirectionalShadowDemo;
+					ImGui::Checkbox("Move Light Source", &b1);
 					ImGui::TreePop();
-				}*/
+				}
 
 				ImGui::TreePop();
 			}
@@ -278,16 +286,22 @@ int main(int, char**)
 
 		if (ImGui::CollapsingHeader("Debug", 0, true, true))
 		{
-			ImGui::Checkbox("Fly Camera", &b1);
+			if (ImGui::TreeNode("Camera"))
+			{
+				ImGui::Checkbox("Fly Camera", &b1);
 
-			ImGui::Text("camera_controller_speed");
-			ImGui::SliderFloat("1", &camera.controllerSpeed, 0.0f, 30.0f, "%.3f");
+				ImGui::Text("movement_speed");
+				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 6.0f, "%.3f");
+				ImGui::Text("camera_speed");
+				ImGui::SliderFloat("5", &camera.cameraSpeed, 0.0f, 6.0f, "%.3f");
 
-			// Camera Bobing
-			ImGui::Text("camera_ampletude");
-			ImGui::SliderFloat("2", &camera.ampletude, 0.0f, 1.0f, "%.36f");
-			ImGui::Text("camera_frequincy");
-			ImGui::SliderFloat("3", &camera.frequincy, 0.0f, 1.0f, "%.36f");
+				// Camera Bobing
+				ImGui::Text("camera_ampletude");
+				ImGui::SliderFloat("2", &camera.ampletude, 0.0f, 1.0f, "%.36f");
+				ImGui::Text("camera_frequincy");
+				ImGui::SliderFloat("3", &camera.frequincy, 0.0f, 1.0f, "%.36f");
+				ImGui::TreePop();
+			}
 		}
 		ImGui::End();
 #pragma endregion	
@@ -330,14 +344,14 @@ int main(int, char**)
 
 			case Demos::instancing:
 			{
-				instancingDemo.Update(camera);
+				instancingDemo.Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::deferredRendering:
 			{
-				deferredRenderingDemo.Update(camera, screenWidth, screenHeight);
+				deferredRenderingDemo.Update(camera, screenWidth, screenHeight, windowResized);
 
 				break;
 			}
@@ -352,7 +366,7 @@ int main(int, char**)
 
 			case Demos::ssao:
 			{
-				ssao_Demo.Update(camera, screenWidth, screenHeight);
+				ssao_Demo.Update(camera, screenWidth, screenHeight, windowResized);
 
 				break;
 			}
@@ -360,6 +374,20 @@ int main(int, char**)
 			case Demos::parallaxingMappingDemo:
 			{
 				parallaxingDemo.Update(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
+			case Demos::bidirectionalShadowDemo:
+			{
+				// ---
+
+				break;
+			}
+
+			case Demos::modelLoadingDemo:
+			{
+				// ---
 
 				break;
 			}
@@ -388,7 +416,6 @@ int main(int, char**)
 
 void window_size_callback(GLFWwindow* window, int width, int height)
 {
-	std::cout << "window resized" << std::endl;
 	windowResized = true;
 }
 

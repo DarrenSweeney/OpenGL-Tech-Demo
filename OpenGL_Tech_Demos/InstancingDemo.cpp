@@ -10,7 +10,7 @@ InstancingDemo::~InstancingDemo()
 	delete[] modelMatrices;
 }
 
-void InstancingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
+void InstancingDemo::InitalizeScene()
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -20,13 +20,6 @@ void InstancingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 
 	rock.LoadModel("Resources/rock/rock.obj");
 	planet.LoadModel("Resources/planet/planet.obj");
-
-	Matrix4 projection;
-	projection = projection.perspectiveProjection(45.0f, screenWidth / screenHeight, 1.0f, 3000.0f);
-	shaderPlanet.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderPlanet.Program, "projection"), 1, GL_FALSE, projection.data);
-	shaderRock.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderRock.Program, "projection"), 1, GL_FALSE, projection.data);
 
 	srand(glfwGetTime());
 	GLfloat radius = 150.0f;
@@ -86,11 +79,18 @@ void InstancingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	}
 }
 
-void InstancingDemo::Update(Camera &camera)
+void InstancingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {    
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	camera.ControllerMovement();
+
+	Matrix4 projection;
+	projection = projection.perspectiveProjection(45.0f, screenWidth / screenHeight, 1.0f, 3000.0f);
+	shaderPlanet.Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderPlanet.Program, "projection"), 1, GL_FALSE, projection.data);
+	shaderRock.Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderRock.Program, "projection"), 1, GL_FALSE, projection.data);
 
 	// Add the transformation matrices
 	Matrix4 view;

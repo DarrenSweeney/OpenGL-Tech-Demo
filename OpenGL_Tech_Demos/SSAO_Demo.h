@@ -14,7 +14,7 @@ public:
 	SSAO_Demo();
 	~SSAO_Demo();
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
-	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
+	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized);
 
 private:
 	Shader shaderGeometryPass, shaderLightingPass;
@@ -36,6 +36,7 @@ private:
 	// Opitions
 	GLuint draw_mode = 1;
 
+	void SetupBuffers(GLsizei screenWidth, GLsizei screenHeight);
 	GLfloat Lerp(GLfloat a, GLfloat b, GLfloat f);
 	GLuint quadVAO;
 	GLuint quadVBO;

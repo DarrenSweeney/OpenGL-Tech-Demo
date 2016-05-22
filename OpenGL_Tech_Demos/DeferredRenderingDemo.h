@@ -12,7 +12,7 @@ public:
 	DeferredRenderingDemo();
 	~DeferredRenderingDemo();
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
-	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
+	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized);
 
 private:
 	Shader shaderGeometryPass, shaderLightingPass, shaderLightBox;
@@ -24,6 +24,7 @@ private:
 	GLuint gPosition, gNormal, gAlbedoSpec;
 	GLuint rboDepth;
 
+	void SetupBuffers(GLsizei screenWidth, GLsizei screenHeight);
 	void RenderQuad();
 	void RenderCube();
 	GLuint LoadTexture(GLchar *path);

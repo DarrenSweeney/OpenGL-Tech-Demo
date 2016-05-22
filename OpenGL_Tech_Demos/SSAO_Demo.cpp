@@ -44,6 +44,43 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	lightPos = vector3(2.0f, 4.0f, -2.0f);
 	lightColor = vector3(0.2f, 0.2f, 0.7f);
 
+	SetupBuffers(screenWidth, screenHeight);
+
+	// Sample kernel
+	randomFloats = std::uniform_real_distribution<GLfloat>(0.0, 1.0); // generates random floats between 0.0 and 1.0
+
+	for (GLuint i = 0; i < 64; ++i)
+	{
+		vector3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+		sample = sample.normalise();
+		sample *= randomFloats(generator);
+		GLfloat scale = GLfloat(i) / 64.0;
+
+		// Scale samples s.t. they're more aligned to center of kernel
+		scale = Lerp(0.1f, 1.0f, scale * scale);
+		sample *= scale;
+		ssaoKernel.push_back(sample);
+	}
+
+	// Noise texture
+	for (GLuint i = 0; i < 16; i++)
+	{
+		// Rotate around z-axis (in tangent space)
+		vector3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+		ssaoNoise.push_back(noise);
+	}
+
+	glGenTextures(1, &noiseTexture);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+void SSAO_Demo::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
+{
 	// Set up G-Buffer
 	// 3 textures:
 	// 1. Positions + depth (RGBA)
@@ -109,38 +146,6 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// Sample kernel
-	randomFloats = std::uniform_real_distribution<GLfloat>(0.0, 1.0); // generates random floats between 0.0 and 1.0
-
-	for (GLuint i = 0; i < 64; ++i)
-	{
-		vector3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
-		sample = sample.normalise();
-		sample *= randomFloats(generator);
-		GLfloat scale = GLfloat(i) / 64.0;
-
-		// Scale samples s.t. they're more aligned to center of kernel
-		scale = Lerp(0.1f, 1.0f, scale * scale);
-		sample *= scale;
-		ssaoKernel.push_back(sample);
-	}
-
-	// Noise texture
-	for (GLuint i = 0; i < 16; i++)
-	{
-		// Rotate around z-axis (in tangent space)
-		vector3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
-		ssaoNoise.push_back(noise);
-	}
-
-	glGenTextures(1, &noiseTexture);
-	glBindTexture(GL_TEXTURE_2D, noiseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 GLfloat SSAO_Demo::Lerp(GLfloat a, GLfloat b, GLfloat f)
@@ -148,9 +153,12 @@ GLfloat SSAO_Demo::Lerp(GLfloat a, GLfloat b, GLfloat f)
 	return a + f * (b - a);
 }
 
-void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
+void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized)
 {
 	//camera.ControllerMovement();
+
+	if (windowResized)
+		SetupBuffers(screenWidth, screenHeight);
 
 	// 1. Geometry Pass: render scene's geometry/color data into gbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
