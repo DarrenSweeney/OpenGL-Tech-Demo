@@ -29,18 +29,26 @@
 
 #include <SOIL\SOIL.h>
 
+/*
+	Note:(Darren): From the GLFW documentation.
+			Do not pass the window size to glViewport or other pixel-based OpenGL calls. 
+			The window size is in screen coordinates, not pixels. Use the framebuffer size, which is in pixels, for pixel-based calls.
+*/
+
 // TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
 void mouse_callback(GLFWwindow *window, double xPos, double yPos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void window_size_callback(GLFWwindow* window, int width, int height);
 void Do_Movement();
 
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
 bool activeCamera;
+bool windowResized;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
@@ -78,7 +86,7 @@ enum Demos
 	parallaxingMappingDemo
 };
 
-Demos demos = Demos::parallaxingMappingDemo;
+Demos demos = Demos::hdr;
 
 int main(int, char**)
 {
@@ -106,6 +114,7 @@ int main(int, char**)
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetWindowSizeCallback(window, window_size_callback);
 
 	// Opitions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -128,8 +137,8 @@ int main(int, char**)
 	// Initializes scenes.
 	//cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
-	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
-	parallaxingDemo.Initalize(camera.position);
+	hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	//parallaxingDemo.Initalize(camera.position);
 	/*stencilReflectionDemo.InitalizeScene();
 	instancingDemo.InitalizeScene(screenWidth, screenHeight);
 	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
@@ -146,6 +155,8 @@ int main(int, char**)
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
+		std::cout << windowResized << std::endl;
+
 		// Set frame time
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -305,7 +316,7 @@ int main(int, char**)
 
 			case Demos::hdr:
 			{
-				hdrDemo.UpdateScene(camera, screenWidth, screenHeight);
+				hdrDemo.UpdateScene(camera, screenWidth, screenHeight, windowResized);
 
 				break;
 			}
@@ -363,6 +374,8 @@ int main(int, char**)
 		ImGui::Render();
 		glEnable(GL_STENCIL_TEST);
 
+		windowResized = false;
+
         glfwSwapBuffers(window);
     }
 
@@ -371,6 +384,12 @@ int main(int, char**)
     glfwTerminate();
 
     return 0;
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height)
+{
+	std::cout << "window resized" << std::endl;
+	windowResized = true;
 }
 
 #pragma region "User Input"

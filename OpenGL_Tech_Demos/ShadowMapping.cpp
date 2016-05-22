@@ -64,10 +64,8 @@ void ShadowMapping::InitalizeScene()
 	cubeTexture = LoadTexture("Resources/grid.png", false);
 
 	// Configure depth map FBO
-	depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
 	// - Create depth texture
-	depthMap;
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 

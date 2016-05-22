@@ -28,6 +28,14 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	woodTexture = LoadTexture("Resources/brickwall.jpg");
 	endTexture = LoadTexture("Resources/marble.jpg");
 
+	SetupBuffers(screenWidth, screenHeight);
+
+	shaderBlinnPhong.InitShader("Shaders/HDR_Demo/BlinnPhong.vert", "Shaders/HDR_Demo/BlinnPhong.frag");
+	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
+}
+
+void HDR_DEMO::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
+{
 	// Set up floating point framebuffer to render scene to
 	glGenFramebuffers(1, &hdrFBO);
 	// - Create floating point color buffer
@@ -48,13 +56,14 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		std::cout << "Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	shaderBlinnPhong.InitShader("Shaders/HDR_Demo/BlinnPhong.vert", "Shaders/HDR_Demo/BlinnPhong.frag");
-	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
 }
 
-void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
+void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized)
 {
-	//camera.ControllerMovement();
+	camera.ControllerMovement();
+
+	if (resized)
+		SetupBuffers(screenWidth, screenHeight);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

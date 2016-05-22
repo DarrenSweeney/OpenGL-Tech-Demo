@@ -17,7 +17,7 @@ public:
 	HDR_DEMO();
 	~HDR_DEMO();
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
-	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
+	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized);
 
 private:
 	GLboolean hrd = true;
@@ -34,6 +34,7 @@ private:
 	GLuint quadVAO, quadVBO;
 	GLuint cubeVAO, cubeVBO;
 
+	void SetupBuffers(GLsizei screenWidth, GLsizei screenHeight);
 	GLuint LoadTexture(GLchar *path);
 	void RenderQuad();
 	void RenderCube();

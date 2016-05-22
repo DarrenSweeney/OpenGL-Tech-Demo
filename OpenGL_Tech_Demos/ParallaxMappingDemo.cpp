@@ -39,6 +39,8 @@ void ParallaxMappingDemo::Initalize(vector3 &cameraPos)
 
 void ParallaxMappingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
+	camera.ControllerMovement();
+
 	// Configure view/projection matrices
 	shaderParallax.Use();
 	Matrix4 view = camera.GetViewMatrix();
