@@ -7,6 +7,7 @@
 #include "DeferredRenderingDemo.h"
 #include "ObjectOutlineDemo.h"
 #include "SSAO_Demo.h"
+#include "ParallaxMappingDemo.h"
 
 #include "camera.h"
 
@@ -60,6 +61,7 @@ InstancingDemo instancingDemo;
 DeferredRenderingDemo deferredRenderingDemo;
 ObjectOutlineDemo objectOutlineDemo;
 SSAO_Demo ssao_Demo;
+ParallaxMappingDemo parallaxingDemo;
 
 #define FULLSCREEN false
 
@@ -72,10 +74,11 @@ enum Demos
 	instancing,
 	deferredRendering,
 	objectOutline,
-	ssao
+	ssao,
+	parallaxingMappingDemo
 };
 
-Demos demos;
+Demos demos = Demos::parallaxingMappingDemo;
 
 int main(int, char**)
 {
@@ -123,9 +126,10 @@ int main(int, char**)
     ImVec4 clear_color = ImColor(114, 144, 154);
 
 	// Initializes scenes.
-	cubeMapDemo.InitalizeScene();
-	shadowMappingDemo.InitalizeScene();
-	hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	//cubeMapDemo.InitalizeScene();
+	//shadowMappingDemo.InitalizeScene();
+	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	parallaxingDemo.Initalize(camera.position);
 	/*stencilReflectionDemo.InitalizeScene();
 	instancingDemo.InitalizeScene(screenWidth, screenHeight);
 	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
@@ -199,7 +203,11 @@ int main(int, char**)
 			}
 			if (ImGui::TreeNode("Parralxing Mapping"))
 			{
-				// --- 
+				bool clicked = ImGui::Button("Parralxing Mapping Demo");
+				if (clicked)
+					demos = Demos::parallaxingMappingDemo;
+				ImGui::SliderFloat("Depth", &f1, 0.05f, 0.10f, "%.3f");
+				ImGui::Checkbox("Enable Parallax", &b1);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("HDR Lighting"))
@@ -277,6 +285,7 @@ int main(int, char**)
 		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 		glViewport(0, 0, screenWidth, screenHeight);
 
+#pragma region DemoUpdateCalls
 		// Render the demo scenes.
 		switch (demos)
 		{
@@ -337,9 +346,17 @@ int main(int, char**)
 				break;
 			}
 
+			case Demos::parallaxingMappingDemo:
+			{
+				parallaxingDemo.Update(camera, screenWidth, screenHeight);
+
+				break;
+			}
+
 		default:
 			break;
 		}
+#pragma endregion
 
 		glDisable(GL_STENCIL_TEST);
 		// Render the UI.

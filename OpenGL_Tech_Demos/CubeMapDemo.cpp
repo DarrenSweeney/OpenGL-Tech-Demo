@@ -108,7 +108,7 @@ void CubeMapDemo::InitalizeScene()
 // TODO(Darren): Will need to take out camera and put in main class.
 void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	camera.ControllerMovement();
+	//camera.ControllerMovement();
 
 	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();

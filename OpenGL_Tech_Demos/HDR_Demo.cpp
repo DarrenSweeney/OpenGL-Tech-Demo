@@ -54,7 +54,7 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 
 void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	camera.ControllerMovement();
+	//camera.ControllerMovement();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
