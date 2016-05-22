@@ -114,6 +114,9 @@
     <ClCompile Include="ParallaxMappingDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OmnidirectionalShadowDemo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_internal.h">
@@ -195,6 +198,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParallaxMappingDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OmnidirectionalShadowDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

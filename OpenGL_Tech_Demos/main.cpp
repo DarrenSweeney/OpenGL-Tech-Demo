@@ -8,6 +8,7 @@
 #include "ObjectOutlineDemo.h"
 #include "SSAO_Demo.h"
 #include "ParallaxMappingDemo.h"
+#include "OmnidirectionalShadowDemo.h"
 
 #include "camera.h"
 
@@ -70,6 +71,7 @@ DeferredRenderingDemo deferredRenderingDemo;
 ObjectOutlineDemo objectOutlineDemo;
 SSAO_Demo ssao_Demo;
 ParallaxMappingDemo parallaxingDemo;
+OmnidirectionalShadowDemo omnidirectionalShadowDemo;
 
 #define FULLSCREEN false
 
@@ -84,11 +86,11 @@ enum Demos
 	objectOutline,
 	ssao,
 	parallaxingMappingDemo,
-	bidirectionalShadowDemo,
+	omnidirectionalShadow,
 	modelLoadingDemo
 };
 
-Demos demos = Demos::ssao;
+Demos demos = Demos::omnidirectionalShadow;
 
 int main(int, char**)
 {
@@ -145,7 +147,8 @@ int main(int, char**)
 	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
-	ssao_Demo.InitalizeScene(screenWidth, screenHeight);
+	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
+	omnidirectionalShadowDemo.Initalize();
 
 	// ImGui
 	float f1 = 0.1f;
@@ -157,8 +160,6 @@ int main(int, char**)
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
-		std::cout << windowResized << std::endl;
-
 		// Set frame time
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -206,7 +207,7 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("Model Loading Demo");
 				if (clicked)
-					demos = Demos::bidirectionalShadowDemo;
+					demos = Demos::omnidirectionalShadow;
 				ImGui::Checkbox("Display Normals", &b1);
 				ImGui::TreePop();
 			}
@@ -245,11 +246,11 @@ int main(int, char**)
 					ImGui::TreePop();
 				}
 
-				if (ImGui::TreeNode("NOT DONE - Bidirectional Shadow Maps"))
+				if (ImGui::TreeNode("Omnidirectional Shadow Maps"))
 				{
-					bool clicked = ImGui::Button("Bidirectional Shadow Mapping Demo");
+					bool clicked = ImGui::Button("Omnidirectional Shadow Mapping Demo");
 					if (clicked)
-						demos = Demos::bidirectionalShadowDemo;
+						demos = Demos::omnidirectionalShadow;
 					ImGui::Checkbox("Move Light Source", &b1);
 					ImGui::TreePop();
 				}
@@ -378,9 +379,9 @@ int main(int, char**)
 				break;
 			}
 
-			case Demos::bidirectionalShadowDemo:
+			case Demos::omnidirectionalShadow:
 			{
-				// ---
+				omnidirectionalShadowDemo.Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
