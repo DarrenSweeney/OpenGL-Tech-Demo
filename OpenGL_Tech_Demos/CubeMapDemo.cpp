@@ -73,7 +73,7 @@ void CubeMapDemo::InitalizeScene()
 
 	shaderModel.InitShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
 	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
-	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");	//"Resources/utah-teapot.obj"
+	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
 
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);

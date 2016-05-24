@@ -171,6 +171,7 @@
     <ClCompile Include="Math\vector4.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="ModelLoadingDemo.cpp" />
     <ClCompile Include="ObjectOutlineDemo.cpp" />
     <ClCompile Include="OmnidirectionalShadowDemo.cpp" />
     <ClCompile Include="ParallaxMappingDemo.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="Math\vector4.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="ModelLoadingDemo.h" />
     <ClInclude Include="ObjectOutlineDemo.h" />
     <ClInclude Include="OmnidirectionalShadowDemo.h" />
     <ClInclude Include="ParallaxMappingDemo.h" />
@@ -225,6 +227,8 @@
     <None Include="instance.vert" />
     <None Include="model.frag" />
     <None Include="model.vert" />
+    <None Include="normal_mapping.frag" />
+    <None Include="normal_mapping.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
     <None Include="planet.frag" />

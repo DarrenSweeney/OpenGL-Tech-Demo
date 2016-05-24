@@ -46,6 +46,7 @@ public:
 	// TODO(Darren): Take this out.
 	glm::mat4 GetViewMatrix2();
 
+	GLfloat deltaTime;
 	void KeyboardMovement(bool keys[], GLfloat deltaTime);
 	void ControllerMovement();
 	void MouseMovement(GLfloat xOffset, GLfloat yOffset);

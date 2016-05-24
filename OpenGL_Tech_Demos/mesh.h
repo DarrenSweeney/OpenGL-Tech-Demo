@@ -15,7 +15,6 @@ using namespace std;
 /*
 A struct memory layout is sequential.
 If we have a filled Vertex struct its memory layout would be equal to:
-
 Vertex vertex;
 vertex.Position = glm::vec3(0.2f, 0.4f, 0.6f);
 vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -28,6 +27,7 @@ struct Vertex
 	vector3 Position;
 	vector3 Normal;
 	vector2 TexCoords;
+	vector3 Tangents;
 };
 
 struct Texture
@@ -41,7 +41,8 @@ class Mesh
 {
 public:
 	// Render Data
-	GLuint VAO, VBO, EBO;
+	GLuint VAO;
+	bool loadTangents;
 
 	// Mesh Data
 	vector<Vertex> vertices;
@@ -49,10 +50,12 @@ public:
 	vector<Texture> textures;
 
 	// Functions
-	Mesh(vector<Vertex> verticies, vector<GLuint> indices, vector<Texture> textures);
-	void Draw(Shader shader);
+	Mesh(vector<Vertex> &verticies, vector<GLuint> &indices, vector<Texture> &textures, bool loadTangent = false);
+	void Draw(Shader &shader);
 
 private:
+	// Render Data
+	GLuint VBO, EBO;
 	// Functions
 	void setupMesh();
 };

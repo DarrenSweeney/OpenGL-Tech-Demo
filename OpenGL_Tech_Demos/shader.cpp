@@ -2,6 +2,12 @@
 
 Shader::Shader() {}
 
+Shader::~Shader()
+{
+	// TODO(Darren): Delete the shader from a call instead.
+	//glDeleteProgram(Program);
+}
+
 void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
 {
 	// Replace the vertex/fragment source code from filepath

@@ -60,7 +60,7 @@ void HDR_DEMO::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
 
 void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized)
 {
-	camera.ControllerMovement();
+	//camera.ControllerMovement();
 
 	if (resized)
 		SetupBuffers(screenWidth, screenHeight);

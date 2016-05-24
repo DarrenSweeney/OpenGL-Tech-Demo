@@ -11,14 +11,14 @@
 
 #include "mesh.h"
 
-GLuint TextureFromFile(const char *path, string directory);
+GLuint TextureFromFile(const char* path, string directory);
 
 class Model
 {
 public:
 	Model();
-	void LoadModel(GLchar *path);
-	void Draw(Shader shader);
+	void LoadModel(string path, bool loadTangent = false);
+	void Draw(Shader &shader);
 
 	// Model Data
 	vector<Mesh> meshes;
@@ -27,8 +27,9 @@ public:
 
 private:
 	string directory;
+	bool loadTangent;
+
 	// Model Functions
-	void loadModel(string path);
 	void processNode(aiNode *node, const aiScene *scene);
 	Mesh processMesh(aiMesh *mesh, const aiScene *scene);
 	vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);

@@ -37,7 +37,7 @@ void OmnidirectionalShadowDemo::Initalize()
 	const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	glGenFramebuffers(1, &depthMapFBO);
 	// Create depth cubemap texture
-	glGenTextures(1, &depthCubemap);
+	glGenTextures(1, &depthCubemap); 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 	for (GLuint i = 0; i < 6; ++i)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -58,6 +58,8 @@ void OmnidirectionalShadowDemo::Initalize()
 
 void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
+	//camera.ControllerMovement();
+
 	// 0. Create depth cubemap transformation matrices
 	GLfloat aspect = (GLfloat)ShadowWidth / (GLfloat)ShadowHeight;
 	GLfloat nearPlane = 1.0f;

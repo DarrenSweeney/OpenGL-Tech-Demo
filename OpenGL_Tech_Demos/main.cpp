@@ -9,6 +9,7 @@
 #include "SSAO_Demo.h"
 #include "ParallaxMappingDemo.h"
 #include "OmnidirectionalShadowDemo.h"
+#include "ModelLoadingDemo.h"
 
 #include "camera.h"
 
@@ -72,6 +73,7 @@ ObjectOutlineDemo objectOutlineDemo;
 SSAO_Demo ssao_Demo;
 ParallaxMappingDemo parallaxingDemo;
 OmnidirectionalShadowDemo omnidirectionalShadowDemo;
+ModelLoadingDemo modelLoadingDemo;
 
 #define FULLSCREEN false
 
@@ -87,10 +89,10 @@ enum Demos
 	ssao,
 	parallaxingMappingDemo,
 	omnidirectionalShadow,
-	modelLoadingDemo
+	modelLoading
 };
 
-Demos demos = Demos::omnidirectionalShadow;
+Demos demos = Demos::modelLoading;
 
 int main(int, char**)
 {
@@ -139,7 +141,7 @@ int main(int, char**)
     ImVec4 clear_color = ImColor(114, 144, 154);
 
 	// Initializes scenes.
-	//cubeMapDemo.InitalizeScene();
+	cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
@@ -148,7 +150,8 @@ int main(int, char**)
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
-	omnidirectionalShadowDemo.Initalize();
+	//omnidirectionalShadowDemo.Initalize();
+	modelLoadingDemo.Initalize();
 
 	// ImGui
 	float f1 = 0.1f;
@@ -165,7 +168,10 @@ int main(int, char**)
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		glClearColor(0.3f, 0.4f, 0.7f, 1.0f);
+		camera.deltaTime = deltaTime;
+
+		//glClearColor(0.3f, 0.4f, 0.7f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwPollEvents();
@@ -203,11 +209,11 @@ int main(int, char**)
 				ImGui::SliderInt("Lights", &i1, 20, 200, "%.3f");
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("NOT DONE - Model Loading"))
+			if (ImGui::TreeNode("Model Loading"))
 			{
 				bool clicked = ImGui::Button("Model Loading Demo");
 				if (clicked)
-					demos = Demos::omnidirectionalShadow;
+					demos = Demos::modelLoading;
 				ImGui::Checkbox("Display Normals", &b1);
 				ImGui::TreePop();
 			}
@@ -294,7 +300,7 @@ int main(int, char**)
 				ImGui::Text("movement_speed");
 				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 6.0f, "%.3f");
 				ImGui::Text("camera_speed");
-				ImGui::SliderFloat("5", &camera.cameraSpeed, 0.0f, 6.0f, "%.3f");
+				ImGui::SliderFloat("5", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
 
 				// Camera Bobing
 				ImGui::Text("camera_ampletude");
@@ -386,9 +392,9 @@ int main(int, char**)
 				break;
 			}
 
-			case Demos::modelLoadingDemo:
+			case Demos::modelLoading:
 			{
-				// ---
+				modelLoadingDemo.Update(camera, screenWidth, screenHeight);
 
 				break;
 			}

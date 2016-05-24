@@ -1,7 +1,7 @@
 #include "camera.h"
 
 Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitch, GLfloat speed, GLfloat sensitivity, GLfloat zoom)
-	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), cameraSpeed(2.0f), ampletude(0.036f), frequincy(0.077f)
+	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), cameraSpeed(60.0f), ampletude(0.036f), frequincy(0.077f)
 {
 	position = _position;
 	upVec = worldUp;
@@ -23,24 +23,54 @@ glm::mat4 Camera::GetViewMatrix2()
 		glm::vec3(position.x, position.y, position.z) + glm::vec3(frontVec.x, frontVec.y, frontVec.z), glm::vec3(upVec.x, upVec.y, upVec.z));
 }
 
+const GLfloat PI = 3.141592;
+float camHeadBob = 0;
 const float Speed = 8.0f;
 void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 {
-	GLfloat velocity = movementSpeed * deltaTime;
+	bool moving = false;
+
+	GLfloat velocity = (movementSpeed * 1.0f) * deltaTime;
 	if (keys[GLFW_KEY_W])
-		position += (frontVec * velocity) * Speed;
+	{
+		position += (frontVec * velocity);
+		moving = true;
+	}
 	if (keys[GLFW_KEY_S])
-		position -= (frontVec * velocity) * Speed;
+	{
+		position -= (frontVec * velocity);
+		moving = true;
+	}
 	if (keys[GLFW_KEY_A])
-		position -= (frontVec.vectorProduct(upVec).normalise() * velocity) * Speed;
+	{
+		position -= (frontVec.vectorProduct(upVec).normalise() * velocity);
+		moving = true;
+	}
 	if (keys[GLFW_KEY_D])
-		position += (frontVec.vectorProduct(upVec).normalise() * velocity) * Speed;
+	{
+		position += (frontVec.vectorProduct(upVec).normalise() * velocity);
+		moving = true;
+	}
+
+#if 0
+	if (camHeadBob > 4 * PI)
+	{
+		camHeadBob -= 4 * PI;
+	}
+
+	if (moving)
+	{
+		camHeadBob += frequincy;
+	}
+	else
+		camHeadBob = 0.0f;
+
+	position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
+#endif
 
 	UpdateCameraVectors();
 }
 
-float camHeadBob = 0;
-const GLfloat PI = 3.141592;
 void Camera::ControllerMovement()
 {
 	bool moving = false;
@@ -57,20 +87,20 @@ void Camera::ControllerMovement()
 		if (axis[0] > 0.2 || axis[0] < -0.2)
 		{
 			moving = true;
-			position += (frontVec.vectorProduct(upVec)).normalise()  * (axis[0] / 50.0) * movementSpeed;
+			position += ((frontVec.vectorProduct(upVec)).normalise()  * (axis[0]) * movementSpeed) * deltaTime;
 		}
 
 		if (axis[1] > 0.2 || axis[1] < -0.2)
 		{
 			moving = true;
-			position -= frontVec * (axis[1] / 50.0) * movementSpeed;
+			position -= (frontVec * (axis[1]) * movementSpeed) * deltaTime;
 		}
 
 		// Camera - Right Stick.
 		if (axis[2] > 0.3 || axis[2] < -0.3)
-			yaw += axis[2] * (cameraSpeed);
+			yaw += (axis[2] * (cameraSpeed)) * deltaTime;
 		if (axis[3] > 0.3 || axis[3] < -0.3)
-			pitch -= axis[3] * (cameraSpeed);
+			pitch -= (axis[3] * (cameraSpeed)) * deltaTime;
 
 		if (axis[4] > 0.3)	// R2
 			zoom -= 0.01f;
