@@ -65,8 +65,8 @@ void CubeMapDemo::InitalizeScene()
 #pragma endregion 
 
 	// Setup some OpenGL opitions
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);	// Note(Darren): Do i need this???
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LESS);	// Note(Darren): Do i need this???
 
 	// Cull the back face of the utah-tea pot.
 	glEnable(GL_CULL_FACE);

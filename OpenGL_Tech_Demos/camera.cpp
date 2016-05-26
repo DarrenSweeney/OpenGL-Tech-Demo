@@ -108,6 +108,7 @@ void Camera::ControllerMovement()
 			zoom += 0.01f;
 	}
 
+#if 0
 	if (camHeadBob > 4 * PI)
 	{ 
 		camHeadBob -= 4 * PI; 
@@ -121,6 +122,7 @@ void Camera::ControllerMovement()
 		camHeadBob = 0.0f;
 
 	position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
+#endif
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;

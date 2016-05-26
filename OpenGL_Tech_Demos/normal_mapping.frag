@@ -22,6 +22,8 @@ uniform bool normalMapping;
 uniform bool inTangentSpace;
 uniform Material material;
 
+uniform samplerCube skybox;
+
 out vec4 color;
 
 void main()
@@ -62,13 +64,20 @@ void main()
 	vec3 diffuse = diff * texColor;
 
 	//Specular
+	vec3 I = normalize(fs_in.FragmentPosition - cameraPosition);
+	vec3 R = reflect(I, normalize(fs_in.Normal));
+	float reflectIntensity = texture(material.texture_specular1, fs_in.TexCoords).r;
+	vec4 reflectColor;
+	if(reflectIntensity > 0.1)
+		reflectColor = texture(skybox, R) * (reflectIntensity / 10.0f);
+
 	float specularStrength = 0.2f; //a specular intensity value to give the specular highlight a medium-bright color so that it doesn't have too much of an impact
 	//vec3 viewDirection = normalize(fs_in.TangentCameraPos - fs_in.TangentFragPos); // from a fragment to camera
-	float spec =0.0f;
+	float spec = 0.0f;
 	vec3 halfwayDirection = normalize(lightDirection + viewDirection); /*unit vector exactly halfway between the view direction and the light direction. The closer this halfway vector aligns with the surface's normal vector, the higher the specular contribution.When the view direction is perfectly aligned with the (now imaginary) reflection vector, the halfway vector aligns perfectly with the normal vector. Thus the closer the viewer looks in the original reflection direction, the stronger the specular highlight becomes.Here you can see that whatever direction the viewer is look from, the angle between the halfway vector and the surface normal never exceeds 90 degrees (unless the light is far below the surface of course). This produces slightly different results compared to Phong reflections, but mostly looks slightly more visually plausible, especially with low specular exponents. */
 	/*Another subtle difference between Phong and Blinn-Phong shading is that the angle between the halfway vector and the surface normal is often shorter than the angle between the view and reflection vector. As a result, to get similar results to Phong shading the specular shininess exponent has to be set a bit higher. A general rule of thumb is to set it between 2 and 4 times the Phong shininess exponent.*/
 	spec = pow(max(dot(normal, halfwayDirection), 0.0f), /*1*/32);
 	vec3 specular = vec3(specularStrength) * spec * texture(material.texture_specular1, fs_in.TexCoords).rgb;
 	
-	color = vec4(ambient + diffuse + specular, 1.0f);
+	color = vec4(ambient + diffuse + specular, 1.0f);	//reflectColor; 
 }

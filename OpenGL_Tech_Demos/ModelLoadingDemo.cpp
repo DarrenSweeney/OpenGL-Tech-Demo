@@ -17,11 +17,77 @@ ModelLoadingDemo::~ModelLoadingDemo()
 
 void ModelLoadingDemo::Initalize()
 {
+#pragma region Skybox Vertices
+	GLfloat skyboxVertices[] = {
+		// Positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+#pragma endregion 
+
 	glEnable(GL_DEPTH_TEST);
 
 	shaderModel.InitShader("normal_mapping.vert", "normal_mapping.frag");
+	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
 	sceneModel.LoadModel("cyborg/cyborg.obj", true);
 	lightPosition = vector3(0.0f, 3.0f, 0.9f);
+
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glBindVertexArray(0);
+
+	faces.push_back("Resources/skybox/posx.jpg");
+	faces.push_back("Resources/skybox/negx.jpg");
+	faces.push_back("Resources/skybox/posy.jpg");
+	faces.push_back("Resources/skybox/negy.jpg");
+	faces.push_back("Resources/skybox/posz.jpg");
+	faces.push_back("Resources/skybox/negz.jpg");
+
+	cubeMapTexture = LoadCubeMap(faces);
 
 	shaderModel.Use();
 	shaderModelMatrix = glGetUniformLocation(shaderModel.Program, "modelMatrix");
@@ -32,8 +98,12 @@ void ModelLoadingDemo::Initalize()
 	shaderInTangentSpace = glGetUniformLocation(shaderModel.Program, "inTangentSpace");
 }
 
+// TODO(Darren): Need to draw the lights, maybe a simple texture. 
+// In resource manager allow call for drawing a light texture.
 void ModelLoadingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
+	camera.ControllerMovement();
+
 	shaderModel.Use();
 	Matrix4 viewMatrix = camera.GetViewMatrix();
 	// TODO(Darren): Takes glm out.
@@ -52,5 +122,52 @@ void ModelLoadingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniform1i(shaderNormalMapping, normalMapping);
 	glUniform1i(shaderInTangentSpace, inTangentSpace);
 
+	// TODO(Darren): Need to tidy this up.
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 	sceneModel.Draw(shaderModel);
+
+	glDepthFunc(GL_LEQUAL);
+	shaderSkyBox.Use();
+	Matrix4 view = camera.GetViewMatrix();
+	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projMatrix));
+
+	// skybox 
+	/*glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS);*/
+}
+
+GLuint ModelLoadingDemo::LoadCubeMap(std::vector<const GLchar*> faces)
+{
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	int width, height;
+	unsigned char* image;
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	for (int i = 0; i < faces.size(); i++)
+	{
+		image = SOIL_load_image(faces[i], &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height,
+			0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		SOIL_free_image_data(image);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	return textureID;
 }

@@ -55,7 +55,7 @@ bool windowResized;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-Camera camera(vector3(0.0f, 0.0f, 0.0f));
+Camera camera(vector3(0.0f, 1.5f, 4.0f));
 
 static void error_callback(int error, const char* description)
 {
@@ -75,7 +75,8 @@ ParallaxMappingDemo parallaxingDemo;
 OmnidirectionalShadowDemo omnidirectionalShadowDemo;
 ModelLoadingDemo modelLoadingDemo;
 
-#define FULLSCREEN false
+bool fullscreen = true;
+const GLFWvidmode* vidMode;
 
 enum Demos
 {
@@ -112,8 +113,14 @@ int main(int, char**)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney", 
-		FULLSCREEN ? glfwGetPrimaryMonitor() : NULL, NULL);
+	// Get the desktop resolution.
+	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+	vidMode = glfwGetVideoMode(monitor);
+	screenWidth = vidMode->width;
+	screenHeight = vidMode->height;
+
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
+		fullscreen ? monitor : NULL, NULL);
 
 	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
@@ -141,7 +148,7 @@ int main(int, char**)
     ImVec4 clear_color = ImColor(114, 144, 154);
 
 	// Initializes scenes.
-	cubeMapDemo.InitalizeScene();
+	//cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
@@ -215,6 +222,7 @@ int main(int, char**)
 				if (clicked)
 					demos = Demos::modelLoading;
 				ImGui::Checkbox("Display Normals", &b1);
+				ImGui::Checkbox("Display Enviroment Map", &b1);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Stencil Reflections"))
@@ -282,9 +290,12 @@ int main(int, char**)
 		{
 			char* version = (char*)glGetString(GL_VERSION);
 			char* renderer = (char*)glGetString(GL_RENDERER);
+			//strcpy(renderer, "Renderer");
 
 			ImGui::Text(version);
 			ImGui::Text(renderer);
+			ImGui::Text("Draw Calls: ");
+			ImGui::Text("Post Processing Time: ");
 		}
 		if (ImGui::CollapsingHeader("About", 0, true, true))
 		{
@@ -298,7 +309,7 @@ int main(int, char**)
 				ImGui::Checkbox("Fly Camera", &b1);
 
 				ImGui::Text("movement_speed");
-				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 6.0f, "%.3f");
+				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 20.0f, "%.3f");
 				ImGui::Text("camera_speed");
 				ImGui::SliderFloat("5", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
 
@@ -311,7 +322,7 @@ int main(int, char**)
 			}
 		}
 		ImGui::End();
-#pragma endregion	
+#pragma endregion
 
 		// Rendering
 		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
@@ -433,8 +444,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-	if (keys[GLFW_MOUSE_BUTTON_LEFT] && action == GLFW_PRESS)
-		std::cout << "Darren Sweeney" << std::endl;
+	if (keys[GLFW_KEY_H] && action == GLFW_PRESS)
+	{
+		// Do something here.
+	}
 
 	if (key >= 0 && key < 1024)
 	{
