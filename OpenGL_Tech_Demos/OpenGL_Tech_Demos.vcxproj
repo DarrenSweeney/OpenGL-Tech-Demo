@@ -226,9 +226,12 @@
     <None Include="HDR.vert" />
     <None Include="instance.vert" />
     <None Include="model.frag" />
+    <None Include="modelLoading.vert" />
+    <None Include="modelLoading.frag" />
     <None Include="model.vert" />
-    <None Include="normal_mapping.frag" />
-    <None Include="normal_mapping.vert" />
+    <None Include="normal.frag" />
+    <None Include="normal.gs" />
+    <None Include="normal.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
     <None Include="planet.frag" />

@@ -75,7 +75,7 @@ ParallaxMappingDemo parallaxingDemo;
 OmnidirectionalShadowDemo omnidirectionalShadowDemo;
 ModelLoadingDemo modelLoadingDemo;
 
-bool fullscreen = true;
+bool fullscreen = false;
 const GLFWvidmode* vidMode;
 
 enum Demos
@@ -97,8 +97,8 @@ Demos demos = Demos::modelLoading;
 
 int main(int, char**)
 {
-	//GLsizei screenWidth = 1100, screenHeight = 600;
-	GLsizei screenWidth = 1500, screenHeight = 800;
+	GLsizei screenWidth = 800, screenHeight = 600;
+	//GLsizei screenWidth = 1500, screenHeight = 800;
 
     // Setup window
     glfwSetErrorCallback(error_callback);
@@ -132,7 +132,7 @@ int main(int, char**)
 	// Opitions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glfwSetWindowPos(window, 80, 80);
+	glfwSetWindowPos(window, 0, 30);
     glfwMakeContextCurrent(window);
 	if (gl3wInit()) 
 	{
@@ -221,8 +221,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Model Loading Demo");
 				if (clicked)
 					demos = Demos::modelLoading;
-				ImGui::Checkbox("Display Normals", &b1);
-				ImGui::Checkbox("Display Enviroment Map", &b1);
+				ImGui::Checkbox("Display Normals", &modelLoadingDemo.showNormals);
+				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo.showCubemap);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Stencil Reflections"))
@@ -415,10 +415,10 @@ int main(int, char**)
 		}
 #pragma endregion
 
-		glDisable(GL_STENCIL_TEST);
+		//glDisable(GL_STENCIL_TEST);
 		// Render the UI.
 		ImGui::Render();
-		glEnable(GL_STENCIL_TEST);
+		//glEnable(GL_STENCIL_TEST);
 
 		windowResized = false;
 

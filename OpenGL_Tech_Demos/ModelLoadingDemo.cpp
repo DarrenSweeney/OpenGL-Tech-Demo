@@ -66,10 +66,11 @@ void ModelLoadingDemo::Initalize()
 
 	glEnable(GL_DEPTH_TEST);
 
-	shaderModel.InitShader("normal_mapping.vert", "normal_mapping.frag");
+	shaderModel.InitShader("modelLoading.vert", "modelLoading.frag");
 	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
+	shaderNormal.InitShader("normal.vert", "normal.frag", "normal.gs");
 	sceneModel.LoadModel("cyborg/cyborg.obj", true);
-	lightPosition = vector3(0.0f, 3.0f, 0.9f);
+	lightPosition = vector3(0.0f, 0.0f, -5.0f);
 
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
@@ -96,6 +97,10 @@ void ModelLoadingDemo::Initalize()
 	shaderCameraPos = glGetUniformLocation(shaderModel.Program, "cameraPosition");
 	shaderNormalMapping = glGetUniformLocation(shaderModel.Program, "normalMapping");
 	shaderInTangentSpace = glGetUniformLocation(shaderModel.Program, "inTangentSpace");
+
+	shaderNormalModel = glGetUniformLocation(shaderNormal.Program, "model");
+	shaderNormalProjection = glGetUniformLocation(shaderNormal.Program, "projection");
+	shaderNormalView = glGetUniformLocation(shaderNormal.Program, "view");
 }
 
 // TODO(Darren): Need to draw the lights, maybe a simple texture. 
@@ -113,7 +118,7 @@ void ModelLoadingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniformMatrix4fv(shaderModelMatrix, 1, GL_FALSE, &modelMatrix.data[0]);
 
 	float lightPosData[] = { lightPosition.x, lightPosition.y, lightPosition.z };
-	glUniform3fv(glGetUniformLocation(shaderModel.Program, "lightPosition"), 1, &lightPosData[0]);
+	//glUniform3fv(glGetUniformLocation(shaderModel.Program, "lightPosition"), 1, &lightPosData[0]);
 	Matrix4 lightMatrix = lightMatrix.translate(lightPosition);
 	lightMatrix = lightMatrix.scale(vector3(0.1f, 0.1f, 0.1f));
 
@@ -128,21 +133,33 @@ void ModelLoadingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 	sceneModel.Draw(shaderModel);
 
-	glDepthFunc(GL_LEQUAL);
-	shaderSkyBox.Use();
-	Matrix4 view = camera.GetViewMatrix();
-	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
-	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projMatrix));
+	if (showNormals)
+	{
+		shaderNormal.Use();
+		glUniformMatrix4fv(shaderNormalView, 1, GL_FALSE, &viewMatrix.data[0]);
+		glUniformMatrix4fv(shaderNormalProjection, 1, GL_FALSE, glm::value_ptr(projMatrix));
+		glUniformMatrix4fv(shaderNormalModel, 1, GL_FALSE, &modelMatrix.data[0]);
+		sceneModel.Draw(shaderNormal);
+	}
 
-	// skybox 
-	/*glBindVertexArray(skyboxVAO);
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-	glDepthFunc(GL_LESS);*/
+	if (showCubemap)
+	{
+		glDepthFunc(GL_LEQUAL);
+		shaderSkyBox.Use();
+		Matrix4 view = camera.GetViewMatrix();
+		view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projMatrix));
+
+		// skybox 
+		glBindVertexArray(skyboxVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthFunc(GL_LESS);
+	}
 }
 
 GLuint ModelLoadingDemo::LoadCubeMap(std::vector<const GLchar*> faces)

@@ -18,6 +18,7 @@ class ModelLoadingDemo
 public:
 	ModelLoadingDemo();
 	~ModelLoadingDemo();
+	bool showNormals, showCubemap;
 
 	void Initalize();
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
@@ -26,14 +27,15 @@ private:
 	GLuint skyboxVAO, skyboxVBO;
 	std::vector<const GLchar*> faces;
 	GLuint cubeMapTexture;
-	Shader shaderModel, shaderSkyBox;
+	Shader shaderModel, shaderNormal, shaderSkyBox;
 	Model sceneModel;
 	bool normalMapping = true, inTangentSpace = true;
 	Matrix4 modelMatrix;
 	vector3 lightPosition;
 	// NOTE(Darren): Should i do it like this in other demos?
 	GLuint shaderModelMatrix, shaderProjectionMatrix, shaderViewMatrix,
-		shaderCameraPos, shaderNormalMapping, shaderInTangentSpace;
+		shaderCameraPos, shaderNormalMapping, shaderInTangentSpace,
+		shaderNormalProjection, shaderNormalView, shaderNormalModel;
 
 	GLuint LoadCubeMap(std::vector<const GLchar*> faces);
 };

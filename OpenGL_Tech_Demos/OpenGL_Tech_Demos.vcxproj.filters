@@ -318,7 +318,10 @@
     <None Include="ssao.vert" />
     <None Include="ssao_blur.frag" />
     <None Include="ssao_geometry.frag" />
-    <None Include="normal_mapping.frag" />
-    <None Include="normal_mapping.vert" />
+    <None Include="modelLoading.vert" />
+    <None Include="modelLoading.frag" />
+    <None Include="normal.frag" />
+    <None Include="normal.gs" />
+    <None Include="normal.vert" />
   </ItemGroup>
 </Project>

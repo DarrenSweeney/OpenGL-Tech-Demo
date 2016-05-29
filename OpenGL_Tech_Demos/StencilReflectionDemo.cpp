@@ -114,7 +114,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	// Draw objects
 	Matrix4 model;
 	Matrix4 view;
 	view = camera.GetViewMatrix();
@@ -126,7 +125,7 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 
 	GLuint uniColor = glGetUniformLocation(shaderObject.Program, "overrideColor");
 
-	// Cubes 
+	// Draw Cubes.
 	glBindVertexArray(cubeVAO);
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
@@ -138,36 +137,26 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 
+	// Draw Floor.
 	glEnable(GL_STENCIL_TEST);
-
-	// Draw floor as normal. The floor should not fill the stencil buffer so we set it's mask to 0x00
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xFF);
-	// Floor
+	glDepthMask(GL_FALSE);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
 	glBindVertexArray(planeVAO);
 	glBindTexture(GL_TEXTURE_2D, planeTexture);
 	model = Matrix4();
-	//model = model.translate(vector3(-3.0f, 0.0f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	glDepthMask(GL_FALSE);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	//glUniform3f(uniColor, 0.0f, 0.0f, 0.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 66);
-	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
 	glBindVertexArray(0);
 
-	// 2nd. Render pass, draw slightly scaled versions of the objects, this time disabling stencil writing.
-	// Because stencil buffer is now filled with several 1s. The parts of the buffer are 1 are now not draw, 
-	// thus only drawing the object's size differences, making it look like borders.
+	// Draw cube reflection.
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthMask(GL_TRUE);
-	Matrix4 reflection_Y = Matrix4(1, 0, 0, 0,
-		0, -1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1);
-	// Cubes 
+
 	glBindVertexArray(cubeVAO);
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	model = Matrix4();
