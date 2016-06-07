@@ -206,14 +206,18 @@
     <ClInclude Include="ObjectOutlineDemo.h" />
     <ClInclude Include="OmnidirectionalShadowDemo.h" />
     <ClInclude Include="ParallaxMappingDemo.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShadowMapping.h" />
     <ClInclude Include="SSAO_Demo.h" />
     <ClInclude Include="StencilReflectionsDemo.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="BlinnPhong.frag" />
-    <None Include="BlinnPhong.vert" />
+    <None Include="bloom.frag" />
+    <None Include="bloom.vert" />
+    <None Include="blur.frag" />
+    <None Include="blur.vert" />
     <None Include="debugQuadDepth.frag" />
     <None Include="debugQuadDepth.vert" />
     <None Include="deferred_light_box.frag" />
@@ -222,9 +226,8 @@
     <None Include="deferred_shading.vert" />
     <None Include="g_buffer.frag" />
     <None Include="g_buffer.vert" />
-    <None Include="HDR.frag" />
-    <None Include="HDR.vert" />
     <None Include="instance.vert" />
+    <None Include="light_box.frag" />
     <None Include="model.frag" />
     <None Include="modelLoading.vert" />
     <None Include="modelLoading.frag" />
@@ -234,8 +237,15 @@
     <None Include="normal.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
+    <None Include="parallax_mapping.frag" />
+    <None Include="parallax_mapping.vert" />
     <None Include="planet.frag" />
     <None Include="planet.vert" />
+    <None Include="point_shadows.frag" />
+    <None Include="point_shadows.vert" />
+    <None Include="point_shadows_depth.frag" />
+    <None Include="point_shadows_depth.gs" />
+    <None Include="point_shadows_depth.vert" />
     <None Include="Shaders\CubeMapDemo\model.frag" />
     <None Include="Shaders\CubeMapDemo\model.vert" />
     <None Include="Shaders\CubeMapDemo\skybox.frag" />

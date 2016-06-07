@@ -34,13 +34,12 @@ void OmnidirectionalShadowDemo::Initalize()
 	wallTexture = LoadTexture("Resources/brickwall.jpg");
 
 	// Configure depth map FBO
-	const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	glGenFramebuffers(1, &depthMapFBO);
 	// Create depth cubemap texture
 	glGenTextures(1, &depthCubemap); 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 	for (GLuint i = 0; i < 6; ++i)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, ShadowWidth, ShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -60,7 +59,7 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 {
 	//camera.ControllerMovement();
 
-	// 0. Create depth cubemap transformation matrices
+	// 1. Create depth cubemap transformation matrices
 	GLfloat aspect = (GLfloat)ShadowWidth / (GLfloat)ShadowHeight;
 	GLfloat nearPlane = 1.0f;
 	GLfloat farPlane = 25.0f;
@@ -73,19 +72,20 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-	// 1. Render scene to depth cubemap
+	// 2. Render scene to depth cubemap
 	glViewport(0, 0, ShadowWidth, ShadowHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	shaderDepth.Use();
 	for (GLuint i = 0; i < 6; ++i)
-		glUniformMatrix4fv(glGetUniformLocation(shaderDepth.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
+		glUniformMatrix4fv(glGetUniformLocation(shaderDepth.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()),
+			1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
 	glUniform1f(glGetUniformLocation(shaderDepth.Program, "far_plane"), farPlane);
 	glUniform3fv(glGetUniformLocation(shaderDepth.Program, "lightPos"), 1, &lightPos[0]);
 	RenderScene(shaderDepth);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// 2. Render scene as normal 
+	// 3. Render scene as normal 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderPointShadows.Use();

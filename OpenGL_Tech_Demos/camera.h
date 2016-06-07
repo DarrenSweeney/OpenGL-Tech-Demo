@@ -34,6 +34,8 @@ public:
 	GLfloat mouseSensitivity;
 	GLfloat zoom;
 
+	bool flyCamera;
+
 	float ampletude, frequincy;
 
 	Matrix4 view;
@@ -51,6 +53,7 @@ public:
 	void ControllerMovement();
 	void MouseMovement(GLfloat xOffset, GLfloat yOffset);
 	void MouseScroll(GLfloat yOffset);
+	void Roll(GLfloat angle);
 
 private:
 	void UpdateCameraVectors();

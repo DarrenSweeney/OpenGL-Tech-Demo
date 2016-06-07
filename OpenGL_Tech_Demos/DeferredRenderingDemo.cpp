@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DeferredRenderingDemo::DeferredRenderingDemo()
-	: NR_Lights(321)
+	: NR_Lights(200)
 {
 
 }
@@ -37,29 +37,45 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gAlbedoSpec"), 2);
 
 	// Models
-	sceneModel.LoadModel("Resources/nanosuit/nanosuit.obj");	// nanosuit/nanosuit
-	objectPositions.push_back(vector3(-3.0, -3.0, -3.0));
-	objectPositions.push_back(vector3(0.0, -3.0, -3.0));
-	objectPositions.push_back(vector3(3.0, -3.0, -3.0));
-	objectPositions.push_back(vector3(-3.0, -3.0, 0.0));
-	objectPositions.push_back(vector3(0.0, -3.0, 0.0));
-	objectPositions.push_back(vector3(3.0, -3.0, 0.0));
-	objectPositions.push_back(vector3(-3.0, -3.0, 3.0));
-	objectPositions.push_back(vector3(0.0, -3.0, 3.0));
-	objectPositions.push_back(vector3(3.0, -3.0, 3.0));
+	sceneModel.LoadModel("Resources/monkey.obj");	// nanosuit/nanosuit
+	//objectPositions.push_back(vector3(-3.0, -3.0, -3.0));
+	//objectPositions.push_back(vector3(0.0, -3.0, -3.0));
+	//objectPositions.push_back(vector3(3.0, -3.0, -3.0));
+	//objectPositions.push_back(vector3(-3.0, -3.0, 0.0));
+	//objectPositions.push_back(vector3(0.0, -3.0, 0.0));
+	//objectPositions.push_back(vector3(3.0, -3.0, 0.0));
+	//objectPositions.push_back(vector3(-3.0, -3.0, 3.0));
+	//objectPositions.push_back(vector3(0.0, -3.0, 3.0));
+	//objectPositions.push_back(vector3(3.0, -3.0, 3.0));
+
+	GLuint counter = 0;
+	GLfloat zPos = -3.0f;
+	for (GLuint i = 0; i <= 100; i++)
+	{
+		objectPositions.push_back(vector3((counter * 3.0f) - 3.0f, -3.0f, zPos));
+
+		if (counter >= 10)
+		{
+			zPos += 3.0f;
+			counter = 0;
+		}
+		else 
+			counter++;
+	}
+
 	// - Colors
 	srand(13);
 	for (GLuint i = 0; i < NR_Lights; i++)
 	{
 		// Calculate slightly random offsets
-		GLfloat xPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
-		GLfloat yPos = ((rand() % 100) / 100.0) * 6.0 - 4.0;
-		GLfloat zPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
+		GLfloat xPos = ((rand() % 100) / 100.0) * 30.0;// -3.0;
+		GLfloat yPos = ((rand() % 100) / 100.0) * 5.0 - 4.0;
+		GLfloat zPos = ((rand() % 100) / 100.0) * 30.0;// -3.0;
 		lightPositions.push_back(vector3(xPos, yPos, zPos));
 		// Also calculate random color
-		GLfloat rColor = ((rand() % 100) / 200.0f) + 0.5; // Between 0.5 and 1.0
-		GLfloat gColor = ((rand() % 100) / 200.0f) + 0.5; // Between 0.5 and 1.0
-		GLfloat bColor = ((rand() % 100) / 200.0f) + 0.5; // Between 0.5 and 1.0
+		GLfloat rColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
+		GLfloat gColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
+		GLfloat bColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
 		lightColors.push_back(vector3(rColor, gColor, bColor));
 	}
 
@@ -130,7 +146,7 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	{
 		model = Matrix4();
 		model = model.translate(objectPositions[i]);
-		model = model.scale(vector3(0.25f, 0.25f, 0.25f));
+		//model = model.scale(vector3(0.25f, 0.25f, 0.25f));
 		glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
 		sceneModel.Draw(shaderGeometryPass);
 	}

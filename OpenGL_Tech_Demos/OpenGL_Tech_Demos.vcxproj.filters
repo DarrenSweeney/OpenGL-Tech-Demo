@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="ImGui">
       <UniqueIdentifier>{fc5c6553-6127-4e87-88dc-6fd377e9ef9e}</UniqueIdentifier>
     </Filter>
@@ -27,9 +23,6 @@
     </Filter>
     <Filter Include="Demo_Shaders">
       <UniqueIdentifier>{bbbb4e69-a4d0-42bc-92ba-7200b14543f1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Demo_Shaders\HDR_Shaders">
-      <UniqueIdentifier>{5d380d5f-0683-4b3f-af47-f18c918ad720}</UniqueIdentifier>
     </Filter>
     <Filter Include="Demo_Shaders\CubeMap_Shaders">
       <UniqueIdentifier>{6a45ccf8-8f23-4854-92f4-6e56970a4e3e}</UniqueIdentifier>
@@ -209,6 +202,12 @@
     <ClInclude Include="ModelLoadingDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="skybox.vert">
@@ -228,18 +227,6 @@
     </None>
     <None Include="debugQuadDepth.frag">
       <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="HDR.vert">
-      <Filter>Demo_Shaders\HDR_Shaders</Filter>
-    </None>
-    <None Include="HDR.frag">
-      <Filter>Demo_Shaders\HDR_Shaders</Filter>
-    </None>
-    <None Include="BlinnPhong.vert">
-      <Filter>Demo_Shaders\HDR_Shaders</Filter>
-    </None>
-    <None Include="BlinnPhong.frag">
-      <Filter>Demo_Shaders\HDR_Shaders</Filter>
     </None>
     <None Include="ShadowMappingDepth.vert">
       <Filter>Demo_Shaders\ShadowMapping_Shaders</Filter>
@@ -323,5 +310,17 @@
     <None Include="normal.frag" />
     <None Include="normal.gs" />
     <None Include="normal.vert" />
+    <None Include="point_shadows_depth.frag" />
+    <None Include="point_shadows_depth.gs" />
+    <None Include="point_shadows_depth.vert" />
+    <None Include="point_shadows.frag" />
+    <None Include="point_shadows.vert" />
+    <None Include="bloom.frag" />
+    <None Include="bloom.vert" />
+    <None Include="parallax_mapping.frag" />
+    <None Include="parallax_mapping.vert" />
+    <None Include="blur.frag" />
+    <None Include="blur.vert" />
+    <None Include="light_box.frag" />
   </ItemGroup>
 </Project>

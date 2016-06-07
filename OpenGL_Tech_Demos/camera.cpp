@@ -9,6 +9,9 @@ Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitc
 	pitch = _pitch;
 	frontVec = vector3(0.0f, 0.0f, -1.0f);
 	UpdateCameraVectors();
+
+	flyCamera = true;		// ---
+	movementSpeed = 7.0f;	// ---
 }
 
 Matrix4 &Camera::Camera::GetViewMatrix()
@@ -24,6 +27,11 @@ glm::mat4 Camera::GetViewMatrix2()
 }
 
 const GLfloat PI = 3.141592;
+GLfloat DegressToRadians(GLfloat degrees)
+{
+	return degrees * (PI / 180.0f);
+}
+
 float camHeadBob = 0;
 const float Speed = 8.0f;
 void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
@@ -52,20 +60,40 @@ void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 		moving = true;
 	}
 
+	/*if (keys[GLFW_KEY_E])
+	{
+		GLfloat angle = 0;
+		angle += 0.01f;
+		Roll(angle);
+	}*/
+	//
+	//if (keys[GLFW_KEY_Q])
+	//{
+	//	//view = view.rotate(30.0f, vector3(0.0f, 0.0f, 1.0f));
+	//	GLfloat angle = 0;
+	//	angle += 0.0015f;
+	//	Roll(angle);
+	//}
+
 #if 0
-	if (camHeadBob > 4 * PI)
+	if (!flyCamera)
 	{
-		camHeadBob -= 4 * PI;
-	}
+		movementSpeed = 2.0f;
 
-	if (moving)
-	{
-		camHeadBob += frequincy;
-	}
-	else
-		camHeadBob = 0.0f;
+		if (camHeadBob > 4 * PI)
+		{
+			camHeadBob -= 4 * PI;
+		}
 
-	position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
+		if (moving)
+		{
+			camHeadBob += frequincy;
+		}
+		else
+			camHeadBob = 0.0f;
+
+		position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
+	}
 #endif
 
 	UpdateCameraVectors();
@@ -158,9 +186,14 @@ void Camera::MouseScroll(GLfloat yOffset)
 		zoom = 45.0f;
 }
 
-GLfloat DegressToRadians(GLfloat degrees)
+void Camera::Roll(GLfloat angle)
 {
-	return degrees * (PI / 180.0f);
+	rightVec = (rightVec * cos(DegressToRadians(angle)) +
+				upVec * sin(DegressToRadians(angle))).normalise();
+
+	upVec = frontVec.vectorProduct(rightVec).normalise();
+
+	upVec *= -1;
 }
 
 void Camera::UpdateCameraVectors()

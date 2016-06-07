@@ -14,19 +14,24 @@ class ParallaxMappingDemo
 public:
 	ParallaxMappingDemo();
 	~ParallaxMappingDemo();
+	bool enableParallax = true;
+	float heightScale = 0.05f;
 
 	void Initalize(vector3 &cameraPos);
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	GLboolean enableParallax;
-	Shader shaderParallax;
-	GLuint diffuseMap, normalMap, displacementMap;
 	vector3 lightPos;
+	Shader shaderParallax, shaderLightBox;
+	GLuint diffuseMap_SquareBricks, normalMap_SquareBricks, displacementMap_SquareBricks;
+	GLuint diffuseMap_GreyStonewall, normalMap_GreyStonewall, displacementMap_GreyStonewall;
+	GLuint diffuseMap_Pebbles, normalMap_Pebbles, displacementMap_Pebbles;
 	GLuint quadVAO;
 	GLuint quadVBO;
+	GLuint cubeVAO, cubeVBO;
 
 	GLuint LoadTexture(GLchar *path);
+	void RenderCube();
 	void RenderQuad();
 };
 

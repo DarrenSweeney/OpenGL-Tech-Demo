@@ -14,6 +14,7 @@ uniform sampler2D normalMap;
 uniform sampler2D depthMap;
 
 uniform bool parallax;
+uniform bool invertLayerShift;
 uniform float height_scale;
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
@@ -26,8 +27,9 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
     float layerDepth = 1.0 / numLayers;
     // depth of current layer
     float currentLayerDepth = 0.0;
-    // the amount to shift the texture coordinates per layer (from vector P)
-    vec2 P = viewDir.xy / viewDir.z * height_scale; 
+    // The amount to shift the texture coordinates per layer (from vector P)
+	// Inverted the y depth value.
+    vec2 P = invertLayerShift ? (viewDir.xy / viewDir.z * height_scale) : -(viewDir.xy / viewDir.z * height_scale);
     vec2 deltaTexCoords = P / numLayers;
   
     // get initial values
@@ -66,10 +68,6 @@ void main()
     vec2 texCoords = fs_in.TexCoords;
     if(parallax)
         texCoords = ParallaxMapping(fs_in.TexCoords,  viewDir);
-        
-    // discards a fragment when sampling outside default texture region (fixes border artifacts)
-    if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
-        discard;
 
     // Obtain normal from normal map
     vec3 normal = texture(normalMap, texCoords).rgb;

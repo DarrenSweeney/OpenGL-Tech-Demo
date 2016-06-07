@@ -15,6 +15,7 @@ ModelLoadingDemo::~ModelLoadingDemo()
 	//					glDeleteTextures(1, &normalMap);
 }
 
+// TODO(Darren): May add tangent space draw opition in my demo menu.
 void ModelLoadingDemo::Initalize()
 {
 #pragma region Skybox Vertices

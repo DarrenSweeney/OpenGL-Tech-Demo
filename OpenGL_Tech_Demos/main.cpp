@@ -82,18 +82,20 @@ enum Demos
 {
 	cubeMap,
 	shadowMap,
-	hdr,
+	hdr,						// Nearly done.
 	stencilReflection,
 	instancing,
-	deferredRendering,
+	deferredRendering,			// Nearly done, need to have lights more intense.
 	objectOutline,
 	ssao,
-	parallaxingMappingDemo,
+	parallaxingMappingDemo,		// Nearly done.
 	omnidirectionalShadow,
-	modelLoading
+	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::modelLoading;
+Demos demos = Demos::parallaxingMappingDemo;
+
+const char* demoInfo = " ";
 
 int main(int, char**)
 {
@@ -125,7 +127,7 @@ int main(int, char**)
 	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	//glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
@@ -133,6 +135,7 @@ int main(int, char**)
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glfwSetWindowPos(window, 0, 30);
+
     glfwMakeContextCurrent(window);
 	if (gl3wInit()) 
 	{
@@ -147,18 +150,20 @@ int main(int, char**)
 	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
 
+	// TODO(Darren): Rename shadowmappingdemo to directional shadow demo.
+
 	// Initializes scenes.
 	//cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
-	//parallaxingDemo.Initalize(camera.position);
+	parallaxingDemo.Initalize(camera.position);
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 	//omnidirectionalShadowDemo.Initalize();
-	modelLoadingDemo.Initalize();
+	//modelLoadingDemo.Initalize();
 
 	// ImGui
 	float f1 = 0.1f;
@@ -178,7 +183,7 @@ int main(int, char**)
 		camera.deltaTime = deltaTime;
 
 		//glClearColor(0.3f, 0.4f, 0.7f, 1.0f);
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwPollEvents();
@@ -220,7 +225,10 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("Model Loading Demo");
 				if (clicked)
+				{
 					demos = Demos::modelLoading;
+					demoInfo = "I used Assimp libiary to load the model\nMore info here.\nLets hope my dreams come true:)";
+				}
 				ImGui::Checkbox("Display Normals", &modelLoadingDemo.showNormals);
 				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo.showCubemap);
 				ImGui::TreePop();
@@ -236,17 +244,25 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("Parralxing Mapping Demo");
 				if (clicked)
+				{
 					demos = Demos::parallaxingMappingDemo;
-				ImGui::SliderFloat("Depth", &f1, 0.05f, 0.10f, "%.3f");
-				ImGui::Checkbox("Enable Parallax", &b1);
+					demoInfo = "Demostates steep parallax mapping along a walkable cobble floor.";
+				}
+				ImGui::SliderFloat("Depth", &parallaxingDemo.heightScale, 0.005f, 0.10f, "%.3f");
+				ImGui::Checkbox("Enable Parallax", &parallaxingDemo.enableParallax);
+				ImGui::Button("Pause Light");
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("HDR Lighting"))
 			{
 				bool clicked = ImGui::Button("HDR Demo");
 				if (clicked)
+				{
 					demos = Demos::hdr;
-				ImGui::SliderFloat("Exposure", &f1, 0.0f, 5.0f, "%.3f");
+					demoInfo = "";
+				}
+				ImGui::SliderFloat("Exposure", &hdrDemo.exposure, 0.005, 0.300, "%.3f");
+				ImGui::Checkbox("Render Lights", &hdrDemo.renderLights);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Shadow Maps"))
@@ -286,16 +302,22 @@ int main(int, char**)
 				ImGui::TreePop();
 			}
 		}
-		if (ImGui::CollapsingHeader("Info", 0, true, true))
+		if (ImGui::CollapsingHeader("Current Demo Info", 0, true, true))
+		{
+			ImGui::TextWrapped(demoInfo);
+		}
+		if (ImGui::CollapsingHeader("Application Info", 0, true, true))
 		{
 			char* version = (char*)glGetString(GL_VERSION);
 			char* renderer = (char*)glGetString(GL_RENDERER);
-			//strcpy(renderer, "Renderer");
 
 			ImGui::Text(version);
 			ImGui::Text(renderer);
 			ImGui::Text("Draw Calls: ");
 			ImGui::Text("Post Processing Time: ");
+
+			bool fullscreen = ImGui::Button("FullScreen");
+			// TODO(Darren): Change text of button to windowed when in fullscreen.
 		}
 		if (ImGui::CollapsingHeader("About", 0, true, true))
 		{
@@ -306,10 +328,10 @@ int main(int, char**)
 		{
 			if (ImGui::TreeNode("Camera"))
 			{
-				ImGui::Checkbox("Fly Camera", &b1);
+				ImGui::Checkbox("Fly Camera", &camera.flyCamera);
 
 				ImGui::Text("movement_speed");
-				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 20.0f, "%.3f");
+				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 50.0f, "%.3f");
 				ImGui::Text("camera_speed");
 				ImGui::SliderFloat("5", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
 

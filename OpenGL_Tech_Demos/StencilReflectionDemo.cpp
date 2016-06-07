@@ -69,13 +69,13 @@ void StencilReflectionDemo::InitalizeScene()
 		// Texture Coords: note we set these higher than 1 that together with GL_REPEAT 
 		// as texture wrapping mode will cause the floor texture to repeat)
 		// Positions         // Texture Coords 
-		3.0f,  -0.5f,  3.0f,  2.0f, 0.0f,
+		3.0f,  -0.5f,  3.0f,  3.0f, 0.0f,
 		-3.0f, -0.5f,  3.0f,  0.0f, 0.0f,
-		-3.0f, -0.5f, -3.0f,  0.0f, 2.0f,
+		-3.0f, -0.5f, -3.0f,  0.0f, 3.0f,
 
-		3.0f,  -0.5f,  3.0f,  2.0f, 0.0f,
-		-3.0f, -0.5f, -3.0f,  0.0f, 2.0f,
-		3.0f,  -0.5f, -3.0f,  2.0f, 2.0f
+		3.0f,  -0.5f,  3.0f,  3.0f, 0.0f,
+		-3.0f, -0.5f, -3.0f,  0.0f, 3.0f,
+		3.0f,  -0.5f, -3.0f,  3.0f, 3.0f
 	};
 #pragma endregion
 
@@ -104,7 +104,7 @@ void StencilReflectionDemo::InitalizeScene()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glBindVertexArray(0);
 
-	cubeTexture = LoadTexture("Resources/grid.png");
+	cubeTexture = LoadTexture("Resources/brickwall.jpg");
 	planeTexture = LoadTexture("Resources/chess_board.jpg");
 
 	shaderObject.InitShader("Object.vert", "Object.frag");
