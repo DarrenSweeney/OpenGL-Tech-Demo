@@ -27,10 +27,9 @@ private:
 	GLboolean bloom = true;
 	GLfloat explosure = 1.0f;
 	// HDR shaders.
-	Shader shaderBlinnPhong, shaderHDR;
+	Shader shaderBloom, shaderHDR, shaderLight, shaderBlur;
 	// Bloom shaders.
 	// TODO(Darren): Really need to comment each shader:)
-	Shader shaderBloom, shaderLight, shaderBlur, shaderBloomFinal;
 	GLuint woodTexture, endTexture;
 	std::vector<vector3> lightPositions;
 	std::vector<glm::vec3> lightColors;

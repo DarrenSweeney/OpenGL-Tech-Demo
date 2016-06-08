@@ -87,13 +87,13 @@ enum Demos
 	instancing,
 	deferredRendering,			// Nearly done, need to have lights more intense.
 	objectOutline,
-	ssao,
-	parallaxingMappingDemo,		// Nearly done.
+	ssao,						// Maybe do this next?
+	parallaxingMappingDemo,		// *** DONE ***
 	omnidirectionalShadow,
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::parallaxingMappingDemo;
+Demos demos = Demos::hdr;
 
 const char* demoInfo = " ";
 
@@ -155,8 +155,8 @@ int main(int, char**)
 	// Initializes scenes.
 	//cubeMapDemo.InitalizeScene();
 	//shadowMappingDemo.InitalizeScene();
-	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
-	parallaxingDemo.Initalize(camera.position);
+	hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	//parallaxingDemo.Initalize(camera.position);
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
@@ -261,7 +261,7 @@ int main(int, char**)
 					demos = Demos::hdr;
 					demoInfo = "";
 				}
-				ImGui::SliderFloat("Exposure", &hdrDemo.exposure, 0.005, 0.300, "%.3f");
+				ImGui::SliderFloat("Exposure", &hdrDemo.exposure, 0.1f, 5.0f, "%.3f");
 				ImGui::Checkbox("Render Lights", &hdrDemo.renderLights);
 				ImGui::TreePop();
 			}

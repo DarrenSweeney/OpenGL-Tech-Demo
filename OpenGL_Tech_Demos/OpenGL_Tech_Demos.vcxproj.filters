@@ -282,8 +282,6 @@
     <None Include="Shaders\CubeMapDemo\skybox.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Object.vert" />
-    <None Include="Object.frag" />
     <None Include="instance.vert">
       <Filter>Shaders\InstancingDemo</Filter>
     </None>
@@ -293,34 +291,98 @@
     <None Include="planet.frag">
       <Filter>Shaders\InstancingDemo</Filter>
     </None>
-    <None Include="g_buffer.vert" />
-    <None Include="deferred_light_box.frag" />
-    <None Include="deferred_light_box.vert" />
-    <None Include="deferred_shading.frag" />
-    <None Include="deferred_shading.vert" />
-    <None Include="g_buffer.frag" />
-    <None Include="ssao_geometry.vert" />
-    <None Include="ssao_lighting.frag" />
-    <None Include="ssao.frag" />
-    <None Include="ssao.vert" />
-    <None Include="ssao_blur.frag" />
-    <None Include="ssao_geometry.frag" />
-    <None Include="modelLoading.vert" />
-    <None Include="modelLoading.frag" />
-    <None Include="normal.frag" />
-    <None Include="normal.gs" />
-    <None Include="normal.vert" />
-    <None Include="point_shadows_depth.frag" />
-    <None Include="point_shadows_depth.gs" />
-    <None Include="point_shadows_depth.vert" />
-    <None Include="point_shadows.frag" />
-    <None Include="point_shadows.vert" />
-    <None Include="bloom.frag" />
-    <None Include="bloom.vert" />
-    <None Include="parallax_mapping.frag" />
-    <None Include="parallax_mapping.vert" />
-    <None Include="blur.frag" />
-    <None Include="blur.vert" />
-    <None Include="light_box.frag" />
+    <None Include="bloom.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="bloom.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="blur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="blur.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="deferred_light_box.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="deferred_light_box.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="deferred_shading.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="deferred_shading.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="g_buffer.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="g_buffer.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="light_box.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="modelLoading.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="modelLoading.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="normal.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="normal.gs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="normal.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Object.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Object.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="parallax_mapping.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="parallax_mapping.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="point_shadows.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="point_shadows.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="point_shadows_depth.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="point_shadows_depth.gs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ssao.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="point_shadows_depth.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ssao.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ssao_blur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ssao_geometry.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ssao_geometry.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ssao_lighting.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

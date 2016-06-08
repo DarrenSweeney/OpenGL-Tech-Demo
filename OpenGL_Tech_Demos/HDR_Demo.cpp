@@ -10,27 +10,21 @@ HDR_DEMO::~HDR_DEMO()
 
 }
 
-/*
-	- Scale up room.
-		-Don't know about this.
-	- Fix saturation on the room walls.
-*/
-
 void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	// Light sources
 	// - Positions
 	lightPositions.push_back(vector3(0.0f, 0.0f, 49.5f));
-	lightPositions.push_back(vector3(-1.4f, -1.9f, 19.0f));
-	lightPositions.push_back(vector3(0.0f, -1.8f, 30.0f));
-	lightPositions.push_back(vector3(0.8f, -1.7f, 8.0f));
+	lightPositions.push_back(vector3(0.0f, 0.0f, 19.0f));
+	lightPositions.push_back(vector3(0.0f, 0.0f, 30.0f));
+	lightPositions.push_back(vector3(0.0f, 0.0f, 8.0f));
 	// - Colors
-	lightColors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
-	lightColors.push_back(glm::vec3(0.0f, 0.0f, 50.0f));
-	lightColors.push_back(glm::vec3(50.0f, 0.0f, 0.0f));
-	lightColors.push_back(glm::vec3(0.0f, 50.0f, 0.0f));
+	lightColors.push_back(glm::vec3(100.0f, 100.0f, 100.0f));
+	lightColors.push_back(glm::vec3(0.0f, 0.0f, 20.0f));
+	lightColors.push_back(glm::vec3(20.0f, 0.0f, 0.0f));
+	lightColors.push_back(glm::vec3(0.0f, 20.0f, 0.0f));
 
 	// Load textures
 	woodTexture = LoadTexture("Resources/brickwall.jpg");
@@ -39,7 +33,8 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	SetupBuffers(screenWidth, screenHeight);
 
 	// Shaders
-	shaderBlinnPhong.InitShader("Shaders/HDR_Demo/BlinnPhong.vert", "bloom.frag");
+	// TODO(Darren): Fix shader names and organisation.
+	shaderBloom.InitShader("Shaders/HDR_Demo/BlinnPhong.vert", "bloom.frag");
 	shaderLight.InitShader("bloom.vert", "light_box.frag");
 	shaderBlur.InitShader("blur.vert", "blur.frag");
 	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
@@ -129,26 +124,26 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 	_projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 500.0f);
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 model;
-	shaderBlinnPhong.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	shaderBloom.Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderBloom.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderBloom.Program, "view"), 1, GL_FALSE, &view.data[0]);
 
 	// - set lighting uniforms
 	for (GLuint i = 0; i < lightPositions.size(); i++)
 	{
 		float lightPosData[] = {lightPositions[i].x, lightPositions[i].y, lightPositions[i].z};
-		glUniform3fv(glGetUniformLocation(shaderBlinnPhong.Program, ("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
-		glUniform3fv(glGetUniformLocation(shaderBlinnPhong.Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColors[i][0]);
+		glUniform3fv(glGetUniformLocation(shaderBloom.Program, ("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
+		glUniform3fv(glGetUniformLocation(shaderBloom.Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColors[i][0]);
 	}
 	float data[] = { camera.position.x, camera.position.y, camera.position.z };
-	glUniform3fv(glGetUniformLocation(shaderBlinnPhong.Program, "viewPos"), 1, &data[0]);
+	glUniform3fv(glGetUniformLocation(shaderBloom.Program, "viewPos"), 1, &data[0]);
 
 	// - render tunnel
 	model = Matrix4();
 	model = model.translate(vector3(0.0f, 0.0f, 25.0f));
 	model = model.scale(vector3(5.0f, 5.0f, 55.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderBlinnPhong.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	glUniform1i(glGetUniformLocation(shaderBlinnPhong.Program, "inverse_normals"), GL_TRUE);
+	glUniformMatrix4fv(glGetUniformLocation(shaderBloom.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glUniform1i(glGetUniformLocation(shaderBloom.Program, "inverse_normals"), GL_TRUE);
 	RenderCube(5.0f, 5.0f, 55.0f);
 
 	// Show all the light sources as bright cubes
@@ -171,7 +166,7 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 
 	// Blur bright fragments with two-pass Gaussian Blur 
 	GLboolean horizontal = true, first_iteration = true;
-	GLuint amount = 10;
+	GLuint amount = 2;
 	shaderBlur.Use();
 	for (GLuint i = 0; i < amount; i++)
 	{
@@ -256,6 +251,7 @@ void HDR_DEMO::RenderQuad()
 }
 
 
+// TODO(Darren): Finish this.
 // RenderCube() Renders a 1x1 3D cube in NDC. (Not anymore) MWahahaha.
 void HDR_DEMO::RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale)
 {
@@ -325,20 +321,20 @@ void HDR_DEMO::RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale)
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
+
 	// Render Cube
 	glBindVertexArray(cubeVAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	glDrawArrays(GL_TRIANGLES, 0, 24);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, endTexture);
-	glDrawArrays(GL_TRIANGLES, 6, 12);
+	glDrawArrays(GL_TRIANGLES, 6, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	// TODO(Darren): Prevent stretching of wood textures.
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	glDrawArrays(GL_TRIANGLES, 12, 36);
+	glDrawArrays(GL_TRIANGLES, 12, 24);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 }

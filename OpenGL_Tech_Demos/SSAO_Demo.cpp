@@ -174,7 +174,7 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	model = model.scale(vector3(20.0f, 1.0f, 20.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	RenderCube();
-	// Nanosuit model on the floor
+	// Render model on the floor
 	model = Matrix4();
 	model = model.translate(vector3(-5.0f, 0.0f, 5.0));
 	model = model.rotate(0.0f, vector3(1.0, 0.0, 0.0));
