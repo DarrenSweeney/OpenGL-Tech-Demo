@@ -2,10 +2,12 @@
 #define OMNIDIRECTION_SHADOW
 
 #include "shader.h"
+#include "model.h"
 #include "Math\vector3.h"
 #include "camera.h"
 #include <SOIL\SOIL.h>
 #include <vector>
+#include <GL/glext.h>
 
 // TODO(Darren): Remove GLM.
 // GLM Mathemtics
@@ -18,12 +20,15 @@ class OmnidirectionalShadowDemo
 public:
 	OmnidirectionalShadowDemo();
 	~OmnidirectionalShadowDemo();
+	bool moveLight, renderLight;
+
 	void Initalize();
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	Shader shaderPointShadows;
-	Shader shaderDepth;
+	Model modelPlatform, modelColumn, modelBunny;
+	Shader shaderPointShadows, shaderDepth;
+	Shader shaderLightBox;
 	glm::vec3 lightPos;
 	GLuint woodTexture, wallTexture;
 	const GLuint ShadowWidth, ShadowHeight;

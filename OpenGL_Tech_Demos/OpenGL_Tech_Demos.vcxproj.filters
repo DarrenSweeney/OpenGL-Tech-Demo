@@ -384,5 +384,7 @@
     <None Include="ssao_lighting.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="EnviromentObject.vert" />
+    <None Include="EnviromentObject.frag" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,8 @@ class DeferredRenderingDemo
 public:
 	DeferredRenderingDemo();
 	~DeferredRenderingDemo();
+	bool renderLights;
+
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized);
 

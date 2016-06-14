@@ -224,6 +224,8 @@
     <None Include="deferred_light_box.vert" />
     <None Include="deferred_shading.frag" />
     <None Include="deferred_shading.vert" />
+    <None Include="EnviromentObject.frag" />
+    <None Include="EnviromentObject.vert" />
     <None Include="g_buffer.frag" />
     <None Include="g_buffer.vert" />
     <None Include="instance.vert" />

@@ -5,8 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
 ShadowMapping::ShadowMapping()
+	: moveLight(false), ShadowWidth(1024), ShadowHeight(1024)
 {
 
 }
@@ -21,10 +21,22 @@ void ShadowMapping::InitalizeScene()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	// TODO(Darren): Set the flags
+	if (glfwExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+	{
+		// ---
+
+		std::cout << "'GL_EXT_texture_filter_anisotropic': SUPPORTED" << std::endl;
+
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+	}
+
 	// Set up and compile shaders.
+	shaderShadowMap.InitShader("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag");
 	shaderDepth.InitShader("Shaders/ShadowMapDemo/ShadowMappingDepth.vert", "Shaders/ShadowMapDemo/ShadowMappingDepth.frag");
 	shaderDebugQuad.InitShader("Shaders/ShadowMapDemo/debugQuadDepth.vert", "Shaders/ShadowMapDemo/debugQuadDepth.frag");
-	shaderShadowMap.InitShader("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag");
+	// TODO(Darren): Rename this to a generic shader for light box.
+	shaderLightBox.InitShader("deferred_light_box.vert", "deferred_light_box.frag");
 
 	// Pass in uniforms
 	shaderShadowMap.Use();
@@ -60,8 +72,14 @@ void ShadowMapping::InitalizeScene()
 	lightPosition = vector3(-2.0f, 4.0f, -1.0f);
 
 	// Load textures
-	floorTexture = LoadTexture("Resources/grid.png", false);
-	cubeTexture = LoadTexture("Resources/grid.png", false);
+	floorTexture = LoadTexture("Resources/brickwall.jpg", false);
+	cubeTexture = LoadTexture("Resources/ParallaxTextures/Creeper/photosculpt-creeper-diffuse.jpg", false);
+	teapotTexture = LoadTexture("Resources/Parallax/photosculpt-graystonewall-diffuse.jpg", false);
+
+	// Load the scene models.
+	modelTree.LoadModel("Resources/tree1b_lod2_2.obj");
+	modelTeapot.LoadModel("Resources/utah-teapot.obj");
+	modelRock.LoadModel("Resources/rock/rock.obj");
 
 	// Configure depth map FBO
 	glGenFramebuffers(1, &depthMapFBO);
@@ -69,7 +87,7 @@ void ShadowMapping::InitalizeScene()
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, ShadowWidth, ShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -89,12 +107,18 @@ void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scr
 	// NOTE(Darren): From the CPU dignostic test _glfwPlatformJoystickPresent is using 71.09% 
 	// of 74.18%, why is the joystick using so much resources?
 	// TODO(Darren): Fix this issue and see if the CPU usage dramaticly does down.
-	camera.ControllerMovement();
+	//camera.ControllerMovement();
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	// Change light position over time
-	//lightPosition.x = sin(glfwGetTime()) * 3.0f;
-	//lightPosition.z = cos(glfwGetTime()) * 2.0f;
-	//lightPosition.y = 5.0 + cos(glfwGetTime()) * 1.0f;
+	// TODO(Darren): Fix the jitter when pausing.
+	if (moveLight)
+	{
+		lightPosition.x = sin(glfwGetTime()) * 3.0f;
+		lightPosition.z = cos(glfwGetTime()) * 3.0f;
+		lightPosition.y = 5.0 + cos(glfwGetTime()) * 1.0f;
+	}
 
 	// 1. Render depth of scene to texture (from ligth's perspective)
 	// - Get light projection/view matrix.
@@ -108,7 +132,7 @@ void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scr
 	shaderDepth.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderDepth.Program, "lightSpaceMatrix"), 1, GL_FALSE, lightSpaceMatrix.data);
 
-	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glViewport(0, 0, ShadowWidth, ShadowHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	RenderScene(shaderDepth);
@@ -134,13 +158,29 @@ void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scr
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	RenderScene(shaderShadowMap);
 
+	// Render the light.
+	if (renderLight)
+	{
+		vector3 lightColor = vector3(1.0f, 1.0f, 1.0f);
+		float lightColorData[] = { lightColor.x, lightColor.y, lightColor.z };
+		Matrix4 model = Matrix4();
+		model = model.scale(vector3(0.5f, 0.5f, 0.5f));
+		model = model.translate(lightPosition);
+		shaderLightBox.Use();
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, &view.data[0]);
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, &model.data[0]);
+		glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
+		RenderCube();
+	}
+
 	// 3. DEBUG: visualize depth map by rendering it to plane
-	shaderDebugQuad.Use();
+	/*shaderDebugQuad.Use();
 	glUniform1f(glGetUniformLocation(shaderDebugQuad.Program, "near_plane"), near_plane);
 	glUniform1f(glGetUniformLocation(shaderDebugQuad.Program, "far_plane"), far_plane);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	RenderQuad();
+	RenderQuad();*/
 }
 
 void ShadowMapping::RenderScene(Shader &shader)
@@ -153,23 +193,46 @@ void ShadowMapping::RenderScene(Shader &shader)
 	glBindVertexArray(planeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	// Cubes
-	model = Matrix4();
+	/*model = Matrix4();
 	model = model.translate(vector3(0.0f, 1.5f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(2.0f, 0.0f, 1.0));
+	model = model.translate(vector3(2.0f, 0.0f, 1.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-1.0f, 0.0f, 2.0));
+	model = model.translate(vector3(-1.0f, 0.0f, 2.0f));
 	model = model.rotate(60.0f, vector3(1.0f, 0.0f, 1.0f).normalise());
 	model = model.scale(vector3(0.5f, 0.5f, 0.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderCube();
+	RenderCube();*/
+
+	// TODO(Darren): Check if matrix multiplication order is correct for this sort of stuff.
+	model = Matrix4();
+	model = model.translate(vector3(0.0f, -1.0f, 2.0f));
+	model = model.scale(vector3(0.5f, 0.5f, 0.5f));
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	modelTree.Draw(shader);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, teapotTexture);
+	model = Matrix4();
+	model = model.scale(vector3(0.05f, 0.05f, 0.05f));
+	model = model.translate(vector3(-1.0f, 0.0f, 0.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	modelTeapot.Draw(shader); 
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	model = Matrix4();
+	model = model.translate(vector3(2.5f, -0.3f, 2.2f));
+	model = model.scale(vector3(0.9f, 0.9f, 0.9f));
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	modelRock.Draw(shader);
 }
 
 // RenderQuad() Renders a 1x1 quad in NDC, best used for framebuffer color targets
@@ -180,8 +243,8 @@ void ShadowMapping::RenderQuad()
 	{
 		GLfloat quadVertices[] = {
 			// Positions        // Texture Coords
-			0.35f,  -0.35f, 0.0f,  0.0f, 1.0f,	// 
-			0.35f, -0.95f, 0.0f,  0.0f, 0.0f,	// 
+			0.35f,  -0.35f, 0.0f,  0.0f, 1.0f,		// 
+			0.35f, -0.95f, 0.0f,  0.0f, 0.0f,		// 
 			0.95f,  -0.35f, 0.0f,  1.0f, 1.0f,		// 
 			0.95f, -0.95f, 0.0f,  1.0f, 0.0f,		// 
 		};
@@ -288,11 +351,17 @@ GLuint ShadowMapping::LoadTexture(GLchar *path, bool gammaCorrection)
 	glTexImage2D(GL_TEXTURE_2D, 0, gammaCorrection ? GL_SRGB : GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	float aniso = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+
 	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(image);
 

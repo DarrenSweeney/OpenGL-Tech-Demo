@@ -1,7 +1,7 @@
 #include "OmnidirectionalShadowDemo.h"
 
 OmnidirectionalShadowDemo::OmnidirectionalShadowDemo()
-	: ShadowWidth(1024), ShadowHeight(1024)
+	: ShadowWidth(1024), ShadowHeight(1024), moveLight(false)
 {
 
 }
@@ -20,6 +20,13 @@ void OmnidirectionalShadowDemo::Initalize()
 	// Setup and compile our shaders
 	shaderPointShadows.InitShader("point_shadows.vert", "point_shadows.frag");
 	shaderDepth.InitShader("point_shadows_depth.vert", "point_shadows_depth.frag", "point_shadows_depth.gs");
+	// TODO(Darren): Rename this to a generic shader for light box.
+	shaderLightBox.InitShader("deferred_light_box.vert", "deferred_light_box.frag");
+
+	// Load Models
+	modelPlatform.LoadModel("Resources/platform.obj");
+	modelColumn.LoadModel("Resources/column.obj");
+	modelBunny.LoadModel("Resources/bunny.obj");
 
 	// Set texture samples
 	shaderPointShadows.Use();
@@ -32,7 +39,7 @@ void OmnidirectionalShadowDemo::Initalize()
 	// Load textures
 	woodTexture = LoadTexture("Resources/brickwall.jpg");
 	wallTexture = LoadTexture("Resources/brickwall.jpg");
-
+	//ParallaxTextures/HorizontalStone/photosculpt-horizontalstone-diffuse.jpg
 	// Configure depth map FBO
 	glGenFramebuffers(1, &depthMapFBO);
 	// Create depth cubemap texture
@@ -58,6 +65,13 @@ void OmnidirectionalShadowDemo::Initalize()
 void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	//camera.ControllerMovement();
+
+	if (moveLight)
+	{
+		lightPos.x = sin(glfwGetTime()) * 4.0f;
+		lightPos.z = cos(glfwGetTime()) * 4.0f;
+		lightPos.y = cos(glfwGetTime()) * 1.0f;
+	}
 
 	// 1. Create depth cubemap transformation matrices
 	GLfloat aspect = (GLfloat)ShadowWidth / (GLfloat)ShadowHeight;
@@ -105,6 +119,22 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 	RenderScene(shaderPointShadows);
+
+	// Render the light.
+	if (renderLight)
+	{
+		vector3 lightColor = vector3(1.0f, 1.0f, 1.0f);
+		float lightColorData[] = { lightColor.x, lightColor.y, lightColor.z };
+		glm::mat4 model;
+		model = glm::scale(model, glm::vec3(0.5f));
+		model = glm::translate(model, lightPos);
+		shaderLightBox.Use();
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
+		RenderCube();
+	}
 }
 
 GLuint OmnidirectionalShadowDemo::LoadTexture(GLchar *path)
@@ -121,11 +151,17 @@ GLuint OmnidirectionalShadowDemo::LoadTexture(GLchar *path)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	float aniso = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+
 	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(image);
 
@@ -134,46 +170,72 @@ GLuint OmnidirectionalShadowDemo::LoadTexture(GLchar *path)
 
 void OmnidirectionalShadowDemo::RenderScene(Shader &shader)
 {
-	// Room cube
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, wallTexutre);*/
+	// Render a flat cube as floor.
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, wallTexture);
+	glm::mat4 model = glm::mat4();
+	model = glm::translate(model, glm::vec3(0.0f, -6.0f, 0.0));
+	model = glm::scale(model, glm::vec3(40.0f, 0.2f, 40.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	RenderCube();
 
-	glm::mat4 model;
-	model = glm::scale(model, glm::vec3(10.0));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, woodTexture);
+	// Render Stand.
+	model = glm::mat4();
+	model = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0));
+	model = glm::scale(model, glm::vec3(5.0f, 1.0f, 5.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	glDisable(GL_CULL_FACE); // Note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-	glUniform1i(glGetUniformLocation(shader.Program, "reverse_normals"), 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
 	RenderCube();
-	glUniform1i(glGetUniformLocation(shader.Program, "reverse_normals"), 0); // And of course disable it
-	glEnable(GL_CULL_FACE);
-
-	// Cubes
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, woodTexture);*/
 
 	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
+	model = glm::scale(model, glm::vec3(6.0f));
+	//model = glm::rotate(model, 60.0f, glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	RenderCube();
+	modelPlatform.Draw(shader);
+
 	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
-	model = glm::scale(model, glm::vec3(1.5));
+	model = glm::scale(model, glm::vec3(6.0f));
+	model = glm::rotate(model, glm::radians(180.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
+	model = glm::translate(model, glm::vec3(0.0f, -0.4f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	RenderCube();
+	modelPlatform.Draw(shader);
+
+	// Draw Columns
 	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	model = glm::translate(model, glm::vec3(-9.0f, -11.5f, -9.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	RenderCube();
+	modelColumn.Draw(shader);
+
 	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
+	model = glm::scale(model, glm::vec3(0.5f));
+	model = glm::translate(model, glm::vec3(9.0f, -11.5f, -9.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	RenderCube();
+	modelColumn.Draw(shader);
+
 	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
-	model = glm::rotate(model, 60.0f, glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	model = glm::scale(model, glm::vec3(1.5));
+	model = glm::scale(model, glm::vec3(0.5f));
+	model = glm::translate(model, glm::vec3(-9.0f, -11.5f, 9.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	RenderCube();
+	modelColumn.Draw(shader);
+
+	model = glm::mat4();
+	model = glm::scale(model, glm::vec3(0.5f));
+	model = glm::translate(model, glm::vec3(9.0f, -11.5f, 9.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	modelColumn.Draw(shader);
+
+	model = glm::mat4();
+	model = glm::translate(model, glm::vec3(0.0f, -4.5f, 0.0));
+	model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	modelBunny.Draw(shader);
 }
 
 

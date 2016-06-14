@@ -49,7 +49,7 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	// Sample kernel
 	randomFloats = std::uniform_real_distribution<GLfloat>(0.0, 1.0); // generates random floats between 0.0 and 1.0
 
-	for (GLuint i = 0; i < 64; ++i)
+	for (GLuint i = 0; i < 16; ++i)
 	{
 		vector3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
 		sample = sample.normalise();
@@ -176,18 +176,19 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	RenderCube();
 	// Render model on the floor
 	model = Matrix4();
-	model = model.translate(vector3(-5.0f, 0.0f, 5.0));
 	model = model.rotate(0.0f, vector3(1.0, 0.0, 0.0));
-	model = model.scale(vector3(0.09f, 0.09f, 0.09f));
+	model = model.scale(vector3(0.05f, 0.05f, 0.05f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	sceneModel.Draw(shaderGeometryPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
+	// Iterating over a screen filled quad pixel-by-pixel using the gbuffer's content is 
+	// eating performance in the ssao demo and deferred rendering demo.
 	// 2. Create SSAO texture
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 	glClear(GL_COLOR_BUFFER_BIT);
-	shaderSSAO.Use();
+	// TODO(Darren): Will have to optimise the ssao frag shader. Take out matrix calculations:)
+	shaderSSAO.Use();					// Here!!! ************
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, gPositionDepth);
 	glActiveTexture(GL_TEXTURE1);
@@ -195,7 +196,7 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	// Send kernel + rotation 
-	for (GLuint i = 0; i < 64; ++i)
+	for (GLuint i = 0; i < 16; ++i)
 	{
 		GLfloat ssaoKernelData[] = {ssaoKernel[i].x, ssaoKernel[i].y, ssaoKernel[i].z};	
 		glUniform3fv(glGetUniformLocation(shaderSSAO.Program, ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssaoKernelData[0]);

@@ -81,19 +81,19 @@ const GLFWvidmode* vidMode;
 enum Demos
 {
 	cubeMap,
-	shadowMap,
-	hdr,						// Nearly done.
+	shadowMap,					// In Progress.
+	hdr,						// *** DONE ***
 	stencilReflection,
 	instancing,
-	deferredRendering,			// Nearly done, need to have lights more intense.
+	deferredRendering,			// --ON HOLD--
 	objectOutline,
-	ssao,						// Maybe do this next?
+	ssao,						// --ON HOLD--
 	parallaxingMappingDemo,		// *** DONE ***
-	omnidirectionalShadow,
+	omnidirectionalShadow,		// In Progress.
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::hdr;
+Demos demos = Demos::omnidirectionalShadow;
 
 const char* demoInfo = " ";
 
@@ -154,15 +154,15 @@ int main(int, char**)
 
 	// Initializes scenes.
 	//cubeMapDemo.InitalizeScene();
-	//shadowMappingDemo.InitalizeScene();
-	hdrDemo.InitalizeScene(screenWidth, screenHeight);
+	shadowMappingDemo.InitalizeScene();
+	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
-	//omnidirectionalShadowDemo.Initalize();
+	omnidirectionalShadowDemo.Initalize();
 	//modelLoadingDemo.Initalize();
 
 	// ImGui
@@ -191,7 +191,17 @@ int main(int, char**)
 
         ImGui_ImplGlfwGL3_NewFrame();
 
+		//int texture_id = deferredRenderingDemo.gBuffer;
+
 #pragma region ImGui
+
+		/*ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(200, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
+		ImGui::SetWindowPos(ImVec2(screenWidth - 460, 190));
+		ImVec2 uv0 = ImVec2(0, 1);
+		ImVec2 uv1 = ImVec2(1, 0);
+		ImGui::Image((void*)texture_id, ImVec2(400, 200), uv0, uv1);
+		ImGui::End();*/
+
 		ImGui::Begin("Darren Sweeney", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 		ImGui::SetWindowPos(ImVec2(5, 5));
 		ImGui::SetWindowSize(ImVec2(255, screenHeight - 10));
@@ -219,6 +229,7 @@ int main(int, char**)
 				if (clicked)
 					demos = Demos::deferredRendering;
 				ImGui::SliderInt("Lights", &i1, 20, 200, "%.3f");
+				ImGui::Checkbox("Toggle Lights", &deferredRenderingDemo.renderLights);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Model Loading"))
@@ -269,19 +280,21 @@ int main(int, char**)
 			{
 				if (ImGui::TreeNode("Directional Shadow Maps"))
 				{
-					bool clicked = ImGui::Button("Directional Shadow Mapping Demo");
+					bool clicked = ImGui::Button("Directional Shadow Demo");
 					if(clicked)
 						demos = Demos::shadowMap;
-					ImGui::Checkbox("Move Light Source", &b1);
+					ImGui::Checkbox("Move Light Source", &shadowMappingDemo.moveLight);
+					ImGui::Checkbox("Render Light", &shadowMappingDemo.renderLight);
 					ImGui::TreePop();
 				}
 
 				if (ImGui::TreeNode("Omnidirectional Shadow Maps"))
 				{
-					bool clicked = ImGui::Button("Omnidirectional Shadow Mapping Demo");
+					bool clicked = ImGui::Button("Omnidirectional Shadow Demo");
 					if (clicked)
 						demos = Demos::omnidirectionalShadow;
-					ImGui::Checkbox("Move Light Source", &b1);
+					ImGui::Checkbox("Move Light Source", &omnidirectionalShadowDemo.moveLight);
+					ImGui::Checkbox("Render Light", &omnidirectionalShadowDemo.renderLight);
 					ImGui::TreePop();
 				}
 

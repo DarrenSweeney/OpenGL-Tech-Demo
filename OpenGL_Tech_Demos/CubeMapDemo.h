@@ -26,7 +26,7 @@ private:
 	GLuint skyboxVAO, skyboxVBO;
 	std::vector<const GLchar*> faces;
 	GLuint cubeMapTexture;
-	Shader shaderModel, shaderSkyBox;
+	Shader shaderModel, shaderSkyBox, shaderEnviromentObject;
 	Model modelUtahTeaPot;
 
 	Shader shaderCubeMap;

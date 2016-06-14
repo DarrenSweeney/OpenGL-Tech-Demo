@@ -6,11 +6,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DeferredRenderingDemo::DeferredRenderingDemo()
-	: NR_Lights(200)
+	: NR_Lights(30), renderLights(true)
 {
 
 }
 
+/*
+	Need to make lights more intense, may add texture to the monkey model.
+	Will i make lights move? Need to look at similar scenes.
+*/
 DeferredRenderingDemo::~DeferredRenderingDemo()
 {
 	objectPositions.clear();
@@ -37,16 +41,7 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gAlbedoSpec"), 2);
 
 	// Models
-	sceneModel.LoadModel("Resources/monkey.obj");	// nanosuit/nanosuit
-	//objectPositions.push_back(vector3(-3.0, -3.0, -3.0));
-	//objectPositions.push_back(vector3(0.0, -3.0, -3.0));
-	//objectPositions.push_back(vector3(3.0, -3.0, -3.0));
-	//objectPositions.push_back(vector3(-3.0, -3.0, 0.0));
-	//objectPositions.push_back(vector3(0.0, -3.0, 0.0));
-	//objectPositions.push_back(vector3(3.0, -3.0, 0.0));
-	//objectPositions.push_back(vector3(-3.0, -3.0, 3.0));
-	//objectPositions.push_back(vector3(0.0, -3.0, 3.0));
-	//objectPositions.push_back(vector3(3.0, -3.0, 3.0));
+	sceneModel.LoadModel("Resources/monkey.obj");
 
 	GLuint counter = 0;
 	GLfloat zPos = -3.0f;
@@ -68,9 +63,9 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	for (GLuint i = 0; i < NR_Lights; i++)
 	{
 		// Calculate slightly random offsets
-		GLfloat xPos = ((rand() % 100) / 100.0) * 30.0;// -3.0;
-		GLfloat yPos = ((rand() % 100) / 100.0) * 5.0 - 4.0;
-		GLfloat zPos = ((rand() % 100) / 100.0) * 30.0;// -3.0;
+		GLfloat xPos = ((rand() % 100) / 100.0) * 30.0 - 3.5;
+		GLfloat yPos = -1.5f;// ((rand() % 100) / 100.0) - 2.0f;
+		GLfloat zPos = ((rand() % 100) / 100.0) * 30.0 - 6.0;
 		lightPositions.push_back(vector3(xPos, yPos, zPos));
 		// Also calculate random color
 		GLfloat rColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
@@ -130,6 +125,8 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 {
 	camera.ControllerMovement();
 
+	//glClearColor(0.5f, 0.7f, 0.5f, 1.0f);
+
 	if (resized)
 		SetupBuffers(screenWidth, screenHeight);
 
@@ -182,6 +179,7 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 		glUniform1f(glGetUniformLocation(shaderLightingPass.Program, ("lights[" + std::to_string(i) + "].Linear").c_str()), linear);
 		glUniform1f(glGetUniformLocation(shaderLightingPass.Program, ("lights[" + std::to_string(i) + "].Quadratic").c_str()), quadratic);
 	}
+
 	float data[] = { camera.position.x, camera.position.y, camera.position.z };
 	glUniform3fv(glGetUniformLocation(shaderLightingPass.Program, "viewPos"), 1, &data[0]);
 	// Finally render quad
@@ -200,20 +198,23 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 3. Render lights on top of scene, by blitting.
-	shaderLightBox.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, &view.data[0]);
-	for (GLuint i = 0; i < lightPositions.size(); i++)
+	if (renderLights)
 	{
-		// Get the light color data.
-		float lightColorData[] = { lightColors[i].x, lightColors[i].y, lightColors[i].z };
+		shaderLightBox.Use();
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, &view.data[0]);
+		for (GLuint i = 0; i < lightPositions.size(); i++)
+		{
+			// Get the light color data.
+			float lightColorData[] = { lightColors[i].x, lightColors[i].y, lightColors[i].z };
 
-		model = Matrix4();
-		model = model.translate(lightPositions[i]);
-		model = model.scale(vector3(0.25f, 0.25f, 0.25f));
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, &model.data[0]);
-		glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
-		RenderCube();
+			model = Matrix4();
+			model = model.translate(lightPositions[i]);
+			model = model.scale(vector3(0.25f, 0.25f, 0.25f));
+			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, &model.data[0]);
+			glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
+			RenderCube();
+		}
 	}
 }
 

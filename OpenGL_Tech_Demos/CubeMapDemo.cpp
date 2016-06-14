@@ -18,6 +18,7 @@ CubeMapDemo::~CubeMapDemo()
 /*
 	Need to render cubes with textures.
 	Then create a cube map of the scene with the cubes not the utah teapot.
+	Use a different cube map for final scene.
 */
 
 void CubeMapDemo::InitalizeScene()
@@ -79,6 +80,12 @@ void CubeMapDemo::InitalizeScene()
 
 	shaderModel.InitShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
 	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
+	shaderEnviromentObject.InitShader("EnviromentObject.vert", "EnviromentObject.frag");
+
+	shaderEnviromentObject.Use();
+	// Set sampler.
+	glUniform1i(glGetUniformLocation(shaderEnviromentObject.Program, "diffuseTexture"), 1);
+
 	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
 
 	shaderCubeMap.InitShader("point_shadows_depth.vert", "point_shadows_depth.frag", "point_shadows_depth.gs");
@@ -170,30 +177,31 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	// 3. Render scene as normal.
 	//glViewport(0, 0, screenWidth, screenHeight);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// GL_COLOR_BUFFER_BIT maybe???
-	//shaderModel.Use();
+	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
 	Matrix4 model;
 	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
-	//glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "view"), 1, GL_FALSE, view.data);
-	//glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "projection"), 1, GL_FALSE, projection.data);
-	//glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);
-	//glUniform3f(glGetUniformLocation(shaderModel.Program, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "projection"), 1, GL_FALSE, projection.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);
+	glUniform3f(glGetUniformLocation(shaderModel.Program, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
 
 	//// NOTE(Darren): why do you need to index each GL_TEXTURE?
-	//glActiveTexture(GL_TEXTURE3);
-	//glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 3);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-	//modelUtahTeaPot.Draw(shaderModel);
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+	modelUtahTeaPot.Draw(shaderModel);
 
-	modelCubes.Use();
-	glUniformMatrix4fv(glGetUniformLocation(modelCubes.Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(modelCubes.Program, "projection"), 1, GL_FALSE, projection.data);
-	glUniformMatrix4fv(glGetUniformLocation(modelCubes.Program, "model"), 1, GL_FALSE, model.data);
-	glActiveTexture(GL_TEXTURE0);
+	shaderEnviromentObject.Use();
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	RenderScene(modelCubes);
+	model = Matrix4();
+	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "projection"), 1, GL_FALSE, projection.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "model"), 1, GL_FALSE, model.data);
+	RenderScene(shaderEnviromentObject);
 
 	//glDepthFunc(GL_LEQUAL);
 	//shaderSkyBox.Use();
