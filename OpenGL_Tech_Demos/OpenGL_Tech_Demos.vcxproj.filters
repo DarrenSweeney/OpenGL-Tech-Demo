@@ -386,5 +386,6 @@
     </None>
     <None Include="EnviromentObject.vert" />
     <None Include="EnviromentObject.frag" />
+    <None Include="grass.frag" />
   </ItemGroup>
 </Project>

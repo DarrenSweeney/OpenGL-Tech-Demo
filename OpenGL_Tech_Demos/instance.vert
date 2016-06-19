@@ -16,6 +16,7 @@ out vec2 TexCoords;
 
 uniform mat4 projection;
 uniform mat4 view;
+uniform mat4 model;	// TODO(Darren): Take this out.
 
 void main()
 {

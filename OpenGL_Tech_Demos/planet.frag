@@ -2,6 +2,7 @@
 
 in vec2 TexCoords;
 out vec4 color;
+
 uniform sampler2D diffuse_texture1;
 
 void main()

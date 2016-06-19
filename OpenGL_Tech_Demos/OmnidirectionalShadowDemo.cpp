@@ -64,7 +64,7 @@ void OmnidirectionalShadowDemo::Initalize()
 
 void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	//camera.ControllerMovement();
+	camera.ControllerMovement();
 
 	if (moveLight)
 	{

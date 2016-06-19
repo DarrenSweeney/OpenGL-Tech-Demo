@@ -81,21 +81,108 @@ const GLFWvidmode* vidMode;
 enum Demos
 {
 	cubeMap,
-	shadowMap,					// In Progress.
+	shadowMap,					// *** DONE ***
 	hdr,						// *** DONE ***
 	stencilReflection,
-	instancing,
+	instancing,					// In Progress.
 	deferredRendering,			// --ON HOLD--
 	objectOutline,
 	ssao,						// --ON HOLD--
 	parallaxingMappingDemo,		// *** DONE ***
-	omnidirectionalShadow,		// In Progress.
+	omnidirectionalShadow,		// *** DONE ***
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::omnidirectionalShadow;
+Demos demos = Demos::instancing;
 
 const char* demoInfo = " ";
+
+// TODO(Darren): Seperate ImGui stuff. Get credit link.
+inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	// light style from Pacôme Danhiez (user itamago) https://github.com/ocornut/imgui/pull/511#issuecomment-175719267
+	style.Alpha = 1.0f;
+	style.FrameRounding = 3.0f;
+	style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
+	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	style.Colors[ImGuiCol_PopupBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
+	style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
+	style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+	style.Colors[ImGuiCol_FrameBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
+	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 1.00f, 1.00f, 0.51f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.86f, 0.86f, 0.86f, 0.99f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
+	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	style.Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+	style.Colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	style.Colors[ImGuiCol_Column] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
+	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+	style.Colors[ImGuiCol_CloseButton] = ImVec4(0.59f, 0.59f, 0.59f, 0.50f);
+	style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
+	style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
+	style.Colors[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+	style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+	style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+
+	if (bStyleDark_)
+	{
+		for (int i = 0; i <= ImGuiCol_COUNT; i++)
+		{
+			ImVec4& col = style.Colors[i];
+			float H, S, V;
+			ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
+
+			if (S < 0.1f)
+			{
+				V = 1.0f - V;
+			}
+			ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
+			if (col.w < 1.00f)
+			{
+				col.w *= alpha_;
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i <= ImGuiCol_COUNT; i++)
+		{
+			ImVec4& col = style.Colors[i];
+			if (col.w < 1.00f)
+			{
+				col.x *= alpha_;
+				col.y *= alpha_;
+				col.z *= alpha_;
+				col.w *= alpha_;
+			}
+		}
+	}
+}
 
 int main(int, char**)
 {
@@ -146,6 +233,7 @@ int main(int, char**)
     // Setup ImGui binding
 	// Set the install_callbacks to false as i am setting up the GLFW input callbacks myself above.
     ImGui_ImplGlfwGL3_Init(window, false);
+	SetupImGuiStyle(true, 1.0f);
 
 	bool windowOpened = true;
     ImVec4 clear_color = ImColor(114, 144, 154);
@@ -154,15 +242,15 @@ int main(int, char**)
 
 	// Initializes scenes.
 	//cubeMapDemo.InitalizeScene();
-	shadowMappingDemo.InitalizeScene();
+	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
 	//stencilReflectionDemo.InitalizeScene();
-	//instancingDemo.InitalizeScene();
+	instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
-	omnidirectionalShadowDemo.Initalize();
+	//omnidirectionalShadowDemo.Initalize();
 	//modelLoadingDemo.Initalize();
 
 	// ImGui
@@ -179,6 +267,58 @@ int main(int, char**)
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+#if 0
+		// On input handling, check if F11 is down.
+		if (glfwGetKey(window, GLFW_KEY_F11)) 
+		{
+
+			// Toggle fullscreen flag.
+			fullscreen = !fullscreen;
+
+			// Close the current window.
+			glfwDestroyWindow(window);
+
+			// Setup window
+			glfwSetErrorCallback(error_callback);
+			if (!glfwInit())
+			{
+				printf("failed to initialize GLFW.\n");
+				return -1;
+			}
+
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+
+			monitor = glfwGetPrimaryMonitor();
+			vidMode = glfwGetVideoMode(monitor);
+			screenWidth = vidMode->width;
+			screenHeight = vidMode->height;
+
+			// Create the new window.
+			window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
+				monitor, NULL);
+
+			// GLFW input callbacks.
+			glfwSetKeyCallback(window, key_callback);
+			glfwSetCursorPosCallback(window, mouse_callback);
+			//glfwSetScrollCallback(window, scroll_callback);
+			glfwSetMouseButtonCallback(window, mouse_button_callback);
+			glfwSetWindowSizeCallback(window, window_size_callback);
+
+			// Opitions
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+			glfwMakeContextCurrent(window);
+			if (gl3wInit())
+			{
+				printf("failed to initialize OpenGL\n");
+				return -1;
+			}
+		}
+#endif
 
 		camera.deltaTime = deltaTime;
 
@@ -202,7 +342,7 @@ int main(int, char**)
 		ImGui::Image((void*)texture_id, ImVec2(400, 200), uv0, uv1);
 		ImGui::End();*/
 
-		ImGui::Begin("Darren Sweeney", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 		ImGui::SetWindowPos(ImVec2(5, 5));
 		ImGui::SetWindowSize(ImVec2(255, screenHeight - 10));
 		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -220,7 +360,10 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("Instancing Demo");
 				if (clicked)
+				{
 					demos = Demos::instancing;
+					demoInfo = "Example showing rendering of 6,000 objects, 3,000 grass and 3,000 rock objects.";
+				}
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Defered Rendering"))
@@ -329,8 +472,7 @@ int main(int, char**)
 			ImGui::Text("Draw Calls: ");
 			ImGui::Text("Post Processing Time: ");
 
-			bool fullscreen = ImGui::Button("FullScreen");
-			// TODO(Darren): Change text of button to windowed when in fullscreen.
+			ImGui::Checkbox("FullScreen", &fullscreen);
 		}
 		if (ImGui::CollapsingHeader("About", 0, true, true))
 		{

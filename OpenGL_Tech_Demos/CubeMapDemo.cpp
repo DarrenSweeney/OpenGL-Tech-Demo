@@ -144,7 +144,7 @@ void CubeMapDemo::InitalizeScene()
 // TODO(Darren): Will need to take out camera and put in main class.
 void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	//camera.ControllerMovement();
+	camera.ControllerMovement();
 
 	/*
 			*** Creating a dynamic cube map. ***
@@ -203,21 +203,21 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "model"), 1, GL_FALSE, model.data);
 	RenderScene(shaderEnviromentObject);
 
-	//glDepthFunc(GL_LEQUAL);
-	//shaderSkyBox.Use();
-	//view = camera.GetViewMatrix();
-	//view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
-	//glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
-	//glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, projection.data);
+	glDepthFunc(GL_LEQUAL);
+	shaderSkyBox.Use();
+	view = camera.GetViewMatrix();
+	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, projection.data);
 
-	//// skybox 
-	//glBindVertexArray(skyboxVAO);
-	//glActiveTexture(GL_TEXTURE0);
-	//glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 0);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//glBindVertexArray(0);
-	//glDepthFunc(GL_LESS);
+	// skybox 
+	glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS);
 
 	// TODO(Darren): I will need to figure out when to delete buffers.
 	// NOTE(Darren): Really need to do this!!!

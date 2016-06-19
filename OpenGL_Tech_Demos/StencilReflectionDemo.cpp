@@ -114,6 +114,8 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	camera.ControllerMovement();
+
 	Matrix4 model;
 	Matrix4 view;
 	view = camera.GetViewMatrix();
@@ -124,19 +126,17 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "projection"), 1, GL_FALSE, projection.data);
 
 	GLuint uniColor = glGetUniformLocation(shaderObject.Program, "overrideColor");
+	
+	glColorMask(0, 0, 0, 0);
 
-	// Draw Cubes.
-	glBindVertexArray(cubeVAO);
-	glBindTexture(GL_TEXTURE_2D, cubeTexture);
-	model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	model = Matrix4();
-	model = model.translate(vector3(2.0f, 0.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-
+	glEnable(GL_STENCIL_TEST);                      // Enable Stencil Buffer For "marking" The Floor
+	glStencilFunc(GL_ALWAYS, 1, 1);                     // Always Passes, 1 Bit Plane, 1 As Mask
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);              // We Set The Stencil Buffer To 1 Where We Draw Any Polygon
+															// Keep If Test Fails, Keep If Test Passes But Buffer Test Fails
+															// Replace If Test Passes
+	glDisable(GL_DEPTH_TEST);                       // Disable Depth Testing
+	//DrawFloor();                                // Draw The Floor (Draws To The Stencil Buffer)
+												// We Only Want To Mark It In The Stencil Buffer
 	// Draw Floor.
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -152,28 +152,64 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glDrawArrays(GL_TRIANGLES, 0, 66);
 	glBindVertexArray(0);
 
-	// Draw cube reflection.
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
-	glStencilMask(0x00);
-	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);                        // Enable Depth Testing
+	glColorMask(1, 1, 1, 1);                           // Set Color Mask to TRUE, TRUE, TRUE, TRUE
+	glStencilFunc(GL_EQUAL, 1, 1);                      // We Draw Only Where The Stencil Is 1
+														// (I.E. Where The Floor Was Drawn)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);                 // Don't Change The Stencil Buffer
 
-	glBindVertexArray(cubeVAO);
-	glBindTexture(GL_TEXTURE_2D, cubeTexture);
-	model = Matrix4();
-	model = model.translate(vector3(-1.0f, -1.0f, -1.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
-	model = Matrix4();
-	model = model.translate(vector3(2.0f, -1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
-	glBindVertexArray(0);
 
-	glDisable(GL_STENCIL_TEST);
+	//glClipPlane();
+
+	// Draw Cubes.
+	//glBindVertexArray(cubeVAO);
+	//glBindTexture(GL_TEXTURE_2D, cubeTexture);
+	//model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
+	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	//model = Matrix4();
+	//model = model.translate(vector3(2.0f, 0.0f, 0.0f));
+	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glBindVertexArray(0);
+
+	//// Draw Floor.
+	//glEnable(GL_STENCIL_TEST);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	//glStencilMask(0xFF);
+	//glDepthMask(GL_FALSE);
+	//glClear(GL_STENCIL_BUFFER_BIT);
+
+	//glBindVertexArray(planeVAO);
+	//glBindTexture(GL_TEXTURE_2D, planeTexture);
+	//model = Matrix4();
+	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glDrawArrays(GL_TRIANGLES, 0, 66);
+	//glBindVertexArray(0);
+
+	//// Draw cube reflection.
+	//glStencilFunc(GL_EQUAL, 1, 0xFF);
+	//glStencilMask(0x00);
+	//glDepthMask(GL_TRUE);
+
+	//glBindVertexArray(cubeVAO);
+	//glBindTexture(GL_TEXTURE_2D, cubeTexture);
+	//model = Matrix4();
+	//model = model.translate(vector3(-1.0f, -1.0f, -1.0f));
+	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
+	//model = Matrix4();
+	//model = model.translate(vector3(2.0f, -1.0f, 0.0f));
+	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
+	//glBindVertexArray(0);
+
+	//glDisable(GL_STENCIL_TEST);
 }
 
 GLuint StencilReflectionDemo::LoadTexture(GLchar* path)
@@ -190,11 +226,15 @@ GLuint StencilReflectionDemo::LoadTexture(GLchar* path)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	float aniso = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+
 	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(image);
 

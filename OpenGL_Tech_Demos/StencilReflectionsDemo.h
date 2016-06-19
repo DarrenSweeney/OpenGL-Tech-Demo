@@ -4,6 +4,7 @@
 #include <SOIL/SOIL.h>
 #include "camera.h"
 #include "shader.h"
+#include <GL/glext.h>
 
 class StencilReflectionDemo
 {
