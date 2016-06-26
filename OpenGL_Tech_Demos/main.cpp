@@ -39,16 +39,18 @@
 
 // TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
 
+// Camera movement for all the scene demos.
+void SceneMovement();
+
+// GLFW Callback functions.
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
 void mouse_callback(GLFWwindow *window, double xPos, double yPos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
-void Do_Movement();
 
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
-bool firstMouse = true;
 bool activeCamera;
 bool windowResized;
 
@@ -61,6 +63,9 @@ static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
 }
+
+bool fullscreen = false;
+const GLFWvidmode* vidMode;
 
 // Demos
 CubeMapDemo cubeMapDemo;
@@ -75,14 +80,8 @@ ParallaxMappingDemo parallaxingDemo;
 OmnidirectionalShadowDemo omnidirectionalShadowDemo;
 ModelLoadingDemo modelLoadingDemo;
 
-bool fullscreen = false;
-const GLFWvidmode* vidMode;
-
 enum Demos
 {
-	// NOTE(Darren): Should i combine both stencil reflection and stencil outline
-	// into one demo called Stencil Buffer Demo?
-
 	cubeMap,					// ------------
 	shadowMap,					// *** DONE ***
 	hdr,						// *** DONE ***
@@ -96,7 +95,7 @@ enum Demos
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::deferredRendering;
+Demos demos = Demos::instancing;
 
 const char* demoInfo = " ";
 
@@ -190,7 +189,6 @@ inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 int main(int, char**)
 {
 	GLsizei screenWidth = 800, screenHeight = 600;
-	//GLsizei screenWidth = 1500, screenHeight = 800;
 
     // Setup window
     glfwSetErrorCallback(error_callback);
@@ -223,7 +221,6 @@ int main(int, char**)
 
 	// Opitions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
 	glfwSetWindowPos(window, 0, 30);
 
     glfwMakeContextCurrent(window);
@@ -249,8 +246,8 @@ int main(int, char**)
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
 	//stencilReflectionDemo.InitalizeScene();
-	//instancingDemo.InitalizeScene();
-	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
+	instancingDemo.InitalizeScene();
+	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 	//omnidirectionalShadowDemo.Initalize();
@@ -270,6 +267,9 @@ int main(int, char**)
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		camera.deltaTime = deltaTime;
+		SceneMovement();
 
 #if 0
 		// On input handling, check if F11 is down.
@@ -323,27 +323,22 @@ int main(int, char**)
 		}
 #endif
 
-		camera.deltaTime = deltaTime;
-
-		//glClearColor(0.3f, 0.4f, 0.7f, 1.0f);
 		glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwPollEvents();
-		Do_Movement();
-
         ImGui_ImplGlfwGL3_NewFrame();
-
-		//int texture_id = shadowMappingDemo.depthMap;
 
 #pragma region ImGui
 
-		/*ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
-		ImGui::SetWindowPos(ImVec2(screenWidth - 460, 190));
-		ImVec2 uv0 = ImVec2(0, 1);
-		ImVec2 uv1 = ImVec2(1, 0);
-		ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
-		ImGui::End();*/
+		int texture_id = 0;// objectOutlineDemo.depthMap;
+
+		//ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
+		////ImGui::SetWindowPos(ImVec2(screenWidth - 460, 190));
+		//ImVec2 uv0 = ImVec2(0, 1);
+		//ImVec2 uv1 = ImVec2(1, 0);
+		//ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
+		//ImGui::End();
 
 		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 		ImGui::SetWindowPos(ImVec2(5, 5));
@@ -393,11 +388,24 @@ int main(int, char**)
 				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo.showCubemap);
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("Stencil Reflections"))
+			if (ImGui::TreeNode("Stencil Buffer"))
 			{
-				bool clicked = ImGui::Button("Stencil Reflection Demo");
-				if(clicked)
-					demos = Demos::stencilReflection;
+				if (ImGui::TreeNode("Stencil Reflections"))
+				{
+					bool clicked = ImGui::Button("Stencil Reflection Demo");
+					if (clicked)
+						demos = Demos::stencilReflection;
+					ImGui::TreePop();
+				}
+
+				if (ImGui::TreeNode("Stencil Outline"))
+				{
+					bool clicked = ImGui::Button("Stencil Outline Demo");
+					if (clicked)
+						demos = Demos::objectOutline;
+					ImGui::TreePop();
+				}
+
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Parralxing Mapping"))
@@ -454,13 +462,6 @@ int main(int, char**)
 				bool clicked = ImGui::Button("SSAO Demo");
 				if (clicked)
 					demos = Demos::ssao;
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Stencil Outline"))
-			{
-				bool clicked = ImGui::Button("Stencil Outline Demo");
-				if (clicked)
-					demos = Demos::objectOutline;
 				ImGui::TreePop();
 			}
 		}
@@ -619,22 +620,22 @@ int main(int, char**)
     return 0;
 }
 
+void SceneMovement()
+{
+	camera.KeyboardMovement(keys, deltaTime);
+}
+
+#pragma region "GLFW callbacks"
+
 void window_size_callback(GLFWwindow* window, int width, int height)
 {
 	windowResized = true;
 }
 
-#pragma region "User Input"
-
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-
-	if (keys[GLFW_KEY_H] && action == GLFW_PRESS)
-	{
-		// Do something here.
-	}
 
 	if (key >= 0 && key < 1024)
 	{
@@ -643,12 +644,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 		else if (action == GLFW_RELEASE)
 			keys[key] = false;
 	}
-}
-
-void Do_Movement()
-{
-	//cubeMapDemo.camera.KeyboardMovement(keys, deltaTime);
-	camera.KeyboardMovement(keys, deltaTime);
 }
 
 bool first_entered_window = true;

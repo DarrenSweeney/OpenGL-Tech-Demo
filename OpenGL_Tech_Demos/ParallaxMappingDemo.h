@@ -5,7 +5,6 @@
 #include "Math\vector2.h"
 #include "Math\matrix4.h"
 #include "camera.h"
-#include "ParallaxMappingDemo.h"
 #include "shader.h"
 #include <SOIL\SOIL.h>
 

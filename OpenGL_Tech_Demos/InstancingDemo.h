@@ -1,11 +1,11 @@
 #ifndef INSTANCING_DEMO_H
 #define INSTANCING_DEMO_H
 
+#include "ResourceManager.h"
 #include "shader.h"
 #include "model.h"
 #include "camera.h"
 #include "Math\matrix4.h"
-#include <GL/glext.h>
 
 class InstancingDemo
 {
@@ -28,7 +28,6 @@ private:
 	void SetUpBuffers(GLuint &vao, Matrix4 *matrices, GLuint vbo = NULL, int sizeOfVertices = NULL, GLfloat *vertices = NULL);
 	void RenderGrassInstanceQuad();
 	void RenderPlane();
-	GLuint LoadTexture(GLchar *path, GLboolean alpha);
 };
 
 #endif

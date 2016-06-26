@@ -175,6 +175,7 @@
     <ClCompile Include="ObjectOutlineDemo.cpp" />
     <ClCompile Include="OmnidirectionalShadowDemo.cpp" />
     <ClCompile Include="ParallaxMappingDemo.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="ShadowMapping.cpp" />
     <ClCompile Include="SSAO_Demo.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="ParallaxMappingDemo.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShadowMapping.h" />
     <ClInclude Include="SSAO_Demo.h" />
