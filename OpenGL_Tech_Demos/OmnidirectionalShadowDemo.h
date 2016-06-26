@@ -28,7 +28,9 @@ public:
 private:
 	Model modelPlatform, modelColumn, modelBunny;
 	Shader shaderPointShadows, shaderDepth;
-	Shader shaderLightBox;
+	Shader shaderLightBox, shaderSkyBox;
+	GLuint skyboxVAO, skyboxVBO;
+	GLuint textureID;
 	glm::vec3 lightPos;
 	GLuint woodTexture, wallTexture;
 	const GLuint ShadowWidth, ShadowHeight;

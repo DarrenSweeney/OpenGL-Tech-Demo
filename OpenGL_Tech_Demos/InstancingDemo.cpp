@@ -34,7 +34,7 @@ GLfloat DegressToRads_(GLfloat degrees)
 }
 
 /*
-	Have models of ruins scattered. (Broken walls, Columns).
+	TODO(Darren): Have models of ruins scattered. (Broken walls, Columns). (Possible, maybe/maybe not).
 */
 void InstancingDemo::InitalizeScene()
 {

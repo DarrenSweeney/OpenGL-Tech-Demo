@@ -1,13 +1,13 @@
 #include "CubeMapDemo.h"
 
 /*
-	Scene List:
-		- Both reflection and refraction can be choosen in ImGui
+Scene List:
+- Both reflection and refraction can be choosen in ImGui
 */
 
 CubeMapDemo::CubeMapDemo()
 {
-	
+
 }
 
 CubeMapDemo::~CubeMapDemo()
@@ -16,14 +16,14 @@ CubeMapDemo::~CubeMapDemo()
 }
 
 /*
-	Need to render cubes with textures.
-	Then create a cube map of the scene with the cubes not the utah teapot.
-	Use a different cube map for final scene.
+Need to render cubes with textures.
+Then create a cube map of the scene with the cubes not the utah teapot.
+Use a different cube map for final scene.
 */
 
 void CubeMapDemo::InitalizeScene()
 {
-	#pragma region Skybox Vertices
+#pragma region Skybox Vertices
 	GLfloat skyboxVertices[] = {
 		// Positions          
 		-1.0f,  1.0f, -1.0f,
@@ -101,8 +101,8 @@ void CubeMapDemo::InitalizeScene()
 	glBindVertexArray(0);
 
 	/*
-		Order is based on the Layered Rendering specfic order.
-		https://www.opengl.org/wiki/Cubemap_Texture
+	Order is based on the Layered Rendering specfic order.
+	https://www.opengl.org/wiki/Cubemap_Texture
 	*/
 	faces.push_back("Resources/skybox/posx.jpg");
 	faces.push_back("Resources/skybox/negx.jpg");
@@ -118,65 +118,47 @@ void CubeMapDemo::InitalizeScene()
 	modelCubes.Use();
 	glUniform1i(glGetUniformLocation(modelCubes.Program, "texture1"), 0);
 
-	//// Configure skybox cubemap FBO
-	//glGenFramebuffers(1, &dy_skyboxFBO);
-	//// Create skybox cubemap texture
-	//glGenTextures(1, &dy_skybox);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, dy_skybox);
-	//for (GLuint i = 0; i < 6; ++i)
-	//	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, dy_skyboxResWidth, dy_skyboxResHeight, 
-	//		0, GL_RGB, GL_FLOAT, NULL);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	//// Attach cubemap as depth map FBO's color buffer
-	//glBindFramebuffer(GL_FRAMEBUFFER, dy_skyboxFBO);
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, dy_skybox, 0);
-	//glDrawBuffer(GL_NONE);
-	//glReadBuffer(GL_NONE);
-	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	//	std::cout << "Framebuffer not complete!" << std::endl;
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// TODO(Darren): Create the 6 color buffers, depth buffers and framebuffers.
+
 }
 
 // TODO(Darren): Will need to take out camera and put in main class.
+float rotation = 0.0f;
 void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	camera.ControllerMovement();
 
 	/*
-			*** Creating a dynamic cube map. ***
+	*** Creating a dynamic cube map. ***
 	*/
 	// 1. Create depth cubemap transformation matrices.
-	//GLfloat aspect = (GLfloat)dy_skyboxResWidth / (GLfloat)dy_skyboxResHeight;
-	//GLfloat nearPlane = 1.0f;
-	//GLfloat farPlane = 25.0f;
-	//glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
-	//std::vector<glm::mat4> shadowTransforms;
-	//shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	//shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	//shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-	//shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-	//shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-	//shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+	GLfloat aspect = (GLfloat)dy_skyboxResWidth / (GLfloat)dy_skyboxResHeight;
+	GLfloat nearPlane = 1.0f;
+	GLfloat farPlane = 25.0f;
+	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
+	std::vector<glm::mat4> shadowTransforms;
+	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-	//// 2. Render scene to depth cubemap.
-	//glViewport(0, 0, dy_skyboxResWidth, dy_skyboxResHeight);
-	//glBindFramebuffer(GL_FRAMEBUFFER, dy_skyboxFBO);
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	//shaderCubeMap.Use();
-	//for (GLuint i = 0; i < 6; ++i)
-	//	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
-	//glUniform1f(glGetUniformLocation(shaderCubeMap.Program, "far_plane"), farPlane);
-	//glUniform3fv(glGetUniformLocation(shaderCubeMap.Program, "lightPos"), 1, &modelOrigin[0]);
-	////RenderScene(shaderDepth);	// ???
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// 2. Render scene to depth cubemap.
+	glViewport(0, 0, dy_skyboxResWidth, dy_skyboxResHeight);
+	glBindFramebuffer(GL_FRAMEBUFFER, dy_skyboxFBO);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	shaderCubeMap.Use();
+	for (GLuint i = 0; i < 6; ++i)
+		glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
+	glUniform1f(glGetUniformLocation(shaderCubeMap.Program, "far_plane"), farPlane);
+	glUniform3fv(glGetUniformLocation(shaderCubeMap.Program, "lightPos"), 1, &modelOrigin[0]);
+	RenderScene(shaderCubeMap);	// ???
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 3. Render scene as normal.
-	//glViewport(0, 0, screenWidth, screenHeight);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// GL_COLOR_BUFFER_BIT maybe???
+	glViewport(0, 0, screenWidth, screenHeight);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// GL_COLOR_BUFFER_BIT maybe???
 	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 projection;
@@ -192,6 +174,10 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glActiveTexture(GL_TEXTURE3);
 	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+	//model = Matrix4();
+	//rotation += 0.0005f;
+	//model = model.rotateX(rotation);
+	//glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);
 	modelUtahTeaPot.Draw(shaderModel);
 
 	shaderEnviromentObject.Use();
@@ -213,7 +199,7 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	// skybox 
 	glBindVertexArray(skyboxVAO);
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 0);
+	glUniform1i(glGetUniformLocation(shaderSkyBox.Program, "skybox"), 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);

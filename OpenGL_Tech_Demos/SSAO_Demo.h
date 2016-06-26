@@ -7,6 +7,7 @@
 #include "Math\vector3.h"
 // Necessary for generation of random floats (for sample kernel and noise texture)
 #include <random>
+#include <GL/glext.h>
 
 class SSAO_Demo
 {
@@ -33,8 +34,8 @@ private:
 	std::vector<vector3> ssaoKernel;
 	std::vector<vector3> ssaoNoise;
 	GLuint noiseTexture;
-	// Opitions
-	GLuint draw_mode = 1;
+
+	GLuint texture;
 
 	void SetupBuffers(GLsizei screenWidth, GLsizei screenHeight);
 	GLfloat Lerp(GLfloat a, GLfloat b, GLfloat f);

@@ -1,5 +1,8 @@
 #include "OmnidirectionalShadowDemo.h"
 
+#include "Imgui\imgui.h"
+#include "imgui_impl_glfw_gl3.h"
+
 OmnidirectionalShadowDemo::OmnidirectionalShadowDemo()
 	: ShadowWidth(1024), ShadowHeight(1024), moveLight(false)
 {
@@ -13,15 +16,72 @@ OmnidirectionalShadowDemo::~OmnidirectionalShadowDemo()
 
 void OmnidirectionalShadowDemo::Initalize()
 {
+#pragma region Skybox Vertices
+	GLfloat skyboxVertices[] = {
+		// Positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+#pragma endregion 
+
 	// Setup some OpenGL options
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glBindVertexArray(0);
 
 	// Setup and compile our shaders
 	shaderPointShadows.InitShader("point_shadows.vert", "point_shadows.frag");
 	shaderDepth.InitShader("point_shadows_depth.vert", "point_shadows_depth.frag", "point_shadows_depth.gs");
 	// TODO(Darren): Rename this to a generic shader for light box.
 	shaderLightBox.InitShader("deferred_light_box.vert", "deferred_light_box.frag");
+	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
 
 	// Load Models
 	modelPlatform.LoadModel("Resources/platform.obj");
@@ -40,6 +100,19 @@ void OmnidirectionalShadowDemo::Initalize()
 	woodTexture = LoadTexture("Resources/brickwall.jpg");
 	wallTexture = LoadTexture("Resources/brickwall.jpg");
 	//ParallaxTextures/HorizontalStone/photosculpt-horizontalstone-diffuse.jpg
+
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	for (GLuint i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, ShadowWidth, ShadowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
 	// Configure depth map FBO
 	glGenFramebuffers(1, &depthMapFBO);
 	// Create depth cubemap texture
@@ -135,6 +208,22 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 		glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
 		RenderCube();
 	}
+
+	glDepthFunc(GL_LEQUAL);
+	shaderSkyBox.Use();
+	//view = camera.GetViewMatrix();
+	//view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+	// skybox 
+	glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shaderSkyBox.Program, "skybox"), 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS);
 }
 
 GLuint OmnidirectionalShadowDemo::LoadTexture(GLchar *path)

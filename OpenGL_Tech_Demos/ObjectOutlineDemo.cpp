@@ -31,6 +31,7 @@ void ObjectOutlineDemo::InitalizeScene()
 	shaderObject.InitShader("StencilTesting.vert", "StencilTesting.frag");
 	shaderOutline.InitShader("StencilTesting.vert", "ObjectOutline.frag");
 
+	// TODO(Darren): Need to create a resource manager to call ResourceManager::RenderCube(); Something like this.
 	// Set the object data (buffers, vertex attributes)
 	GLfloat cubeVertices[] = {
 		// Positions          // Texture Coords
@@ -153,11 +154,11 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 	// Cubes
 	glBindVertexArray(cubeVAO);
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
-	model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
+	model = model.translate(vector3(-1.0f, 0.1f, -1.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	model = Matrix4();
-	model = model.translate(vector3(2.0f, 0.0f, 0.0f));
+	model = model.translate(vector3(2.0f, 0.1f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
@@ -175,12 +176,12 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 	glBindVertexArray(cubeVAO);
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	model = Matrix4();
-	model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
+	model = model.translate(vector3(-1.0f, 0.1f, -1.0f));
 	model = model.scale(vector3(scale, scale, scale));
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	model = Matrix4();
-	model = model.translate(vector3(2.0f, 0.0f, 0.0f));
+	model = model.translate(vector3(2.0f, 0.1f, 0.0f));
 	model = model.scale(vector3(scale, scale, scale));
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 36);

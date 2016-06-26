@@ -5,6 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Imgui\imgui.h"
+#include "imgui_impl_glfw_gl3.h"
+
 ShadowMapping::ShadowMapping()
 	: moveLight(false), ShadowWidth(1024), ShadowHeight(1024)
 {
@@ -175,12 +178,21 @@ void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scr
 	}
 
 	// 3. DEBUG: visualize depth map by rendering it to plane
-	/*shaderDebugQuad.Use();
+	shaderDebugQuad.Use();
+	// NOTE(Darren): Need these?
 	glUniform1f(glGetUniformLocation(shaderDebugQuad.Program, "near_plane"), near_plane);
 	glUniform1f(glGetUniformLocation(shaderDebugQuad.Program, "far_plane"), far_plane);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	RenderQuad();*/
+	RenderQuad();
+
+	bool windowOpened = true;
+	ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
+	ImGui::SetWindowPos(ImVec2(screenWidth - 460, 190));
+	ImVec2 uv0 = ImVec2(0, 1);
+	ImVec2 uv1 = ImVec2(1, 0);
+	ImGui::Image((ImTextureID)depthMap, ImVec2(400, 200), uv0, uv1);
+	ImGui::End();
 }
 
 void ShadowMapping::RenderScene(Shader &shader)

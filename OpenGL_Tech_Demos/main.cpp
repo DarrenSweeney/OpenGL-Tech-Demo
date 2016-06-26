@@ -80,20 +80,23 @@ const GLFWvidmode* vidMode;
 
 enum Demos
 {
-	cubeMap,
+	// NOTE(Darren): Should i combine both stencil reflection and stencil outline
+	// into one demo called Stencil Buffer Demo?
+
+	cubeMap,					// ------------
 	shadowMap,					// *** DONE ***
 	hdr,						// *** DONE ***
-	stencilReflection,
-	instancing,					// In Progress.
-	deferredRendering,			// --ON HOLD--
-	objectOutline,
-	ssao,						// --ON HOLD--
+	stencilReflection,			// ------------
+	instancing,					// *** DONE ***
+	deferredRendering,			// *** DONE ***
+	objectOutline,				// IN PROGRESS.	
+	ssao,						// ------------
 	parallaxingMappingDemo,		// *** DONE ***
 	omnidirectionalShadow,		// *** DONE ***
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::instancing;
+Demos demos = Demos::deferredRendering;
 
 const char* demoInfo = " ";
 
@@ -246,8 +249,8 @@ int main(int, char**)
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
 	//stencilReflectionDemo.InitalizeScene();
-	instancingDemo.InitalizeScene();
-	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
+	//instancingDemo.InitalizeScene();
+	deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 	//omnidirectionalShadowDemo.Initalize();
@@ -257,8 +260,8 @@ int main(int, char**)
 	float f1 = 0.1f;
 	int i1 = 20;
 	bool b1 = false;
-	
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	bool wireframeMode = false;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -331,15 +334,15 @@ int main(int, char**)
 
         ImGui_ImplGlfwGL3_NewFrame();
 
-		//int texture_id = deferredRenderingDemo.gBuffer;
+		//int texture_id = shadowMappingDemo.depthMap;
 
 #pragma region ImGui
 
-		/*ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(200, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
+		/*ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
 		ImGui::SetWindowPos(ImVec2(screenWidth - 460, 190));
 		ImVec2 uv0 = ImVec2(0, 1);
 		ImVec2 uv1 = ImVec2(1, 0);
-		ImGui::Image((void*)texture_id, ImVec2(400, 200), uv0, uv1);
+		ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
 		ImGui::End();*/
 
 		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
@@ -370,8 +373,11 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("Defered Rendering Demo");
 				if (clicked)
+				{
 					demos = Demos::deferredRendering;
-				ImGui::SliderInt("Lights", &i1, 20, 200, "%.3f");
+					demoInfo = "Defered Rendering of 100 Light sources around 100 models..\n";
+				}
+				ImGui::Checkbox("Move Lights", &deferredRenderingDemo.moveLights);
 				ImGui::Checkbox("Toggle Lights", &deferredRenderingDemo.renderLights);
 				ImGui::TreePop();
 			}
@@ -381,7 +387,7 @@ int main(int, char**)
 				if (clicked)
 				{
 					demos = Demos::modelLoading;
-					demoInfo = "I used Assimp libiary to load the model\nMore info here.\nLets hope my dreams come true:)";
+					demoInfo = "I used Assimp libiary to load the model\nMore info here.\n";
 				}
 				ImGui::Checkbox("Display Normals", &modelLoadingDemo.showNormals);
 				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo.showCubemap);
@@ -450,9 +456,9 @@ int main(int, char**)
 					demos = Demos::ssao;
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("Object Outline"))
+			if (ImGui::TreeNode("Stencil Outline"))
 			{
-				bool clicked = ImGui::Button("Object Outline Demo");
+				bool clicked = ImGui::Button("Stencil Outline Demo");
 				if (clicked)
 					demos = Demos::objectOutline;
 				ImGui::TreePop();
@@ -479,7 +485,7 @@ int main(int, char**)
 			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
 
-		if (ImGui::CollapsingHeader("Debug", 0, true, true))
+		if (ImGui::CollapsingHeader("Debug Controls", 0, true, true))
 		{
 			if (ImGui::TreeNode("Camera"))
 			{
@@ -497,6 +503,8 @@ int main(int, char**)
 				ImGui::SliderFloat("3", &camera.frequincy, 0.0f, 1.0f, "%.36f");
 				ImGui::TreePop();
 			}
+
+			ImGui::Checkbox("Wireframe Mode", &wireframeMode);
 		}
 		ImGui::End();
 #pragma endregion
@@ -592,10 +600,12 @@ int main(int, char**)
 		}
 #pragma endregion
 
-		//glDisable(GL_STENCIL_TEST);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_STENCIL_TEST);
 		// Render the UI.
 		ImGui::Render();
-		//glEnable(GL_STENCIL_TEST);
+		glEnable(GL_STENCIL_TEST);
+		glPolygonMode(GL_FRONT_AND_BACK, wireframeMode ? GL_LINE : GL_FILL);
 
 		windowResized = false;
 

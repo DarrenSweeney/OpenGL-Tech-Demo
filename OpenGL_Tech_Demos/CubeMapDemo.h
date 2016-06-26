@@ -37,6 +37,9 @@ private:
 	GLuint woodTexture;
 	GLuint LoadTexture(GLchar *path);
 
+	// Try again here,
+	GLuint cubemap, framebuffer, depthbuffer;
+
 	GLuint cubeVAO, cubeVBO;
 	void RenderScene(Shader &shader);
 	void RenderCube();

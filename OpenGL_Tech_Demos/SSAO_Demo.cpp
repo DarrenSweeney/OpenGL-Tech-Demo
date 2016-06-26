@@ -16,10 +16,41 @@ SSAO_Demo::~SSAO_Demo()
 
 }
 
+GLuint LoadTexture(GLchar* path)
+{
+	// Generate a texture ID and load texture data
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	int width, height;
+	unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
+	if (!image)
+		std::cout << "ERROR:: Image was not loaded!" << std::endl;
+	// Assign texture to ID
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	float aniso = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+
+	// Parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	SOIL_free_image_data(image);
+
+	return textureID;
+}
+
 void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	texture = LoadTexture("Resources/brickwall.jpg");
 
 	// Setup and compile our shaders
 	shaderGeometryPass.InitShader("ssao_geometry.vert", "ssao_geometry.frag");
@@ -38,7 +69,7 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	glUniform1i(glGetUniformLocation(shaderSSAO.Program, "gNormal"), 1);
 	glUniform1i(glGetUniformLocation(shaderSSAO.Program, "texNoise"), 2);
 
-	sceneModel.LoadModel("Resources/clicker_fem_01.obj");
+	sceneModel.LoadModel("Resources/utah-teapot.obj");
 
 	// Lights
 	lightPos = vector3(2.0f, 4.0f, -2.0f);
@@ -155,7 +186,7 @@ GLfloat SSAO_Demo::Lerp(GLfloat a, GLfloat b, GLfloat f)
 
 void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized)
 {
-	//camera.ControllerMovement();
+	camera.ControllerMovement();
 
 	if (windowResized)
 		SetupBuffers(screenWidth, screenHeight);
@@ -179,16 +210,16 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	model = model.rotate(0.0f, vector3(1.0, 0.0, 0.0));
 	model = model.scale(vector3(0.05f, 0.05f, 0.05f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	sceneModel.Draw(shaderGeometryPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-	// Iterating over a screen filled quad pixel-by-pixel using the gbuffer's content is 
-	// eating performance in the ssao demo and deferred rendering demo.
 	// 2. Create SSAO texture
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 	glClear(GL_COLOR_BUFFER_BIT);
 	// TODO(Darren): Will have to optimise the ssao frag shader. Take out matrix calculations:)
-	shaderSSAO.Use();					// Here!!! ************
+	shaderSSAO.Use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, gPositionDepth);
 	glActiveTexture(GL_TEXTURE1);
@@ -215,7 +246,6 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	RenderQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
 	// 4. Lighting Pass: traditional deferred Blinn-Phong lighting now with added screen-space ambient occlusion
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderLightingPass.Use();
@@ -239,7 +269,6 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	const GLfloat quadratic = 0.032;
 	glUniform1f(glGetUniformLocation(shaderLightingPass.Program, "light.Linear"), linear);
 	glUniform1f(glGetUniformLocation(shaderLightingPass.Program, "light.Quadratic"), quadratic);
-	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "draw_mode"), draw_mode);
 	RenderQuad();
 }
 

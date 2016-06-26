@@ -6,14 +6,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DeferredRenderingDemo::DeferredRenderingDemo()
-	: NR_Lights(30), renderLights(true)
+	: NR_Lights(100), renderLights(true)
 {
 
 }
 
 /*
-	Need to make lights more intense, may add texture to the monkey model.
-	Will i make lights move? Need to look at similar scenes.
+	Need to fix z fighting and fix deferred lighting fragment shader where i calculate
+	attenuation.
 */
 DeferredRenderingDemo::~DeferredRenderingDemo()
 {
@@ -34,22 +34,31 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	shaderLightingPass.InitShader("deferred_shading.vert", "deferred_shading.frag");
 	shaderLightBox.InitShader("deferred_light_box.vert", "deferred_light_box.frag");
 
+	planeDiffuseTexture = LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");
+	planeSpecularTexture = LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-specular.jpg");
+	objectDiffuseTexture = LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");
+	objectSpecularTexture = LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-specular.jpg");
+
 	// Set samplers
 	shaderLightingPass.Use();
 	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gPosition"), 0);
 	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gNormal"), 1);
 	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gAlbedoSpec"), 2);
 
+	shaderGeometryPass.Use();
+	glUniform1i(glGetUniformLocation(shaderGeometryPass.Program, "texture_diffuse1"), 0);
+	glUniform1i(glGetUniformLocation(shaderGeometryPass.Program, "texture_specular1"), 1);
+
 	// Models
-	sceneModel.LoadModel("Resources/monkey.obj");
+	sceneModel.LoadModel("Resources/utah-teapot.obj");
 
 	GLuint counter = 0;
 	GLfloat zPos = -3.0f;
-	for (GLuint i = 0; i <= 100; i++)
+	for (GLuint i = 0; i < 100; i++)
 	{
-		objectPositions.push_back(vector3((counter * 3.0f) - 3.0f, -3.0f, zPos));
+		objectPositions.push_back(vector3((counter * 4.0f) - 3.0f, -3.0f, zPos));
 
-		if (counter >= 10)
+		if (counter >= 9)
 		{
 			zPos += 3.0f;
 			counter = 0;
@@ -63,9 +72,9 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	for (GLuint i = 0; i < NR_Lights; i++)
 	{
 		// Calculate slightly random offsets
-		GLfloat xPos = ((rand() % 100) / 100.0) * 30.0 - 3.5;
+		GLfloat xPos = ((rand() % 100) / 100.0) * 37.0 - 3.5f;
 		GLfloat yPos = -1.5f;// ((rand() % 100) / 100.0) - 2.0f;
-		GLfloat zPos = ((rand() % 100) / 100.0) * 30.0 - 6.0;
+		GLfloat zPos = ((rand() % 100) / 100.0) * 30.0 - 3.5f;
 		lightPositions.push_back(vector3(xPos, yPos, zPos));
 		// Also calculate random color
 		GLfloat rColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
@@ -125,28 +134,52 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 {
 	camera.ControllerMovement();
 
-	//glClearColor(0.5f, 0.7f, 0.5f, 1.0f);
+	if (moveLights)
+	{
+		for (GLuint i = 0; i < lightPositions.size(); i++)
+		{
+			lightPositions[i].x += sin(glfwGetTime()) * 0.1f;
+			lightPositions[i].z += cos(glfwGetTime()) * 0.1f;
+		}
+	}
 
 	if (resized)
 		SetupBuffers(screenWidth, screenHeight);
 
 	// 1. Geometry Pass: render scene's geometry/color data into gbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
 	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 model;
+
 	shaderGeometryPass.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	model = Matrix4();
+	model = model.translate(vector3(15.0f, -3.5f, 11.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, planeDiffuseTexture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, planeSpecularTexture);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	RenderPlane();
+	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, objectDiffuseTexture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, objectSpecularTexture);
 	for (GLuint i = 0; i < objectPositions.size(); i++)
 	{
 		model = Matrix4();
 		model = model.translate(objectPositions[i]);
-		//model = model.scale(vector3(0.25f, 0.25f, 0.25f));
+		model = model.scale(vector3(0.08f, 0.08f, 0.08f));
 		glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
 		sceneModel.Draw(shaderGeometryPass);
 	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 2. Lighting Pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
@@ -249,6 +282,40 @@ void DeferredRenderingDemo::RenderQuad()
 	glBindVertexArray(0);
 }
 
+void DeferredRenderingDemo::RenderPlane()
+{
+	if (planeVAO == 0)
+	{
+		GLfloat planeVertices[] = {
+			// Positions          // Normals         // Texture Coords
+			25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,
+			-25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f,
+			-25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+
+			25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,
+			25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 25.0f,
+			-25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f
+		};
+
+		// Setup plane VAO
+		glGenVertexArrays(1, &planeVAO);
+		glGenBuffers(1, &planeVBO);
+		glBindVertexArray(planeVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glBindVertexArray(0);
+	}
+	glBindVertexArray(planeVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+}
+
 // RenderCube() Renders a 1x1 3D cube in NDC.
 GLuint cubeVAO = 0;
 GLuint cubeVBO = 0;
@@ -340,11 +407,17 @@ GLuint DeferredRenderingDemo::LoadTexture(GLchar* path)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	float aniso = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+
 	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(image);
 

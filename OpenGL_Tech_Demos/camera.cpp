@@ -130,10 +130,10 @@ void Camera::ControllerMovement()
 		if (axis[3] > 0.3 || axis[3] < -0.3)
 			pitch -= (axis[3] * (cameraSpeed)) * deltaTime;
 
-		if (axis[4] > 0.3)	// R2
-			zoom -= 0.01f;
-		if (axis[5] > 0.3)	// L2
-			zoom += 0.01f;
+		//if (axis[4] > 0.3)	// R2
+		//	zoom -= 0.01f;
+		//if (axis[5] > 0.3)	// L2
+		//	zoom += 0.01f;
 	}
 
 #if 0
