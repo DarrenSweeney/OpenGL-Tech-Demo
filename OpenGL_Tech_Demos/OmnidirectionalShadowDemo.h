@@ -1,6 +1,8 @@
 #ifndef OMNIDIRECTION_SHADOW
 #define OMNIDIRECTION_SHADOW
 
+#include "ResourceManager.h"
+#include "SceneModels.h"
 #include "shader.h"
 #include "model.h"
 #include "Math\vector3.h"
@@ -27,20 +29,14 @@ public:
 
 private:
 	Model modelPlatform, modelColumn, modelBunny;
-	Shader shaderPointShadows, shaderDepth;
-	Shader shaderLightBox, shaderSkyBox;
-	GLuint skyboxVAO, skyboxVBO;
+	Shader shaderPointShadows, shaderDepth, shaderLightBox;
 	GLuint textureID;
 	glm::vec3 lightPos;
 	GLuint woodTexture, wallTexture;
 	const GLuint ShadowWidth, ShadowHeight;
 	GLuint depthMapFBO, depthCubemap;
-	GLuint cubeVAO = 0;
-	GLuint cubeVBO = 0;
 
-	GLuint LoadTexture(GLchar *path);
 	void RenderScene(Shader &shader);
-	void RenderCube();
 };
 
 #endif

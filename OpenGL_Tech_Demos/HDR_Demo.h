@@ -1,6 +1,8 @@
 #ifndef HRD_DEMO_H
 #define HDR_DEMO_H
 
+#include "ResourceManager.h"
+#include "SceneModels.h"
 #include <vector>
 #include "camera.h"
 #include "shader.h"
@@ -39,13 +41,9 @@ private:
 	GLuint pingpongFBO[2];
 	GLuint pingpongColorbuffers[2];
 
-	GLuint quadVAO, quadVBO;
 	GLuint cubeVAO, cubeVBO;
 
 	void SetupBuffers(GLsizei screenWidth, GLsizei screenHeight);
-	GLuint LoadTexture(GLchar *path);
-	void RenderQuad();
-	void RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale);
 };
 
 #endif

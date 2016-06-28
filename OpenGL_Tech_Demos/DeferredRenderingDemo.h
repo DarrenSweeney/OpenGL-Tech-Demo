@@ -1,6 +1,8 @@
 #ifndef REFERRED_RENDERING_DEMO_H
 #define REFERRED_RENDERING_DEMO_H
 
+#include "ResourceManager.h"
+#include "SceneModels.h"
 #include "shader.h"
 #include "model.h"
 #include "camera.h"
@@ -27,13 +29,8 @@ private:
 	GLuint gPosition, gNormal, gAlbedoSpec;
 	GLuint rboDepth;
 	GLuint planeDiffuseTexture, planeSpecularTexture, objectDiffuseTexture, objectSpecularTexture;
-	GLuint planeVAO, planeVBO;
 
 	void SetupBuffers(GLsizei screenWidth, GLsizei screenHeight);
-	void RenderQuad();
-	void RenderCube();
-	void RenderPlane();
-	GLuint LoadTexture(GLchar *path);
 };
 
 

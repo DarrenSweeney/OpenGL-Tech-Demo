@@ -11,39 +11,25 @@ InstancingDemo::~InstancingDemo()
 	delete[] modelMatrices;
 }
 
-// Possibly something like this?
 struct GrassBlade
 {
 	GLuint grassVAO, grassVBO;
 
 	GLfloat quadVertices[20] = {
-		// Positions        // Texture Coords
-		-1.0f,	1.0f, 0.0f,	0.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f,	1.0f, 0.0f,	1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,	1.0f, 1.0f,
+		// Positions			// Texture Coords
+		-1.0f,	1.0f, 0.0f,		0.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,		0.0f, 1.0f,
+		 1.0f,	1.0f, 0.0f,		1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,		1.0f, 1.0f,
 	};
 }; GrassBlade grassBlade;
 
-// TODO(Darren): Take this out.
-GLfloat DegressToRads_(GLfloat degrees)
-{
-	const GLfloat PI = 3.141592;
-
-	return degrees * (PI / 180.0f);
-}
-
-/*
-	TODO(Darren): Have models of ruins scattered. (Broken walls, Columns). (Possible, maybe/maybe not).
-*/
 void InstancingDemo::InitalizeScene()
 {
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
 
-	shaderRock.InitShader("instance.vert", "grass.frag");
-	shaderGrass.InitShader("instance.vert", "grass.frag");
-	shaderDirtGround.InitShader("object.vert", "object.frag");
+	shaderInstancing.InitShader("Shaders/InstancingDemo/instance.vert", "Shaders/InstancingDemo/grass.frag");
+	shaderDirtGround.InitShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
 
 	modelRock.LoadModel("Resources/rock/rock.obj");
 
@@ -60,7 +46,6 @@ void InstancingDemo::InitalizeScene()
 		if (i % 2 == 0)
 		{
 			model = Matrix4();
-			// 1. Translation: Displace along circle with 'radius' in range [-offset, offset]
 			GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
 			GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
 			GLfloat x = sin(angle) * radius + displacement;
@@ -69,9 +54,8 @@ void InstancingDemo::InitalizeScene()
 			model = model.translate(vector3(x, 0.0f, z));
 		}
 		else
-			model = model.rotate(DegressToRads_(90.0f), vector3(0.0f, 1.0f, 0.0f));
+			model = model.rotate(MathHelper::DegressToRadians(90.0f), vector3(0.0f, 1.0f, 0.0f));
 
-		//  4. Now add to list of matrices
 		modelMatrices[i] = model;
 	}
 
@@ -81,7 +65,6 @@ void InstancingDemo::InitalizeScene()
 	for (GLuint i = 0; i < amount; i++)
 	{
 		model = Matrix4();
-		// 1. Translation: Displace along circle with 'radius' in range [-offset, offset]
 		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
 		GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
 		GLfloat x = sin(angle) * radius + displacement;
@@ -89,18 +72,14 @@ void InstancingDemo::InitalizeScene()
 		GLfloat z = cos(angle) * radius + displacement;
 		model = model.translate(vector3(x, -1.0f, z));
 
-		// 2. Scale: Scale between 0.05 and 0.25
 		scale = (rand() % 20) / 100.0f + 0.05f;
 		model = model.scale(vector3(scale, scale, scale));
 
-		//  4. Now add to list of matrices
 		modelMatrices[i] = model;
 	}
 
 	for (GLuint i = 0; i < modelRock.meshes.size(); i++)
-	{
 		SetUpBuffers(modelRock.meshes[i].VAO, modelMatrices);
-	}
 }
 
 void InstancingDemo::SetUpBuffers(GLuint &vao, Matrix4 *matrices, GLuint vbo, int sizeOfVertices, GLfloat *vertices)
@@ -158,21 +137,15 @@ void InstancingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenH
 	view = camera.GetViewMatrix();
 	Matrix4 model;
 
-	shaderGrass.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderGrass.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGrass.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	shaderInstancing.Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
+	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing.Program, "view"), 1, GL_FALSE, &view.data[0]);
 
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	{
-		glBindVertexArray(grassBlade.grassVAO);
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, amount);
-		glBindVertexArray(0);
-	}
-	glBindTexture(GL_TEXTURE_2D, 0);	// NOTE(Darren): Could do this brace thing for OpenGL start and end calls more often?
-
-	shaderRock.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderRock.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
-	glUniformMatrix4fv(glGetUniformLocation(shaderRock.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	glBindVertexArray(grassBlade.grassVAO);
+	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, amount);
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glBindTexture(GL_TEXTURE_2D, modelRock.textures_loaded[0].id);
 	for (GLuint i = 0; i < modelRock.meshes.size(); i++)
@@ -193,66 +166,6 @@ void InstancingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenH
 	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
 	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround.Program, "view"), 1, GL_FALSE, &view.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderPlane();
+	SceneModels::RenderPlane(1.0f, 25.0f);
 	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void InstancingDemo::RenderGrassInstanceQuad()
-{
-	if (quadVAO == 0)
-	{
-		GLfloat quadVertices[] = {
-			// Positions        // Texture Coords
-			-1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-			1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-			1.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-		};
-		// Setup plane VAO
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	}
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
-}
-
-void InstancingDemo::RenderPlane()
-{
-	if (planeVAO == 0)
-	{
-		GLfloat planeVertices[] = {
-			// Positions         // Texture Coords
-			1.0f, -0.5f, 1.0f, 25.0f, 0.0f,
-			-1.0f, -0.5f, -1.0f, 0.0f, 25.0f,
-			-1.0f, -0.5f, 1.0f, 0.0f, 0.0f,
-
-			1.0f, -0.5f, 1.0f, 25.0f, 0.0f,
-			1.0f, -0.5f, -1.0f, 25.0f, 25.0f,
-			-1.0f, -0.5f, -1.0f, 0.0f, 25.0f
-		};
-
-		// Setup plane VAO
-		glGenVertexArrays(1, &planeVAO);
-		glGenBuffers(1, &planeVBO);
-		glBindVertexArray(planeVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glBindVertexArray(0);
-	}
-
-	glBindVertexArray(planeVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(0);
 }

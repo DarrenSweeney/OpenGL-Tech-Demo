@@ -1,6 +1,8 @@
 #ifndef PARALLAX_MAPPING_DEMO_H
 #define PARALLAX_MAPPING_DEMO_H
 
+#include "ResourceManager.h"
+#include "SceneModels.h"
 #include "Math\vector3.h"
 #include "Math\vector2.h"
 #include "Math\matrix4.h"
@@ -25,13 +27,6 @@ private:
 	GLuint diffuseMap_SquareBricks, normalMap_SquareBricks, displacementMap_SquareBricks;
 	GLuint diffuseMap_GreyStonewall, normalMap_GreyStonewall, displacementMap_GreyStonewall;
 	GLuint diffuseMap_Pebbles, normalMap_Pebbles, displacementMap_Pebbles;
-	GLuint quadVAO;
-	GLuint quadVBO;
-	GLuint cubeVAO, cubeVBO;
-
-	GLuint LoadTexture(GLchar *path);
-	void RenderCube();
-	void RenderQuad();
 };
 
 #endif

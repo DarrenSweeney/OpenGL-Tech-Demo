@@ -80,6 +80,11 @@ ParallaxMappingDemo parallaxingDemo;
 OmnidirectionalShadowDemo omnidirectionalShadowDemo;
 ModelLoadingDemo modelLoadingDemo;
 
+/*
+	For now i could have the basic of each demo and start code refactor.
+	Think i might do this! With work, there is less time. 
+*/
+
 enum Demos
 {
 	cubeMap,					// ------------
@@ -88,14 +93,14 @@ enum Demos
 	stencilReflection,			// ------------
 	instancing,					// *** DONE ***
 	deferredRendering,			// *** DONE ***
-	objectOutline,				// IN PROGRESS.	
+	objectOutline,				// ------------
 	ssao,						// ------------
 	parallaxingMappingDemo,		// *** DONE ***
 	omnidirectionalShadow,		// *** DONE ***
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::instancing;
+Demos demos = Demos::stencilReflection;
 
 const char* demoInfo = " ";
 
@@ -245,8 +250,8 @@ int main(int, char**)
 	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
-	//stencilReflectionDemo.InitalizeScene();
-	instancingDemo.InitalizeScene();
+	stencilReflectionDemo.InitalizeScene();
+	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
 	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
@@ -510,7 +515,6 @@ int main(int, char**)
 		ImGui::End();
 #pragma endregion
 
-		// Rendering
 		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 		glViewport(0, 0, screenWidth, screenHeight);
 
@@ -600,6 +604,7 @@ int main(int, char**)
 			break;
 		}
 #pragma endregion
+
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDisable(GL_STENCIL_TEST);

@@ -14,100 +14,16 @@ void StencilReflectionDemo::InitalizeScene()
 {
 	// TODO(Darren): Need to comment on my purpose of calling OpenGL function calls
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-#pragma region Object_Vertices
-	// Set the object data (buffers, vertex attributes)
-	GLfloat cubeVertices[] = {
-		// Positions	          // Texture Coords
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	cubeTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
+	planeTexture = ResourceManager::LoadTexture("Resources/marble.jpg");
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-	GLfloat planeVertices[] = {
-		// Texture Coords: note we set these higher than 1 that together with GL_REPEAT 
-		// as texture wrapping mode will cause the floor texture to repeat)
-		// Positions         // Texture Coords 
-		3.0f,  -0.5f,  3.0f,  3.0f, 0.0f,
-		-3.0f, -0.5f,  3.0f,  0.0f, 0.0f,
-		-3.0f, -0.5f, -3.0f,  0.0f, 3.0f,
-
-		3.0f,  -0.5f,  3.0f,  3.0f, 0.0f,
-		-3.0f, -0.5f, -3.0f,  0.0f, 3.0f,
-		3.0f,  -0.5f, -3.0f,  3.0f, 3.0f
-	};
-#pragma endregion
-
-	// Setup cube VAO
-	glGenVertexArrays(1, &cubeVAO);
-	glGenBuffers(1, &cubeVBO);
-	glBindVertexArray(cubeVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GLfloat)));
-	glBindVertexArray(0);
-
-	// Setup plane VAO
-	planeVAO, planeVBO;
-	glGenVertexArrays(1, &planeVAO);
-	glGenBuffers(1, &planeVBO);
-	glBindVertexArray(planeVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glBindVertexArray(0);
-
-	cubeTexture = LoadTexture("Resources/brickwall.jpg");
-	planeTexture = LoadTexture("Resources/chess_board.jpg");
-
-	shaderObject.InitShader("Object.vert", "Object.frag");
+	shaderObject.InitShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
 }
 
 void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
@@ -127,52 +43,16 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 
 	GLuint uniColor = glGetUniformLocation(shaderObject.Program, "overrideColor");
 	
-	glColorMask(0, 0, 0, 0);
+	//glColorMask(0, 0, 0, 0);
 
-	glEnable(GL_STENCIL_TEST);                      // Enable Stencil Buffer For "marking" The Floor
-	glStencilFunc(GL_ALWAYS, 1, 1);                     // Always Passes, 1 Bit Plane, 1 As Mask
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);              // We Set The Stencil Buffer To 1 Where We Draw Any Polygon
-															// Keep If Test Fails, Keep If Test Passes But Buffer Test Fails
-															// Replace If Test Passes
-	glDisable(GL_DEPTH_TEST);                       // Disable Depth Testing
-	//DrawFloor();                                // Draw The Floor (Draws To The Stencil Buffer)
-												// We Only Want To Mark It In The Stencil Buffer
-	// Draw Floor.
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilMask(0xFF);
-	glDepthMask(GL_FALSE);
-	glClear(GL_STENCIL_BUFFER_BIT);
-
-	glBindVertexArray(planeVAO);
-	glBindTexture(GL_TEXTURE_2D, planeTexture);
-	model = Matrix4();
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	glDrawArrays(GL_TRIANGLES, 0, 66);
-	glBindVertexArray(0);
-
-	glEnable(GL_DEPTH_TEST);                        // Enable Depth Testing
-	glColorMask(1, 1, 1, 1);                           // Set Color Mask to TRUE, TRUE, TRUE, TRUE
-	glStencilFunc(GL_EQUAL, 1, 1);                      // We Draw Only Where The Stencil Is 1
-														// (I.E. Where The Floor Was Drawn)
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);                 // Don't Change The Stencil Buffer
-
-
-	//glClipPlane();
-
-	// Draw Cubes.
-	//glBindVertexArray(cubeVAO);
-	//glBindTexture(GL_TEXTURE_2D, cubeTexture);
-	//model = model.translate(vector3(-1.0f, 0.0f, -1.0f));
-	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//model = Matrix4();
-	//model = model.translate(vector3(2.0f, 0.0f, 0.0f));
-	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//glBindVertexArray(0);
-
+	//glEnable(GL_STENCIL_TEST);					// Enable Stencil Buffer For "marking" The Floor
+	//glStencilFunc(GL_ALWAYS, 1, 1);				// Always Passes, 1 Bit Plane, 1 As Mask
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);	// We Set The Stencil Buffer To 1 Where We Draw Any Polygon
+	//											// Keep If Test Fails, Keep If Test Passes But Buffer Test Fails
+	//											// Replace If Test Passes
+	//glDisable(GL_DEPTH_TEST);                   // Disable Depth Testing
+	////DrawFloor();								// Draw The Floor (Draws To The Stencil Buffer)
+	//											// We Only Want To Mark It In The Stencil Buffer
 	//// Draw Floor.
 	//glEnable(GL_STENCIL_TEST);
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -181,62 +61,16 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	//glDepthMask(GL_FALSE);
 	//glClear(GL_STENCIL_BUFFER_BIT);
 
-	//glBindVertexArray(planeVAO);
 	//glBindTexture(GL_TEXTURE_2D, planeTexture);
 	//model = Matrix4();
 	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	//glDrawArrays(GL_TRIANGLES, 0, 66);
-	//glBindVertexArray(0);
+	//SceneModels::RenderPlane();
 
-	//// Draw cube reflection.
-	//glStencilFunc(GL_EQUAL, 1, 0xFF);
-	//glStencilMask(0x00);
-	//glDepthMask(GL_TRUE);
+	//glEnable(GL_DEPTH_TEST);                  // Enable Depth Testing
+	//glColorMask(1, 1, 1, 1);                  // Set Color Mask to TRUE, TRUE, TRUE, TRUE
+	//glStencilFunc(GL_EQUAL, 1, 1);            // We Draw Only Where The Stencil Is 1
+	//										  // (I.E. Where The Floor Was Drawn)
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);   // Don't Change The Stencil Buffer
 
-	//glBindVertexArray(cubeVAO);
-	//glBindTexture(GL_TEXTURE_2D, cubeTexture);
-	//model = Matrix4();
-	//model = model.translate(vector3(-1.0f, -1.0f, -1.0f));
-	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	//glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
-	//model = Matrix4();
-	//model = model.translate(vector3(2.0f, -1.0f, 0.0f));
-	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	//glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
-	//glBindVertexArray(0);
-
-	//glDisable(GL_STENCIL_TEST);
-}
-
-GLuint StencilReflectionDemo::LoadTexture(GLchar* path)
-{
-	// Generate a texture ID and load texture data
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	int width, height;
-	unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
-	if (!image)
-		std::cout << "ERROR:: Image was not loaded!" << std::endl;
-	// Assign texture to ID
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	float aniso = 0.0f;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-
-	// Parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	SOIL_free_image_data(image);
-
-	return textureID;
+	
 }

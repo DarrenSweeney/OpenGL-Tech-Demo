@@ -19,19 +19,37 @@
       <UniqueIdentifier>{9e810fb0-d33b-4ec4-bcb8-ceaed7bf04e7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders">
-      <UniqueIdentifier>{d4612afd-e712-4147-a317-5a010a57a72b}</UniqueIdentifier>
+      <UniqueIdentifier>{62a46686-55b4-4157-acd0-ed459c6f1f7d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Demo_Shaders">
-      <UniqueIdentifier>{bbbb4e69-a4d0-42bc-92ba-7200b14543f1}</UniqueIdentifier>
+    <Filter Include="Shaders\CubeMapDemo">
+      <UniqueIdentifier>{62a6144c-1817-4422-a518-fabea7b91d99}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Demo_Shaders\CubeMap_Shaders">
-      <UniqueIdentifier>{6a45ccf8-8f23-4854-92f4-6e56970a4e3e}</UniqueIdentifier>
+    <Filter Include="Shaders\DeferredRendering">
+      <UniqueIdentifier>{e9f0f202-5437-4b0a-89d6-90a897baeebf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Demo_Shaders\ShadowMapping_Shaders">
-      <UniqueIdentifier>{bfee764a-99d5-4f20-b129-c1f740889710}</UniqueIdentifier>
+    <Filter Include="Shaders\HDR_Demo">
+      <UniqueIdentifier>{9dbcf59c-edad-4947-938b-f9985e70cee9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\InstancingDemo">
-      <UniqueIdentifier>{54c0ddfc-e77b-463f-acc4-7661a91d970e}</UniqueIdentifier>
+      <UniqueIdentifier>{78842321-3cd7-45bb-b562-cd88967e3648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ModelLoadingDemo">
+      <UniqueIdentifier>{d4f6c61e-e898-46a2-bb24-0151fda834fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ObjectOutlineDemo">
+      <UniqueIdentifier>{95a62ca1-8147-44bb-b582-698d1df558a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\OmnidirectionalShadowDemo">
+      <UniqueIdentifier>{f3200283-9f4f-4235-b038-8719d9fb990c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ParallaxingMappingDemo">
+      <UniqueIdentifier>{cc52b13e-8b5b-46cf-b410-03daa8330f24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ShadowMapDemo">
+      <UniqueIdentifier>{40bd7793-1b83-4dce-ba63-837dbbba3be0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\SSAO_Demo">
+      <UniqueIdentifier>{e4d6d7e1-672e-4b14-810c-57b0c83ff520}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +133,12 @@
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneModels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\MathHelper.cpp">
+      <Filter>Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,193 +229,157 @@
     <ClInclude Include="ModelLoadingDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SceneModels.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathHelper.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="skybox.vert">
-      <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="skybox.frag">
-      <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="model.vert">
-      <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="model.frag">
-      <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="debugQuadDepth.vert">
-      <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="debugQuadDepth.frag">
-      <Filter>Demo_Shaders\CubeMap_Shaders</Filter>
-    </None>
-    <None Include="ShadowMappingDepth.vert">
-      <Filter>Demo_Shaders\ShadowMapping_Shaders</Filter>
-    </None>
-    <None Include="ShadowMappingDepth.frag">
-      <Filter>Demo_Shaders\ShadowMapping_Shaders</Filter>
-    </None>
-    <None Include="ShadowMapping.vert">
-      <Filter>Demo_Shaders\ShadowMapping_Shaders</Filter>
-    </None>
-    <None Include="ShadowMapping.frag">
-      <Filter>Demo_Shaders\ShadowMapping_Shaders</Filter>
-    </None>
-    <None Include="Shaders\ShadowMapDemo\debugQuadDepth.vert">
+    <None Include="Shaders\light_box.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ShadowMapDemo\ShadowMapping.frag">
+    <None Include="Shaders\EnviromentObject.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ShadowMapDemo\ShadowMapping.vert">
+    <None Include="Shaders\light_box.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ShadowMapDemo\ShadowMappingDepth.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\ShadowMapDemo\ShadowMappingDepth.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\ShadowMapDemo\debugQuadDepth.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\HDR_Demo\BlinnPhong.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\HDR_Demo\BlinnPhong.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\HDR_Demo\HDR.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\HDR_Demo\HDR.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\CubeMapDemo\model.frag">
+    <None Include="Shaders\EnviromentObject.frag">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\CubeMapDemo\model.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\CubeMapDemo</Filter>
     </None>
     <None Include="Shaders\CubeMapDemo\skybox.frag">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\CubeMapDemo</Filter>
     </None>
     <None Include="Shaders\CubeMapDemo\skybox.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\CubeMapDemo</Filter>
     </None>
-    <None Include="instance.vert">
+    <None Include="Shaders\CubeMapDemo\model.frag">
+      <Filter>Shaders\CubeMapDemo</Filter>
+    </None>
+    <None Include="Shaders\DeferredRendering\deferred_shading.frag">
+      <Filter>Shaders\DeferredRendering</Filter>
+    </None>
+    <None Include="Shaders\DeferredRendering\deferred_shading.vert">
+      <Filter>Shaders\DeferredRendering</Filter>
+    </None>
+    <None Include="Shaders\DeferredRendering\g_buffer.frag">
+      <Filter>Shaders\DeferredRendering</Filter>
+    </None>
+    <None Include="Shaders\DeferredRendering\g_buffer.vert">
+      <Filter>Shaders\DeferredRendering</Filter>
+    </None>
+    <None Include="Shaders\HDR_Demo\bloom.vert">
+      <Filter>Shaders\HDR_Demo</Filter>
+    </None>
+    <None Include="Shaders\HDR_Demo\blur.frag">
+      <Filter>Shaders\HDR_Demo</Filter>
+    </None>
+    <None Include="Shaders\HDR_Demo\blur.vert">
+      <Filter>Shaders\HDR_Demo</Filter>
+    </None>
+    <None Include="Shaders\HDR_Demo\HDR.frag">
+      <Filter>Shaders\HDR_Demo</Filter>
+    </None>
+    <None Include="Shaders\HDR_Demo\HDR.vert">
+      <Filter>Shaders\HDR_Demo</Filter>
+    </None>
+    <None Include="Shaders\HDR_Demo\bloom.frag">
+      <Filter>Shaders\HDR_Demo</Filter>
+    </None>
+    <None Include="Shaders\InstancingDemo\grass.frag">
       <Filter>Shaders\InstancingDemo</Filter>
     </None>
-    <None Include="planet.vert">
+    <None Include="Shaders\InstancingDemo\instance.vert">
       <Filter>Shaders\InstancingDemo</Filter>
     </None>
-    <None Include="planet.frag">
-      <Filter>Shaders\InstancingDemo</Filter>
+    <None Include="Shaders\ModelLoadingDemo\normal.frag">
+      <Filter>Shaders\ModelLoadingDemo</Filter>
     </None>
-    <None Include="bloom.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ModelLoadingDemo\normal.gs">
+      <Filter>Shaders\ModelLoadingDemo</Filter>
     </None>
-    <None Include="bloom.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ModelLoadingDemo\normal.vert">
+      <Filter>Shaders\ModelLoadingDemo</Filter>
     </None>
-    <None Include="blur.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ModelLoadingDemo\modelLoading.frag">
+      <Filter>Shaders\ModelLoadingDemo</Filter>
     </None>
-    <None Include="blur.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ModelLoadingDemo\modelLoading.vert">
+      <Filter>Shaders\ModelLoadingDemo</Filter>
     </None>
-    <None Include="deferred_light_box.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ObjectOutlineDemo\StencilTesting.frag">
+      <Filter>Shaders\ObjectOutlineDemo</Filter>
     </None>
-    <None Include="deferred_light_box.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ObjectOutlineDemo\StencilTesting.vert">
+      <Filter>Shaders\ObjectOutlineDemo</Filter>
     </None>
-    <None Include="deferred_shading.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ObjectOutlineDemo\ObjectOutline.frag">
+      <Filter>Shaders\ObjectOutlineDemo</Filter>
     </None>
-    <None Include="deferred_shading.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\OmnidirectionalShadowDemo\point_shadows_depth.frag">
+      <Filter>Shaders\OmnidirectionalShadowDemo</Filter>
     </None>
-    <None Include="g_buffer.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\OmnidirectionalShadowDemo\point_shadows_depth.gs">
+      <Filter>Shaders\OmnidirectionalShadowDemo</Filter>
     </None>
-    <None Include="g_buffer.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\OmnidirectionalShadowDemo\point_shadows_depth.vert">
+      <Filter>Shaders\OmnidirectionalShadowDemo</Filter>
     </None>
-    <None Include="light_box.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\OmnidirectionalShadowDemo\point_shadows.frag">
+      <Filter>Shaders\OmnidirectionalShadowDemo</Filter>
     </None>
-    <None Include="modelLoading.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\OmnidirectionalShadowDemo\point_shadows.vert">
+      <Filter>Shaders\OmnidirectionalShadowDemo</Filter>
     </None>
-    <None Include="modelLoading.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ParallaxingMappingDemo\parallax_mapping.vert">
+      <Filter>Shaders\ParallaxingMappingDemo</Filter>
     </None>
-    <None Include="normal.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ParallaxingMappingDemo\parallax_mapping.frag">
+      <Filter>Shaders\ParallaxingMappingDemo</Filter>
     </None>
-    <None Include="normal.gs">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ShadowMapDemo\debugQuadDepth.frag">
+      <Filter>Shaders\ShadowMapDemo</Filter>
     </None>
-    <None Include="normal.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ShadowMapDemo\debugQuadDepth.vert">
+      <Filter>Shaders\ShadowMapDemo</Filter>
     </None>
-    <None Include="Object.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ShadowMapDemo\ShadowMapping.frag">
+      <Filter>Shaders\ShadowMapDemo</Filter>
     </None>
-    <None Include="Object.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ShadowMapDemo\ShadowMapping.vert">
+      <Filter>Shaders\ShadowMapDemo</Filter>
     </None>
-    <None Include="parallax_mapping.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ShadowMapDemo\ShadowMappingDepth.frag">
+      <Filter>Shaders\ShadowMapDemo</Filter>
     </None>
-    <None Include="parallax_mapping.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\ShadowMapDemo\ShadowMappingDepth.vert">
+      <Filter>Shaders\ShadowMapDemo</Filter>
     </None>
-    <None Include="point_shadows.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SSAO_Demo\ssao_blur.frag">
+      <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="point_shadows.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SSAO_Demo\ssao_geometry.frag">
+      <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="point_shadows_depth.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SSAO_Demo\ssao_geometry.vert">
+      <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="point_shadows_depth.gs">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SSAO_Demo\ssao_lighting.frag">
+      <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="ssao.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SSAO_Demo\ssao.frag">
+      <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="point_shadows_depth.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SSAO_Demo\ssao.vert">
+      <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="ssao.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ssao_blur.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ssao_geometry.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ssao_geometry.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ssao_lighting.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="EnviromentObject.vert" />
-    <None Include="EnviromentObject.frag" />
-    <None Include="grass.frag" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,8 @@
 #ifndef CUBE_MAP_DEMO_H
 #define CUBE_MAP_DEMO_H
 
+#include "ResourceManager.h"
+#include "SceneModels.h"
 #include <vector>
 #include "camera.h"
 #include <SOIL/SOIL.h>
@@ -19,6 +21,7 @@ class CubeMapDemo
 public:
 	CubeMapDemo();
 	~CubeMapDemo();
+
 	void InitalizeScene();
 	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
@@ -35,15 +38,12 @@ private:
 	glm::vec3 modelOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
 	const GLuint dy_skyboxResWidth = 1024, dy_skyboxResHeight = 1024;
 	GLuint woodTexture;
-	GLuint LoadTexture(GLchar *path);
 
 	// Try again here,
 	GLuint cubemap, framebuffer, depthbuffer;
 
 	GLuint cubeVAO, cubeVBO;
 	void RenderScene(Shader &shader);
-	void RenderCube();
-	GLuint LoadCubeMap(std::vector<const GLchar*> faces);
 };
 
 #endif

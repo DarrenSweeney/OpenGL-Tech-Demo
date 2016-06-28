@@ -1,6 +1,8 @@
 #ifndef SHADOW_MAPPING_H
 #define SHADOW_MAPPING_H
 
+#include "ResourceManager.h"
+#include "SceneModels.h"
 #include "camera.h"
 #include "shader.h"
 #include "model.h"
@@ -21,22 +23,15 @@ public:
 
 private:
 	Model modelTree, modelTeapot, modelRock;
-	// Shader shaderBunny;	// NOTE(Darren): Do i need this?
 	Shader shaderDepth, shaderShadowMap;
 	Shader shaderDebugQuad;
 	Shader shaderLightBox;
 	vector3 lightPosition;
 	GLuint floorTexture, cubeTexture, teapotTexture;
-	GLfloat fLargest;
 	const GLuint ShadowWidth, ShadowHeight;
-	GLuint planeVAO, planeVBO;
-	GLuint cubeVAO, cubeVBO;
-	GLuint quadVAO, quadVBO;
 
 	void RenderScene(Shader &shader);
-	void RenderQuad();
-	void RenderCube();
-	GLuint LoadTexture(GLchar *path, bool gammaCorrection);
+
 	GLuint GenerateMultiSampleTexture(GLuint samples);
 };
 

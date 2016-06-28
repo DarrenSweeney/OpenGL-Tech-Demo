@@ -27,17 +27,16 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	lightColors.push_back(glm::vec3(0.0f, 20.0f, 0.0f));
 
 	// Load textures
-	woodTexture = LoadTexture("Resources/brickwall.jpg");
-	endTexture = LoadTexture("Resources/theWitness.jpg");
+	woodTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
+	endTexture = ResourceManager::LoadTexture("Resources/theWitness.jpg");
 
 	SetupBuffers(screenWidth, screenHeight);
 
 	// Shaders
-	// TODO(Darren): Fix shader names and organisation.
-	shaderBloom.InitShader("Shaders/HDR_Demo/BlinnPhong.vert", "bloom.frag");
-	shaderLight.InitShader("bloom.vert", "light_box.frag");
-	shaderBlur.InitShader("blur.vert", "blur.frag");
+	shaderBloom.InitShader("Shaders/HDR_Demo/bloom.vert", "Shaders/HDR_Demo/bloom.frag");
+	shaderBlur.InitShader("Shaders/HDR_Demo/blur.vert", "Shaders/HDR_Demo/blur.frag");
 	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
+	shaderLight.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	// Set up bloom shader samplers.
 	shaderHDR.Use();
@@ -141,10 +140,12 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 	// - render tunnel
 	model = Matrix4();
 	model = model.translate(vector3(0.0f, 0.0f, 25.0f));
-	model = model.scale(vector3(5.0f, 5.0f, 55.0f));
+	model = model.scale(vector3(5.0f, 6.0f, 55.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderBloom.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glUniform1i(glGetUniformLocation(shaderBloom.Program, "inverse_normals"), GL_TRUE);
-	RenderCube(5.0f, 5.0f, 55.0f);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, woodTexture);
+	SceneModels::RenderCube(5.0f, 6.0f, 55.0f);
 
 	// Show all the light sources as bright cubes
 	if (renderLights)
@@ -159,7 +160,7 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 			model = model.scale(vector3(0.5f, 0.5f, 0.5f));
 			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "model"), 1, GL_FALSE, &model.data[0]);
 			glUniform3fv(glGetUniformLocation(shaderLight.Program, "lightColor"), 1, &lightColors[i][0]);
-			RenderCube(0.5f, 0.5f, 0.5f);
+			SceneModels::RenderCube(0.5f, 0.5f, 0.5f);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
@@ -174,7 +175,7 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 		glUniform1i(glGetUniformLocation(shaderBlur.Program, "horizontal"), horizontal);
 		// Bind texture of other framebuffer (or scene if first iteration).
 		glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);
-		RenderQuad();
+		SceneModels::RenderQuad();
 		horizontal = !horizontal;
 		if (first_iteration)
 			first_iteration = false;
@@ -192,149 +193,5 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 	glUniform1i(glGetUniformLocation(shaderHDR.Program, "hdr"), true);
 	glUniform1i(glGetUniformLocation(shaderHDR.Program, "bloom"), true);
 	glUniform1f(glGetUniformLocation(shaderHDR.Program, "exposure"), exposure);
-	RenderQuad();
-}
-
-GLuint HDR_DEMO::LoadTexture(GLchar *path)
-{
-	// Generate a texture ID and load texture data
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	int width, height;
-	unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
-	if (!image)
-		std::cout << "ERROR:: Image was not loaded!" << std::endl;
-	// Assign texture to ID
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	// Parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	SOIL_free_image_data(image);
-
-	return textureID;
-}
-
-// RenderQuad() Renders a 1x1 quad in NDC, best used for framebuffer color targets
-// and post-processing effects.
-void HDR_DEMO::RenderQuad()
-{
-	if (quadVAO == 0)
-	{
-		GLfloat quadVertices[] = {
-			// Positions        // Texture Coords
-			-1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		};
-
-		// Setup plane VAO
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	}
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
-}
-
-
-// TODO(Darren): Finish this.
-// RenderCube() Renders a 1x1 3D cube in NDC. (Not anymore) MWahahaha.
-void HDR_DEMO::RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale)
-{
-	// Initialize (if necessary)
-	if (cubeVAO == 0)
-	{
-		GLfloat xyRatio = xScale / yScale;
-		GLfloat zyRatio = zScale / yScale;
-
-		GLfloat vertices[] = {
-			// Back face
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
-			0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-			0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // top-right
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
-			-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,// top-left
-			// Front face
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-			0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
-			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top-right
-			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right
-			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom-left
-			// Left face
-			-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-			-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, zyRatio, // top-left
-			-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, zyRatio,  // bottom-left
-			-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, zyRatio, // bottom-left
-			-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-			-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-			// Right face
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
-			0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, zyRatio, // bottom-right
-			0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, zyRatio, // top-right         
-			0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, zyRatio,  // bottom-right
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // top-left
-			0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left     
-			// Bottom face
-			-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, zyRatio, // top-right
-			0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, zyRatio, // top-left
-			0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,// bottom-left
-			0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-			-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
-			-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, zyRatio, // top-right
-			// Top face
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, zyRatio,// top-left
-			0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-			0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, zyRatio, // top-right     
-			0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, zyRatio,// top-left
-			-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f // bottom-left        
-		};
-		glGenVertexArrays(1, &cubeVAO);
-		glGenBuffers(1, &cubeVBO);
-		// Fill buffer
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// Link vertex attributes
-		glBindVertexArray(cubeVAO);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-
-	// Render Cube
-	glBindVertexArray(cubeVAO);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, endTexture);
-	glDrawArrays(GL_TRIANGLES, 6, 6);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	glDrawArrays(GL_TRIANGLES, 12, 24);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
+	SceneModels::RenderQuad();
 }

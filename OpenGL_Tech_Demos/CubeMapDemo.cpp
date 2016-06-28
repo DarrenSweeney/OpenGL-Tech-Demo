@@ -70,17 +70,12 @@ void CubeMapDemo::InitalizeScene()
 	};
 #pragma endregion 
 
-	// Setup some OpenGL opitions
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS);	// Note(Darren): Do i need this???
-
-	// Cull the back face of the utah-tea pot.
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	shaderModel.InitShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
 	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
-	shaderEnviromentObject.InitShader("EnviromentObject.vert", "EnviromentObject.frag");
+	shaderEnviromentObject.InitShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
 
 	shaderEnviromentObject.Use();
 	// Set sampler.
@@ -101,8 +96,8 @@ void CubeMapDemo::InitalizeScene()
 	glBindVertexArray(0);
 
 	/*
-	Order is based on the Layered Rendering specfic order.
-	https://www.opengl.org/wiki/Cubemap_Texture
+		Order is based on the Layered Rendering specfic order.
+		https://www.opengl.org/wiki/Cubemap_Texture
 	*/
 	faces.push_back("Resources/skybox/posx.jpg");
 	faces.push_back("Resources/skybox/negx.jpg");
@@ -111,15 +106,13 @@ void CubeMapDemo::InitalizeScene()
 	faces.push_back("Resources/skybox/posz.jpg");
 	faces.push_back("Resources/skybox/negz.jpg");
 
-	cubeMapTexture = LoadCubeMap(faces);
-
-	woodTexture = LoadTexture("Resources/brickwall.jpg");
+	cubeMapTexture = ResourceManager::LoadCubeMap(faces);
+	woodTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 
 	modelCubes.Use();
 	glUniform1i(glGetUniformLocation(modelCubes.Program, "texture1"), 0);
 
 	// TODO(Darren): Create the 6 color buffers, depth buffers and framebuffers.
-
 }
 
 // TODO(Darren): Will need to take out camera and put in main class.
@@ -158,7 +151,7 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 
 	// 3. Render scene as normal.
 	glViewport(0, 0, screenWidth, screenHeight);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// GL_COLOR_BUFFER_BIT maybe???
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 projection;
@@ -170,14 +163,9 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);
 	glUniform3f(glGetUniformLocation(shaderModel.Program, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
 
-	//// NOTE(Darren): why do you need to index each GL_TEXTURE?
 	glActiveTexture(GL_TEXTURE3);
 	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-	//model = Matrix4();
-	//rotation += 0.0005f;
-	//model = model.rotateX(rotation);
-	//glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);
 	modelUtahTeaPot.Draw(shaderModel);
 
 	shaderEnviromentObject.Use();
@@ -215,147 +203,24 @@ void CubeMapDemo::RenderScene(Shader &shader)
 	Matrix4 model = Matrix4();
 	model = model.translate(vector3(4.0f, -3.5f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderCube();
+	SceneModels::RenderCube();
 	model = Matrix4();
 	model = model.translate(vector3(2.0f, 3.0f, 1.0f));
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderCube();
+	SceneModels::RenderCube();
 	model = Matrix4();
 	model = model.translate(vector3(-3.0f, -1.0f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderCube();
+	SceneModels::RenderCube();
 	model = Matrix4();
 	model = model.translate(vector3(-1.5f, 1.0f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderCube();
+	SceneModels::RenderCube();
 	model = Matrix4();
 	model = model.translate(vector3(-1.5f, 2.0f, -3.0f));
 	model = model.rotate(60.0f, vector3(1.0f, 0.0f, 1.0f).normalise());
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
-	RenderCube();
-}
-
-void CubeMapDemo::RenderCube()
-{
-	// Initialize (if necessary)
-	if (cubeVAO == 0)
-	{
-		GLfloat vertices[] = {
-			// Back face
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
-			0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-			0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // top-right
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
-			-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,// top-left
-															  // Front face
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-			0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
-			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top-right
-			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right
-			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom-left
-															   // Left face
-			-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-			-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
-			-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-left
-			-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-			-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-			-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-															  // Right face
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
-			0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
-			0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-right         
-			0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-right
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // top-left
-			0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left     
-															 // Bottom face
-			-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-			0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // top-left
-			0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,// bottom-left
-			0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-			-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
-			-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-																// Top face
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,// top-left
-			0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-			0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top-right     
-			0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,// top-left
-			-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f // bottom-left        
-		};
-		glGenVertexArrays(1, &cubeVAO);
-		glGenBuffers(1, &cubeVBO);
-		// Fill buffer
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// Link vertex attributes
-		glBindVertexArray(cubeVAO);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-	// Render Cube
-	glBindVertexArray(cubeVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-}
-
-GLuint CubeMapDemo::LoadCubeMap(std::vector<const GLchar*> faces)
-{
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-
-	int width, height;
-	unsigned char* image;
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-	for (int i = 0; i < faces.size(); i++)
-	{
-		image = SOIL_load_image(faces[i], &width, &height, 0, SOIL_LOAD_RGB);
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height,
-			0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		SOIL_free_image_data(image);
-	}
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-	return textureID;
-}
-
-GLuint CubeMapDemo::LoadTexture(GLchar *path)
-{
-	// Generate a texture ID and load texture data
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	int width, height;
-	unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
-	if (!image)
-		std::cout << "ERROR:: Image was not loaded!" << std::endl;
-	// Assign texture to ID
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	// Parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	SOIL_free_image_data(image);
-
-	return textureID;
+	SceneModels::RenderCube();
 }

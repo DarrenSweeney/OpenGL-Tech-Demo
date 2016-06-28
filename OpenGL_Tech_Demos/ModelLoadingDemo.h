@@ -1,6 +1,7 @@
 #ifndef MODEL_LOADING_DEMO_H
 #define MODEL_LOADING_DEMO_H
 
+#include "ResourceManager.h"
 #include <vector>
 #include "shader.h"
 #include "camera.h"
@@ -36,8 +37,6 @@ private:
 	GLuint shaderModelMatrix, shaderProjectionMatrix, shaderViewMatrix,
 		shaderCameraPos, shaderNormalMapping, shaderInTangentSpace,
 		shaderNormalProjection, shaderNormalView, shaderNormalModel;
-
-	GLuint LoadCubeMap(std::vector<const GLchar*> faces);
 };
 
 #endif
