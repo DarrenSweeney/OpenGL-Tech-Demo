@@ -42,35 +42,52 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "projection"), 1, GL_FALSE, projection.data);
 
 	GLuint uniColor = glGetUniformLocation(shaderObject.Program, "overrideColor");
-	
-	//glColorMask(0, 0, 0, 0);
 
-	//glEnable(GL_STENCIL_TEST);					// Enable Stencil Buffer For "marking" The Floor
-	//glStencilFunc(GL_ALWAYS, 1, 1);				// Always Passes, 1 Bit Plane, 1 As Mask
-	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);	// We Set The Stencil Buffer To 1 Where We Draw Any Polygon
-	//											// Keep If Test Fails, Keep If Test Passes But Buffer Test Fails
-	//											// Replace If Test Passes
-	//glDisable(GL_DEPTH_TEST);                   // Disable Depth Testing
-	////DrawFloor();								// Draw The Floor (Draws To The Stencil Buffer)
-	//											// We Only Want To Mark It In The Stencil Buffer
-	//// Draw Floor.
-	//glEnable(GL_STENCIL_TEST);
-	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	//glStencilMask(0xFF);
-	//glDepthMask(GL_FALSE);
-	//glClear(GL_STENCIL_BUFFER_BIT);
+	glDisable(GL_BLEND);
+	glDisable(GL_STENCIL_TEST);
+	// Draw Cubes
+	glBindTexture(GL_TEXTURE_2D, cubeTexture);
+	model = model.translate(vector3(-1.0f, 0.5f, -1.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	SceneModels::RenderCube();
+	model = Matrix4();
+	model = model.translate(vector3(2.0f, 0.5f, 0.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	SceneModels::RenderCube();
 
-	//glBindTexture(GL_TEXTURE_2D, planeTexture);
-	//model = Matrix4();
-	//glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
-	//SceneModels::RenderPlane();
+	// Draw Floor.
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilMask(0xFF);
+	glDepthMask(GL_FALSE);
+	glClear(GL_STENCIL_BUFFER_BIT);
 
-	//glEnable(GL_DEPTH_TEST);                  // Enable Depth Testing
-	//glColorMask(1, 1, 1, 1);                  // Set Color Mask to TRUE, TRUE, TRUE, TRUE
-	//glStencilFunc(GL_EQUAL, 1, 1);            // We Draw Only Where The Stencil Is 1
-	//										  // (I.E. Where The Floor Was Drawn)
-	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);   // Don't Change The Stencil Buffer
+	glBindTexture(GL_TEXTURE_2D, planeTexture);
+	model = Matrix4();
+	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	SceneModels::RenderPlane(3.0f, 2.0f);
 
-	
+	// Draw cube reflection.
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+	glDepthMask(GL_TRUE);
+
+	glBindTexture(GL_TEXTURE_2D, cubeTexture);
+	model = Matrix4();
+	model = model.translate(vector3(-1.0f, -0.5f, -1.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
+	SceneModels::RenderCube();
+	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
+	model = Matrix4();
+	model = model.translate(vector3(2.0f, -0.5f, 0.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, model.data);
+	//glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
+	SceneModels::RenderCube();
+	//glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
+
+	glDisable(GL_STENCIL_TEST);
 }
