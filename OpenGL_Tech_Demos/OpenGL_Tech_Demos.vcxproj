@@ -218,6 +218,8 @@
     <ClInclude Include="StencilReflectionsDemo.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
     <None Include="Shaders\CubeMapDemo\model.frag" />
     <None Include="Shaders\CubeMapDemo\model.vert" />
     <None Include="Shaders\CubeMapDemo\skybox.frag" />
@@ -265,6 +267,8 @@
     <None Include="Shaders\SSAO_Demo\ssao_geometry.frag" />
     <None Include="Shaders\SSAO_Demo\ssao_geometry.vert" />
     <None Include="Shaders\SSAO_Demo\ssao_lighting.frag" />
+    <None Include="Shaders\StencilReflectionDemo\lighting.frag" />
+    <None Include="Shaders\StencilReflectionDemo\lighting.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

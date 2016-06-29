@@ -51,6 +51,9 @@
     <Filter Include="Shaders\SSAO_Demo">
       <UniqueIdentifier>{e4d6d7e1-672e-4b14-810c-57b0c83ff520}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\StencilReflectionDemo">
+      <UniqueIdentifier>{46ece838-f48f-4f73-8f0f-b1e0cb7d4e9f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui_draw.cpp">
@@ -380,6 +383,14 @@
     </None>
     <None Include="Shaders\SSAO_Demo\ssao.vert">
       <Filter>Shaders\SSAO_Demo</Filter>
+    </None>
+    <None Include="lighting.vert" />
+    <None Include="lighting.frag" />
+    <None Include="Shaders\StencilReflectionDemo\lighting.frag">
+      <Filter>Shaders\StencilReflectionDemo</Filter>
+    </None>
+    <None Include="Shaders\StencilReflectionDemo\lighting.vert">
+      <Filter>Shaders\StencilReflectionDemo</Filter>
     </None>
   </ItemGroup>
 </Project>

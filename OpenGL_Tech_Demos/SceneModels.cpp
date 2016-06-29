@@ -1,10 +1,9 @@
 #include "SceneModels.h"
 
 // Renders a 1x1 quad in NDC
+GLuint quadVAO = 0, quadVBO = 0;
 void SceneModels::RenderQuad()
 {
-	GLuint quadVAO = 0, quadVBO = 0;
-
 	if (quadVAO == 0)
 	{
 		GLfloat quadVertices[] = {
@@ -32,10 +31,9 @@ void SceneModels::RenderQuad()
 }
 
 // Renders a quad with normal, tangent and bitangent information.
+GLuint parQuadVAO = 0, parQuadVBO = 0;
 void SceneModels::RenderParallaxQuad(GLfloat pos, GLfloat texCoords)
 {
-	GLuint quadVAO = 0, quadVBO = 0;
-
 	if (quadVAO == 0)
 	{
 		// Positions
@@ -105,10 +103,10 @@ void SceneModels::RenderParallaxQuad(GLfloat pos, GLfloat texCoords)
 			pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z
 		};
 
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glGenVertexArrays(1, &parQuadVAO);
+		glGenBuffers(1, &parQuadVBO);
+		glBindVertexArray(parQuadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, parQuadVBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)0);
@@ -122,7 +120,7 @@ void SceneModels::RenderParallaxQuad(GLfloat pos, GLfloat texCoords)
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(11 * sizeof(GLfloat)));
 	}
 
-	glBindVertexArray(quadVAO);
+	glBindVertexArray(parQuadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 }

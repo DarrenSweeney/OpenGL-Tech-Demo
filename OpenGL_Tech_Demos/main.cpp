@@ -43,6 +43,7 @@
 void SceneMovement();
 
 // GLFW Callback functions.
+static void error_callback(int error, const char* description);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
 void mouse_callback(GLFWwindow *window, double xPos, double yPos);
@@ -58,11 +59,6 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 Camera camera(vector3(0.0f, 1.5f, 4.0f));
-
-static void error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Error %d: %s\n", error, description);
-}
 
 bool fullscreen = false;
 const GLFWvidmode* vidMode;
@@ -90,7 +86,7 @@ enum Demos
 	cubeMap,					// ------------
 	shadowMap,					// *** DONE ***
 	hdr,						// *** DONE ***
-	stencilReflection,			// ------------
+	stencilReflection,			// *** DONE ***
 	instancing,					// *** DONE ***
 	deferredRendering,			// *** DONE ***
 	objectOutline,				// ------------
@@ -104,14 +100,18 @@ Demos demos = Demos::stencilReflection;
 
 const char* demoInfo = " ";
 
-// TODO(Darren): Seperate ImGui stuff. Get credit link.
+// TODO(Darren): Seperate ImGui stuff.
 inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontFromFileTTF("Fonts/DroidSans.ttf", 14.0f);
 
 	// light style from Pacôme Danhiez (user itamago) https://github.com/ocornut/imgui/pull/511#issuecomment-175719267
-	style.Alpha = 1.0f;
+	style.Alpha = 1.8f;
 	style.FrameRounding = 3.0f;
+	style.WindowRounding = 0.0f;
+	style.ScrollbarSize = 10.0f;
 	style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
@@ -127,9 +127,9 @@ inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
 	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
 	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
-	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
-	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.86f, 0.86f, 0.86f, 0.99f);
 	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
@@ -258,7 +258,7 @@ int main(int, char**)
 	//omnidirectionalShadowDemo.Initalize();
 	//modelLoadingDemo.Initalize();
 
-	// ImGui
+	// ImGui TODO(Darren): Remove this.
 	float f1 = 0.1f;
 	int i1 = 20;
 	bool b1 = false;
@@ -278,9 +278,8 @@ int main(int, char**)
 
 #if 0
 		// On input handling, check if F11 is down.
-		if (glfwGetKey(window, GLFW_KEY_F11)) 
+		if (glfwGetKey(window, GLFW_KEY_F11))
 		{
-
 			// Toggle fullscreen flag.
 			fullscreen = !fullscreen;
 
@@ -300,14 +299,14 @@ int main(int, char**)
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-			monitor = glfwGetPrimaryMonitor();
-			vidMode = glfwGetVideoMode(monitor);
-			screenWidth = vidMode->width;
-			screenHeight = vidMode->height;
+			//monitor = glfwGetPrimaryMonitor();
+			//vidMode = glfwGetVideoMode(monitor);
+			screenWidth = 800;// vidMode->width;
+			screenHeight = 600;// vidMode->height;
 
 			// Create the new window.
 			window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
-				monitor, NULL);
+				NULL, NULL);
 
 			// GLFW input callbacks.
 			glfwSetKeyCallback(window, key_callback);
@@ -325,6 +324,17 @@ int main(int, char**)
 				printf("failed to initialize OpenGL\n");
 				return -1;
 			}
+
+			stencilReflectionDemo.InitalizeScene();
+
+			ImGui_ImplGlfwGL3_Init(window, false);
+			SetupImGuiStyle(true, 1.0f);
+
+			//ol windowOpened = true;
+			ImVec4 clear_color = ImColor(114, 144, 154);
+
+			glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
+			glViewport(0, 0, screenWidth, screenHeight);
 		}
 #endif
 
@@ -345,10 +355,10 @@ int main(int, char**)
 		//ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
 		//ImGui::End();
 
-		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
-		ImGui::SetWindowPos(ImVec2(5, 5));
-		ImGui::SetWindowSize(ImVec2(255, screenHeight - 10));
-		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
+		ImGui::SetWindowPos(ImVec2(10, 10));
+		ImGui::SetWindowSize(ImVec2(255, screenHeight - 20));
+		//ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
@@ -399,7 +409,13 @@ int main(int, char**)
 				{
 					bool clicked = ImGui::Button("Stencil Reflection Demo");
 					if (clicked)
+					{
 						demos = Demos::stencilReflection;
+						demoInfo = "Shows stencil refleciton. By turning off the plane texutre you can see more clearly that the shadows are precerved when reflected.";
+					}
+					ImGui::Checkbox("Render Lights", &b1);
+					ImGui::Checkbox("Move Lights", &b1);
+					ImGui::Checkbox("Plane Texture Off", &stencilReflectionDemo.planeTextureOff);
 					ImGui::TreePop();
 				}
 
@@ -479,6 +495,7 @@ int main(int, char**)
 			char* version = (char*)glGetString(GL_VERSION);
 			char* renderer = (char*)glGetString(GL_RENDERER);
 
+			// TODO(Darren): Figure out how to add the two string together.
 			ImGui::Text(version);
 			ImGui::Text(renderer);
 			ImGui::Text("Draw Calls: ");
@@ -497,16 +514,13 @@ int main(int, char**)
 			{
 				ImGui::Checkbox("Fly Camera", &camera.flyCamera);
 
-				ImGui::Text("movement_speed");
-				ImGui::SliderFloat("1", &camera.movementSpeed, 0.0f, 50.0f, "%.3f");
-				ImGui::Text("camera_speed");
-				ImGui::SliderFloat("5", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
+				// TODO(Darren): Figure out a way i can render labels above sliders.
+				ImGui::SliderFloat("movement_speed", &camera.movementSpeed, 0.0f, 50.0f, "%.3f");
+				ImGui::SliderFloat("camera_speed", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
 
 				// Camera Bobing
-				ImGui::Text("camera_ampletude");
-				ImGui::SliderFloat("2", &camera.ampletude, 0.0f, 1.0f, "%.36f");
-				ImGui::Text("camera_frequincy");
-				ImGui::SliderFloat("3", &camera.frequincy, 0.0f, 1.0f, "%.36f");
+				ImGui::SliderFloat("camera_ampletude", &camera.ampletude, 0.0f, 1.0f, "%.36f");
+				ImGui::SliderFloat("camera_frequincy", &camera.frequincy, 0.0f, 1.0f, "%.36f");
 				ImGui::TreePop();
 			}
 
@@ -631,6 +645,11 @@ void SceneMovement()
 }
 
 #pragma region "GLFW callbacks"
+
+static void error_callback(int error, const char* description)
+{
+	fprintf(stderr, "Error %d: %s\n", error, description);
+}
 
 void window_size_callback(GLFWwindow* window, int width, int height)
 {

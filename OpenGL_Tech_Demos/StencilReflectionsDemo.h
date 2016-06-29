@@ -3,6 +3,8 @@
 
 #include "ResourceManager.h"
 #include "SceneModels.h"
+#include "Math\MathHelper.h"
+#include "model.h"
 #include <SOIL/SOIL.h>
 #include "camera.h"
 #include "shader.h"
@@ -10,16 +12,18 @@
 
 class StencilReflectionDemo
 {
-public:
-	StencilReflectionDemo();
-	~StencilReflectionDemo();
+    public:
+    StencilReflectionDemo();
+    ~StencilReflectionDemo();
+	bool planeTextureOff;
 
-	void InitalizeScene();
-	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
-
-private:
-	GLuint cubeTexture, planeTexture;
-	Shader shaderObject;
+    void InitalizeScene();
+    void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
+    
+    private:
+    GLuint cubeTexture, planeTexture;
+	Model modelStatue, modelColumn;
+	Shader shaderObject, shaderLighting;
 };
 
 #endif
