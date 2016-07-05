@@ -89,14 +89,14 @@ enum Demos
 	stencilReflection,			// *** DONE ***
 	instancing,					// *** DONE ***
 	deferredRendering,			// *** DONE ***
-	objectOutline,				// ------------
+	objectOutline,				// -Maybe Next-
 	ssao,						// ------------
 	parallaxingMappingDemo,		// *** DONE ***
 	omnidirectionalShadow,		// *** DONE ***
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::stencilReflection;
+Demos demos = Demos::objectOutline;
 
 const char* demoInfo = " ";
 
@@ -104,14 +104,14 @@ const char* demoInfo = " ";
 inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF("Fonts/DroidSans.ttf", 14.0f);
+	//ImGuiIO& io = ImGui::GetIO();
+	//io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Regular.ttf", 16.5f);
 
 	// light style from Pacôme Danhiez (user itamago) https://github.com/ocornut/imgui/pull/511#issuecomment-175719267
 	style.Alpha = 1.8f;
 	style.FrameRounding = 3.0f;
 	style.WindowRounding = 0.0f;
-	style.ScrollbarSize = 10.0f;
+	style.ScrollbarSize = 12.0f;
 	style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
@@ -220,7 +220,7 @@ int main(int, char**)
 	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
-	//glfwSetScrollCallback(window, scroll_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
@@ -246,21 +246,19 @@ int main(int, char**)
 	// TODO(Darren): Rename shadowmappingdemo to directional shadow demo.
 
 	// Initializes scenes.
-	//cubeMapDemo.InitalizeScene();
+	//cubeMapDemo.InitalizeScene(screenWidth, screenHeight);
 	//shadowMappingDemo.InitalizeScene();
 	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
 	//parallaxingDemo.Initalize(camera.position);
-	stencilReflectionDemo.InitalizeScene();
+	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
-	//objectOutlineDemo.InitalizeScene();
+	objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 	//omnidirectionalShadowDemo.Initalize();
 	//modelLoadingDemo.Initalize();
 
 	// ImGui TODO(Darren): Remove this.
-	float f1 = 0.1f;
-	int i1 = 20;
 	bool b1 = false;
 
 	bool wireframeMode = false;
@@ -275,6 +273,8 @@ int main(int, char**)
 
 		camera.deltaTime = deltaTime;
 		SceneMovement();
+
+		SetupImGuiStyle(true, 1.0f);
 
 #if 0
 		// On input handling, check if F11 is down.
@@ -346,19 +346,19 @@ int main(int, char**)
 
 #pragma region ImGui
 
-		int texture_id = 0;// objectOutlineDemo.depthMap;
+		/*int texture_id = cubeMapDemo.texColorBuffer;
 
-		//ImGui::Begin("Shadow Depth Map", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
-		////ImGui::SetWindowPos(ImVec2(screenWidth - 460, 190));
-		//ImVec2 uv0 = ImVec2(0, 1);
-		//ImVec2 uv1 = ImVec2(1, 0);
-		//ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
-		//ImGui::End();
+		ImGui::Begin("Cube Map - Framebuffer Test", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
+		ImGui::SetWindowPos(ImVec2(screenWidth - 460, screenHeight - 300));
+		ImVec2 uv0 = ImVec2(0, 1);
+		ImVec2 uv1 = ImVec2(1, 0);
+		ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
+		ImGui::End();*/
 
 		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
 		ImGui::SetWindowPos(ImVec2(10, 10));
 		ImGui::SetWindowSize(ImVec2(255, screenHeight - 20));
-		//ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
@@ -622,7 +622,7 @@ int main(int, char**)
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDisable(GL_STENCIL_TEST);
-		// Render the UI.
+		// Render the GUI pannel.
 		ImGui::Render();
 		glEnable(GL_STENCIL_TEST);
 		glPolygonMode(GL_FRONT_AND_BACK, wireframeMode ? GL_LINE : GL_FILL);

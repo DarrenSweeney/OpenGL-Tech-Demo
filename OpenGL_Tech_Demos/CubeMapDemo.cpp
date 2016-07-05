@@ -16,13 +16,14 @@ CubeMapDemo::~CubeMapDemo()
 }
 
 /*
-Need to render cubes with textures.
-Then create a cube map of the scene with the cubes not the utah teapot.
-Use a different cube map for final scene.
+	Need to render cubes with textures.
+	Then create a cube map of the scene with the cubes not the utah teapot.
+	Use a different cube map for final scene.
 */
 
-void CubeMapDemo::InitalizeScene()
+void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
+	// TODO(Darren): Add skybox to SceneModels
 #pragma region Skybox Vertices
 	GLfloat skyboxVertices[] = {
 		// Positions          
@@ -83,8 +84,8 @@ void CubeMapDemo::InitalizeScene()
 
 	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
 
-	shaderCubeMap.InitShader("point_shadows_depth.vert", "point_shadows_depth.frag", "point_shadows_depth.gs");
-	modelCubes.InitShader("Object.vert", "Object.frag");
+//	shaderCubeMap.InitShader("point_shadows_depth.vert", "point_shadows_depth.frag", "point_shadows_depth.gs");
+	//modelCubes.InitShader("Object.vert", "Object.frag");
 
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
@@ -113,16 +114,54 @@ void CubeMapDemo::InitalizeScene()
 	glUniform1i(glGetUniformLocation(modelCubes.Program, "texture1"), 0);
 
 	// TODO(Darren): Create the 6 color buffers, depth buffers and framebuffers.
+	// ---
+
+	// IN PROGRESS: Create a framebuffer of a single view and work from there.
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, screenWidth, screenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// Generate texture
+	glGenTextures(1, &texColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Attach it to the currently bound framebuffer object.
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+
+	shaderDebugQuad.InitShader("debugQuad.vert", "debugQuad.frag");
+	shaderDebugQuad.Use();
+	glUniform1i(glGetUniformLocation(shaderDebugQuad.Program, "screenTexture"), 5);
 }
 
-// TODO(Darren): Will need to take out camera and put in main class.
-float rotation = 0.0f;
+// TODO(Darren): Reset up the buffers when the screen is resised
 void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	camera.ControllerMovement();
 
 	/*
-	*** Creating a dynamic cube map. ***
+		*** Creating a dynamic cube map. ***
 	*/
 	// 1. Create depth cubemap transformation matrices.
 	GLfloat aspect = (GLfloat)dy_skyboxResWidth / (GLfloat)dy_skyboxResHeight;
@@ -137,20 +176,26 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
 	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-	// 2. Render scene to depth cubemap.
-	glViewport(0, 0, dy_skyboxResWidth, dy_skyboxResHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, dy_skyboxFBO);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	shaderCubeMap.Use();
-	for (GLuint i = 0; i < 6; ++i)
-		glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
-	glUniform1f(glGetUniformLocation(shaderCubeMap.Program, "far_plane"), farPlane);
-	glUniform3fv(glGetUniformLocation(shaderCubeMap.Program, "lightPos"), 1, &modelOrigin[0]);
-	RenderScene(shaderCubeMap);	// ???
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//// 2. Render scene to depth cubemap.
+	//glViewport(0, 0, dy_skyboxResWidth, dy_skyboxResHeight);
+	//glBindFramebuffer(GL_FRAMEBUFFER, dy_skyboxFBO);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//shaderCubeMap.Use();
+	//for (GLuint i = 0; i < 6; ++i)
+	//	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
+	//glUniform1f(glGetUniformLocation(shaderCubeMap.Program, "far_plane"), farPlane);
+	//glUniform3fv(glGetUniformLocation(shaderCubeMap.Program, "lightPos"), 1, &modelOrigin[0]);
+	//RenderScene(shaderCubeMap);	// ???
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 
 	// 3. Render scene as normal.
 	glViewport(0, 0, screenWidth, screenHeight);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glEnable(GL_DEPTH_TEST);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderModel.Use();
 	Matrix4 view = camera.GetViewMatrix();
@@ -177,6 +222,40 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "model"), 1, GL_FALSE, model.data);
 	RenderScene(shaderEnviromentObject);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/*shaderDebugQuad.Use();
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+	SceneModels::RenderQuad();
+	glBindTexture(GL_TEXTURE_2D, 0);*/
+
+	shaderModel.Use();
+	view = camera.GetViewMatrix();
+	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
+	
+	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "projection"), 1, GL_FALSE, projection.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel.Program, "model"), 1, GL_FALSE, model.data);
+	glUniform3f(glGetUniformLocation(shaderModel.Program, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
+
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(shaderModel.Program, "skybox"), 3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+	modelUtahTeaPot.Draw(shaderModel);
+
+	shaderEnviromentObject.Use();
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+	model = Matrix4();
+	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "projection"), 1, GL_FALSE, projection.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject.Program, "model"), 1, GL_FALSE, model.data);
+	RenderScene(shaderEnviromentObject);
+
+	// skybox 
 	glDepthFunc(GL_LEQUAL);
 	shaderSkyBox.Use();
 	view = camera.GetViewMatrix();
@@ -184,7 +263,6 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, projection.data);
 
-	// skybox 
 	glBindVertexArray(skyboxVAO);
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shaderSkyBox.Program, "skybox"), 0);

@@ -178,12 +178,12 @@ void Camera::MouseMovement(GLfloat xOffset, GLfloat yOffset)
 
 void Camera::MouseScroll(GLfloat yOffset)
 {
-	if (zoom >= 1.0f && zoom <= 45.0f)
+	/*if (zoom >= 1.0f && zoom <= 45.0f)
 		zoom -= yOffset;
 	if (zoom <= 1.0f)
 		zoom = 1.0f;
 	if (zoom >= 45.0f)
-		zoom = 45.0f;
+		zoom = 45.0f;*/
 }
 
 void Camera::Roll(GLfloat angle)

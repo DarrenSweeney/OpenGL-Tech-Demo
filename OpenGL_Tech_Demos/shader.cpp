@@ -111,7 +111,8 @@ void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, co
 	if (!success)
 	{
 		glGetProgramInfoLog(this->Program, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::Program::LINKING_FAILED" << std::endl;
+		std::cout << "ERROR::SHADER::Program::LINKING_FAILED:" << " " <<
+			vertexPath << " " << fragmentPath << (geometryPath != NULL ? geometryCode.c_str() : " ") << std::endl;
 	}
 
 	// Delete the shaders as they are linked into Program now and no longer necessery

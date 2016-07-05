@@ -43,7 +43,7 @@ void OmnidirectionalShadowDemo::Initalize()
 	woodTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 	wallTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 
-	glGenTextures(1, &textureID);
+	/*glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	for (GLuint i = 0; i < 6; ++i)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, ShadowWidth, ShadowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -53,7 +53,7 @@ void OmnidirectionalShadowDemo::Initalize()
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);*/
 
 	// Configure depth map FBO
 	glGenFramebuffers(1, &depthMapFBO);
@@ -126,7 +126,6 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	glUniform3fv(glGetUniformLocation(shaderPointShadows.Program, "lightPos"), 1, &lightPos[0]);
 	glm::vec3 cameraPos(camera.position.x, camera.position.y, camera.position.z);
 	glUniform3fv(glGetUniformLocation(shaderPointShadows.Program, "viewPos"), 1, &cameraPos[0]);
-	// Enable/Disable shadows by pressing 'SPACE'
 	glUniform1i(glGetUniformLocation(shaderPointShadows.Program, "shadows"), true);
 	glUniform1f(glGetUniformLocation(shaderPointShadows.Program, "far_plane"), farPlane);
 	glActiveTexture(GL_TEXTURE0);

@@ -22,7 +22,9 @@ public:
 	CubeMapDemo();
 	~CubeMapDemo();
 
-	void InitalizeScene();
+	GLuint texture, texColorBuffer;
+
+	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
 	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
@@ -40,7 +42,11 @@ private:
 	GLuint woodTexture;
 
 	// Try again here,
-	GLuint cubemap, framebuffer, depthbuffer;
+	//GLuint cubemap, framebuffer, depthbuffer;
+	
+	// Try agian, again here.
+	GLuint fbo, rbo, framebuffer;
+	Shader shaderDebugQuad;
 
 	GLuint cubeVAO, cubeVBO;
 	void RenderScene(Shader &shader);

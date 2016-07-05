@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DeferredRenderingDemo::DeferredRenderingDemo()
-	: NR_Lights(100), renderLights(true)
+	: NR_Lights(300), renderLights(true)
 {
 
 }

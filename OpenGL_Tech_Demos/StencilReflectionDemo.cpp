@@ -98,7 +98,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
 	shaderLighting.Use();
-	glUniform1i(glGetUniformLocation(shaderLighting.Program, "reflection"), false);
 	glUniform3f(glGetUniformLocation(shaderLighting.Program, "viewPos"), camera.position.x, camera.position.y, camera.position.z);
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting.Program, "view"), 1, GL_FALSE, &view.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting.Program, "projection"), 1, GL_FALSE, &projection.data[0]);
@@ -157,8 +156,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glDepthMask(GL_TRUE);
 
 	shaderLighting.Use();
-	glUniform1i(glGetUniformLocation(shaderLighting.Program, "reflection"), true);
-
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	model = Matrix4();
 	model = model.translate(vector3(-1.0f, -0.5f, -1.0f));

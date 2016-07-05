@@ -384,13 +384,16 @@
     <None Include="Shaders\SSAO_Demo\ssao.vert">
       <Filter>Shaders\SSAO_Demo</Filter>
     </None>
-    <None Include="lighting.vert" />
-    <None Include="lighting.frag" />
     <None Include="Shaders\StencilReflectionDemo\lighting.frag">
       <Filter>Shaders\StencilReflectionDemo</Filter>
     </None>
     <None Include="Shaders\StencilReflectionDemo\lighting.vert">
       <Filter>Shaders\StencilReflectionDemo</Filter>
     </None>
+    <None Include="debugQuad.frag" />
+    <None Include="debugQuad.vert" />
+    <None Include="dynamicCubeMap.vert" />
+    <None Include="dynamicCubeMap.gs" />
+    <None Include="dynamicCubMap.frag" />
   </ItemGroup>
 </Project>
