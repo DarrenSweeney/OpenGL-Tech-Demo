@@ -28,15 +28,20 @@ void ObjectOutlineDemo::InitalizeScene()
 	// Set up and compile our shaders
 	shaderObject.InitShader("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/StencilTesting.frag");
 	shaderOutline.InitShader("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/ObjectOutline.frag");
-
 	shaderLighting.InitShader("Shaders/StencilReflectionDemo/lighting.vert", "Shaders/StencilReflectionDemo/lighting.frag");
+	shaderLightBox.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	// Load textures
-	cubeTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
+	cubeTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");
 	floorTexture = ResourceManager::LoadTexture("Resources/marble.jpg");
 
 	// Load models
 	modelEnemy.LoadModel("Resources/model/cyborg.obj");
+
+	lightPositions[0] = vector3(0.0f, 0.5f, -5.0f);
+	lightPositions[1] = vector3(0.3f, 4.0f, -10.0f);
+	lightPositions[2] = vector3(-0.3f, 4.0f, 0.0f);
+	lightPositions[3] = vector3(0.0f, 0.5f, 5.0f);
 
 	shaderLighting.Use();
 	glUniform1i(glGetUniformLocation(shaderLighting.Program, "material.diffuse"), 0);
@@ -47,21 +52,6 @@ void ObjectOutlineDemo::InitalizeScene()
 	glUniform3f(glGetUniformLocation(shaderLighting.Program, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
 	glUniform3f(glGetUniformLocation(shaderLighting.Program, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f);
 	glUniform3f(glGetUniformLocation(shaderLighting.Program, "dirLight.specular"), 0.5f, 0.5f, 0.5f);
-
-	vector3 lightPositions[] = {
-		vector3(0.0f, 0.2f, 0.0f),
-		vector3(2.3f, -3.3f, -4.0f),
-		vector3(-4.0f, 2.0f, -12.0f),
-		vector3(0.0f, 0.0f, -3.0f)
-	};
-
-	/*anArray[4] = 
-	{
-		1,
-		2,
-		3,
-		4
-	};*/
 
 	// Point light 1
 	glUniform3f(glGetUniformLocation(shaderLighting.Program, "pointLights[0].position"), lightPositions[0].x, lightPositions[0].y, lightPositions[0].z);
@@ -101,8 +91,6 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 {
 	camera.ControllerMovement();
 
-	//glClear(GL_STENCIL_BUFFER_BIT);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	Matrix4 model;
@@ -110,26 +98,47 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 	view = camera.GetViewMatrix();
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-	glm::mat4 _projection = glm::perspective(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	//glm::mat4 _projection = glm::perspective(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	shaderOutline.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline.Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderOutline.Program, "projection"), 1, GL_FALSE, glm::value_ptr(_projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderOutline.Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 
 	shaderLighting.Use();
 	glUniform3f(glGetUniformLocation(shaderLighting.Program, "viewPos"), camera.position.x, camera.position.y, camera.position.z);
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting.Program, "view"), 1, GL_FALSE, &view.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting.Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 
+	shaderLightBox.Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, &projection.data[0]);
+	vector3 lightColor = vector3(1.0f, 1.0f, 1.0f);
+	float lightColorData[] = { lightColor.x, lightColor.y, lightColor.z };
+	glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
+
 	shaderObject.Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "projection"), 1, GL_FALSE, glm::value_ptr(_projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 
 	glStencilMask(0x00);
+
+	if (renderLights)
+	{
+		shaderLightBox.Use();
+		for (int i = 0; i < 4; i++)
+		{
+			model = Matrix4();
+			model = model.translate(lightPositions[i]);
+			model = model.scale(vector3(0.5f, 0.5f, 0.5f));
+
+			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, &model.data[0]);
+			SceneModels::RenderCube();
+		}
+	}
 
 	shaderLighting.Use();
 	model = Matrix4();
 	model = model.translate(vector3(-4.0f, 0.5f, -2.0f));
-	model = model.scale(vector3(4.0f, 2.0f, 1.0f));
+	model = model.scale(vector3(6.0f, 2.0f, 1.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
@@ -141,14 +150,10 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 	glBindTexture(GL_TEXTURE_2D, cubeTexture);
 	SceneModels::RenderCube();
 
-	shaderObject.Use();
-	glDepthMask(GL_FALSE);
-	glClear(GL_STENCIL_BUFFER_BIT);
 	// Floor
-	shaderObject.Use();
 	model = Matrix4();
 	model = model.translate(vector3(0.0f, -0.56f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderObject.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderLighting.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, floorTexture);
 	SceneModels::RenderPlane(15.0f, 10.0f);
 	glDepthMask(GL_TRUE);

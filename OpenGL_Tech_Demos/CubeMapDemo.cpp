@@ -83,8 +83,9 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	glUniform1i(glGetUniformLocation(shaderEnviromentObject.Program, "diffuseTexture"), 1);
 
 	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
-
-//	shaderCubeMap.InitShader("point_shadows_depth.vert", "point_shadows_depth.frag", "point_shadows_depth.gs");
+	
+	shaderCubeMap.InitShader("Shaders/CubeMapDemo/dynamicCubeMap.vert", "Shaders/CubeMapDemo/dynamicCubeMap.frag");
+								//"Shaders/CubeMapDemo/dynamicCubeMap.gs");
 	//modelCubes.InitShader("Object.vert", "Object.frag");
 
 	glGenVertexArrays(1, &skyboxVAO);
@@ -187,8 +188,6 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	//glUniform3fv(glGetUniformLocation(shaderCubeMap.Program, "lightPos"), 1, &modelOrigin[0]);
 	//RenderScene(shaderCubeMap);	// ???
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
 
 	// 3. Render scene as normal.
 	glViewport(0, 0, screenWidth, screenHeight);

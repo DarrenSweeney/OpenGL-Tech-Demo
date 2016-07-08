@@ -89,7 +89,7 @@ enum Demos
 	stencilReflection,			// *** DONE ***
 	instancing,					// *** DONE ***
 	deferredRendering,			// *** DONE ***
-	objectOutline,				// -Maybe Next-
+	objectOutline,				// -Nearly Done-
 	ssao,						// ------------
 	parallaxingMappingDemo,		// *** DONE ***
 	omnidirectionalShadow,		// *** DONE ***
@@ -211,8 +211,8 @@ int main(int, char**)
 	// Get the desktop resolution.
 	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 	vidMode = glfwGetVideoMode(monitor);
-	screenWidth = vidMode->width;
-	screenHeight = vidMode->height;
+	screenWidth = vidMode->width - 200;		// ---
+	screenHeight = vidMode->height - 200;	// ---
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
 		fullscreen ? monitor : NULL, NULL);
@@ -226,7 +226,7 @@ int main(int, char**)
 
 	// Opitions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetWindowPos(window, 0, 30);
+	glfwSetWindowPos(window, 100, 50);		// ---
 
     glfwMakeContextCurrent(window);
 	if (gl3wInit()) 
@@ -424,6 +424,7 @@ int main(int, char**)
 					bool clicked = ImGui::Button("Stencil Outline Demo");
 					if (clicked)
 						demos = Demos::objectOutline;
+					ImGui::Checkbox("Render Lights", &objectOutlineDemo.renderLights);
 					ImGui::TreePop();
 				}
 

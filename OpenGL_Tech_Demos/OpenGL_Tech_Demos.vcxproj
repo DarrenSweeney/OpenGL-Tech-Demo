@@ -223,6 +223,9 @@
     <None Include="dynamicCubeMap.gs" />
     <None Include="dynamicCubeMap.vert" />
     <None Include="dynamicCubMap.frag" />
+    <None Include="Shaders\CubeMapDemo\dynamicCubeMap.frag" />
+    <None Include="Shaders\CubeMapDemo\dynamicCubeMap.gs" />
+    <None Include="Shaders\CubeMapDemo\dynamicCubeMap.vert" />
     <None Include="Shaders\CubeMapDemo\model.frag" />
     <None Include="Shaders\CubeMapDemo\model.vert" />
     <None Include="Shaders\CubeMapDemo\skybox.frag" />

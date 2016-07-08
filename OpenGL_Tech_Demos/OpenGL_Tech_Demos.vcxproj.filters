@@ -395,5 +395,14 @@
     <None Include="dynamicCubeMap.vert" />
     <None Include="dynamicCubeMap.gs" />
     <None Include="dynamicCubMap.frag" />
+    <None Include="Shaders\CubeMapDemo\dynamicCubeMap.vert">
+      <Filter>Shaders\CubeMapDemo</Filter>
+    </None>
+    <None Include="Shaders\CubeMapDemo\dynamicCubeMap.gs">
+      <Filter>Shaders\CubeMapDemo</Filter>
+    </None>
+    <None Include="Shaders\CubeMapDemo\dynamicCubeMap.frag">
+      <Filter>Shaders\CubeMapDemo</Filter>
+    </None>
   </ItemGroup>
 </Project>
