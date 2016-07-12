@@ -23,60 +23,12 @@ CubeMapDemo::~CubeMapDemo()
 
 void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
-	// TODO(Darren): Add skybox to SceneModels
-#pragma region Skybox Vertices
-	GLfloat skyboxVertices[] = {
-		// Positions          
-		-1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f,  1.0f,
-		1.0f,  1.0f,  1.0f,
-		1.0f,  1.0f,  1.0f,
-		1.0f,  1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		1.0f,  1.0f,  1.0f,
-		1.0f,  1.0f,  1.0f,
-		1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		-1.0f,  1.0f, -1.0f,
-		1.0f,  1.0f, -1.0f,
-		1.0f,  1.0f,  1.0f,
-		1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		1.0f, -1.0f,  1.0f
-	};
-#pragma endregion 
-
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	shaderModel.InitShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
-	shaderSkyBox.InitShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
-	shaderEnviromentObject.InitShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
+	shaderModel.Compile("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag");
+	shaderSkyBox.Compile("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
+	shaderEnviromentObject.Compile("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
 
 	shaderEnviromentObject.Use();
 	// Set sampler.
@@ -84,18 +36,9 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 
 	modelUtahTeaPot.LoadModel("Resources/utah-teapot.obj");
 	
-	shaderCubeMap.InitShader("Shaders/CubeMapDemo/dynamicCubeMap.vert", "Shaders/CubeMapDemo/dynamicCubeMap.frag");
+	shaderCubeMap.Compile("Shaders/CubeMapDemo/dynamicCubeMap.vert", "Shaders/CubeMapDemo/dynamicCubeMap.frag");
 								//"Shaders/CubeMapDemo/dynamicCubeMap.gs");
-	//modelCubes.InitShader("Object.vert", "Object.frag");
-
-	glGenVertexArrays(1, &skyboxVAO);
-	glGenBuffers(1, &skyboxVBO);
-	glBindVertexArray(skyboxVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
-	glBindVertexArray(0);
+	//modelCubes.Compile("Object.vert", "Object.frag");
 
 	/*
 		Order is based on the Layered Rendering specfic order.
@@ -151,7 +94,7 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	// Attach it to the currently bound framebuffer object.
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
-	shaderDebugQuad.InitShader("debugQuad.vert", "debugQuad.frag");
+	shaderDebugQuad.Compile("debugQuad.vert", "debugQuad.frag");
 	shaderDebugQuad.Use();
 	glUniform1i(glGetUniformLocation(shaderDebugQuad.Program, "screenTexture"), 5);
 }
@@ -255,20 +198,16 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	RenderScene(shaderEnviromentObject);
 
 	// skybox 
-	glDepthFunc(GL_LEQUAL);
 	shaderSkyBox.Use();
 	view = camera.GetViewMatrix();
 	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
 	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox.Program, "projection"), 1, GL_FALSE, projection.data);
 
-	glBindVertexArray(skyboxVAO);
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shaderSkyBox.Program, "skybox"), 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-	glDepthFunc(GL_LESS);
+	SceneModels::RenderSkybox();
 
 	// TODO(Darren): I will need to figure out when to delete buffers.
 	// NOTE(Darren): Really need to do this!!!

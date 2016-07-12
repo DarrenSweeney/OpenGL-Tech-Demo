@@ -33,10 +33,10 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	SetupBuffers(screenWidth, screenHeight);
 
 	// Shaders
-	shaderBloom.InitShader("Shaders/HDR_Demo/bloom.vert", "Shaders/HDR_Demo/bloom.frag");
-	shaderBlur.InitShader("Shaders/HDR_Demo/blur.vert", "Shaders/HDR_Demo/blur.frag");
-	shaderHDR.InitShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
-	shaderLight.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderBloom.Compile("Shaders/HDR_Demo/bloom.vert", "Shaders/HDR_Demo/bloom.frag");
+	shaderBlur.Compile("Shaders/HDR_Demo/blur.vert", "Shaders/HDR_Demo/blur.frag");
+	shaderHDR.Compile("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag");
+	shaderLight.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	// Set up bloom shader samplers.
 	shaderHDR.Use();

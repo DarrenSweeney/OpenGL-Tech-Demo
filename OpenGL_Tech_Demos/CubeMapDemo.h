@@ -28,7 +28,6 @@ public:
 	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	GLuint skyboxVAO, skyboxVBO;
 	std::vector<const GLchar*> faces;
 	GLuint cubeMapTexture;
 	Shader shaderModel, shaderSkyBox, shaderEnviromentObject;
@@ -40,15 +39,11 @@ private:
 	glm::vec3 modelOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
 	const GLuint dy_skyboxResWidth = 1024, dy_skyboxResHeight = 1024;
 	GLuint woodTexture;
-
-	// Try again here,
-	//GLuint cubemap, framebuffer, depthbuffer;
 	
 	// Try agian, again here.
 	GLuint fbo, rbo, framebuffer;
 	Shader shaderDebugQuad;
 
-	GLuint cubeVAO, cubeVBO;
 	void RenderScene(Shader &shader);
 };
 

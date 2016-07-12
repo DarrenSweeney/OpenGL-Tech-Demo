@@ -23,18 +23,20 @@ public:
 	OmnidirectionalShadowDemo();
 	~OmnidirectionalShadowDemo();
 	bool moveLight, renderLight;
+	GLuint depthMapFBO, depthCubemap;
 
 	void Initalize();
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
+	GLuint skyboxVAO, skyboxVBO;
 	Model modelPlatform, modelColumn, modelBunny;
-	Shader shaderPointShadows, shaderDepth, shaderLightBox;
+	Shader shaderPointShadows, shaderDepth, shaderLightBox, shaderCubeMap;
 	GLuint textureID;
 	glm::vec3 lightPos;
 	GLuint woodTexture, wallTexture;
 	const GLuint ShadowWidth, ShadowHeight;
-	GLuint depthMapFBO, depthCubemap;
+	//GLuint depthMapFBO, depthCubemap;
 
 	void RenderScene(Shader &shader);
 };

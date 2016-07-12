@@ -24,8 +24,8 @@ void ParallaxMappingDemo::Initalize(vector3 &cameraPos)
 	glEnable(GL_CULL_FACE);
 
 	// Setup and compile our shaders
-	shaderParallax.InitShader("Shaders/ParallaxingMappingDemo/parallax_mapping.vert", "Shaders/ParallaxingMappingDemo/parallax_mapping.frag");
-	shaderLightBox.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderParallax.Compile("Shaders/ParallaxingMappingDemo/parallax_mapping.vert", "Shaders/ParallaxingMappingDemo/parallax_mapping.frag");
+	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	// Load textures
 	diffuseMap_SquareBricks = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");

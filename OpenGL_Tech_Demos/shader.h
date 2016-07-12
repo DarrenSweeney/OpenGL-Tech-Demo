@@ -16,7 +16,7 @@ public:
 
 	Shader();
 	~Shader();
-	void InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath = NULL);
+	void Compile(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath = NULL);
 	void Use();
 };
 

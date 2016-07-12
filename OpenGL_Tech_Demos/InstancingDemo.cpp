@@ -15,6 +15,7 @@ struct GrassBlade
 {
 	GLuint grassVAO, grassVBO;
 
+	// NOTE(Darren): Should this be static to initalize once?
 	GLfloat quadVertices[20] = {
 		// Positions			// Texture Coords
 		-1.0f,	1.0f, 0.0f,		0.0f, 0.0f,
@@ -28,8 +29,8 @@ void InstancingDemo::InitalizeScene()
 {
 	glEnable(GL_DEPTH_TEST);
 
-	shaderInstancing.InitShader("Shaders/InstancingDemo/instance.vert", "Shaders/InstancingDemo/grass.frag");
-	shaderDirtGround.InitShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
+	shaderInstancing.Compile("Shaders/InstancingDemo/instance.vert", "Shaders/InstancingDemo/grass.frag");
+	shaderDirtGround.Compile("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
 
 	modelRock.LoadModel("Resources/rock/rock.obj");
 

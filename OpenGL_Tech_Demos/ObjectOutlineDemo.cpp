@@ -26,10 +26,10 @@ void ObjectOutlineDemo::InitalizeScene()
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// Set up and compile our shaders
-	shaderObject.InitShader("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/StencilTesting.frag");
-	shaderOutline.InitShader("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/ObjectOutline.frag");
-	shaderLighting.InitShader("Shaders/StencilReflectionDemo/lighting.vert", "Shaders/StencilReflectionDemo/lighting.frag");
-	shaderLightBox.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderObject.Compile("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/StencilTesting.frag");
+	shaderOutline.Compile("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/ObjectOutline.frag");
+	shaderLighting.Compile("Shaders/StencilReflectionDemo/lighting.vert", "Shaders/StencilReflectionDemo/lighting.frag");
+	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	// Load textures
 	cubeTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");

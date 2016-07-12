@@ -31,8 +31,8 @@ void StencilReflectionDemo::InitalizeScene()
 	modelStatue.LoadModel("Resources/utah-teapot.obj");
 	modelColumn.LoadModel("Resources/tree1b_lod0_2.obj");
 
-	shaderObject.InitShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
-	shaderLighting.InitShader("Shaders/StencilReflectionDemo/lighting.vert", "Shaders/StencilReflectionDemo/lighting.frag");
+	shaderObject.Compile("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
+	shaderLighting.Compile("Shaders/StencilReflectionDemo/lighting.vert", "Shaders/StencilReflectionDemo/lighting.frag");
 
 	shaderLighting.Use();
 	glUniform1i(glGetUniformLocation(shaderLighting.Program, "material.diffuse"), 0);

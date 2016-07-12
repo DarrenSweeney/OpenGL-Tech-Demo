@@ -1,5 +1,78 @@
 #include "ResourceManager.h"
 
+// Instantiate static variables
+std::map<std::string, Shader>       ResourceManager::Shaders;
+
+Shader ResourceManager::LoadShader(const GLchar *vShaderFile, const GLchar *fShaderFile, const GLchar *gShaderFile, std::string name)
+{
+	Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
+	return Shaders[name];
+}
+
+Shader ResourceManager::GetShader(std::string name)
+{
+	return Shaders[name];
+}
+
+void ResourceManager::Clear()
+{
+	// (Properly) delete all shaders	
+	for (auto iter : Shaders)
+		glDeleteProgram(iter.second.Program);
+}
+
+Shader ResourceManager::loadShaderFromFile(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
+{
+	// Replace the vertex/fragment source code from filepath
+	std::string vertexCode, fragmentCode, geometryCode;
+	std::ifstream vShaderFile, fShaderFile, gShaderFile;
+
+	// Ensure ifstream objects can throw exceptions
+	vShaderFile.exceptions(std::ifstream::badbit);
+	fShaderFile.exceptions(std::ifstream::badbit);
+	if (geometryPath != NULL)
+		gShaderFile.exceptions(std::ifstream::badbit);
+
+	try
+	{
+		// Open file.
+		vShaderFile.open(vertexPath);
+		fShaderFile.open(fragmentPath);
+		if (geometryPath != NULL)
+			gShaderFile.open(geometryPath);
+		std::stringstream vShaderStream, fShaderStream, gShaderStream;
+		// Read file's buffer contents into steam
+		vShaderStream << vShaderFile.rdbuf();
+		fShaderStream << fShaderFile.rdbuf();
+		if (geometryPath != NULL)
+			gShaderStream << gShaderFile.rdbuf();
+		// Cose file handlers
+		vShaderFile.close();
+		fShaderFile.close();
+		if (geometryPath != NULL)
+			gShaderFile.close();
+
+		// Convert stream in GLchar array
+		vertexCode = vShaderStream.str();
+		fragmentCode = fShaderStream.str();
+		if (geometryPath != NULL)
+			geometryCode = gShaderStream.str();
+	}
+	catch (std::ifstream::failure e)
+	{
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+	}
+
+	const GLchar *vShaderCode = vertexCode.c_str();
+	const GLchar *fShaderCode = fragmentCode.c_str();
+	const GLchar *gShaderCode = (geometryPath != NULL ? geometryCode.c_str() : NULL);
+
+	Shader shader;
+	shader.Compile(vShaderCode, fShaderCode, gShaderCode != NULL ? gShaderCode : NULL);
+
+	return shader;
+}
+
 GLuint ResourceManager::LoadTexture(GLchar *path, GLboolean gammaCorrection, GLboolean alpha, GLboolean anisotropicFilter)
 {
 	// Generate a texture ID and load texture data

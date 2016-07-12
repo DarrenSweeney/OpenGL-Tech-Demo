@@ -30,9 +30,9 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 	glEnable(GL_DEPTH_TEST);
 
 	// Setup and compile our shaders
-	shaderGeometryPass.InitShader("Shaders/DeferredRendering/g_buffer.vert", "Shaders/DeferredRendering/g_buffer.frag");
-	shaderLightingPass.InitShader("Shaders/DeferredRendering/deferred_shading.vert", "Shaders/DeferredRendering/deferred_shading.frag");
-	shaderLightBox.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderGeometryPass.Compile("Shaders/DeferredRendering/g_buffer.vert", "Shaders/DeferredRendering/g_buffer.frag");
+	shaderLightingPass.Compile("Shaders/DeferredRendering/deferred_shading.vert", "Shaders/DeferredRendering/deferred_shading.frag");
+	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	planeDiffuseTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");
 	planeSpecularTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-specular.jpg");

@@ -24,10 +24,10 @@ void ShadowMapping::InitalizeScene()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	shaderShadowMap.InitShader("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag");
-	shaderDepth.InitShader("Shaders/ShadowMapDemo/ShadowMappingDepth.vert", "Shaders/ShadowMapDemo/ShadowMappingDepth.frag");
-	shaderDebugQuad.InitShader("Shaders/ShadowMapDemo/debugQuadDepth.vert", "Shaders/ShadowMapDemo/debugQuadDepth.frag");
-	shaderLightBox.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderShadowMap.Compile("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag");
+	shaderDepth.Compile("Shaders/ShadowMapDemo/ShadowMappingDepth.vert", "Shaders/ShadowMapDemo/ShadowMappingDepth.frag");
+	shaderDebugQuad.Compile("Shaders/ShadowMapDemo/debugQuadDepth.vert", "Shaders/ShadowMapDemo/debugQuadDepth.frag");
+	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
 
 	shaderShadowMap.Use();
 	glUniform1i(glGetUniformLocation(shaderShadowMap.Program, "diffuseTexture"), 0);

@@ -5,55 +5,12 @@ Shader::Shader() {}
 Shader::~Shader()
 {
 	// TODO(Darren): Delete the shader from a call instead.
+	// NOTE(Darren): Might do this in resource manager.
 	//glDeleteProgram(Program);
 }
 
-void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
+void Shader::Compile(const GLchar *vShaderCode, const GLchar *fShaderCode, const GLchar *gShaderCode)
 {
-	// Replace the vertex/fragment source code from filepath
-	std::string vertexCode, fragmentCode, geometryCode;
-	std::ifstream vShaderFile, fShaderFile, gShaderFile;
-
-	// Ensure ifstream objects can throw exceptions
-	vShaderFile.exceptions(std::ifstream::badbit);
-	fShaderFile.exceptions(std::ifstream::badbit);
-	if (geometryPath != NULL)
-		gShaderFile.exceptions(std::ifstream::badbit);
-
-	try
-	{
-		// Open file.
-		vShaderFile.open(vertexPath);
-		fShaderFile.open(fragmentPath);
-		if (geometryPath != NULL)
-			gShaderFile.open(geometryPath);
-		std::stringstream vShaderStream, fShaderStream, gShaderStream;
-		// Read file's buffer contents into steam
-		vShaderStream << vShaderFile.rdbuf();
-		fShaderStream << fShaderFile.rdbuf();
-		if (geometryPath != NULL)
-			gShaderStream << gShaderFile.rdbuf();
-		// Cose file handlers
-		vShaderFile.close();
-		fShaderFile.close();
-		if (geometryPath != NULL)
-			gShaderFile.close();
-
-		// Convert stream in GLchar array
-		vertexCode = vShaderStream.str();
-		fragmentCode = fShaderStream.str();
-		if (geometryPath != NULL)
-			geometryCode = gShaderStream.str();
-	}
-	catch(std::ifstream::failure e)
-	{
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-	}
-
-	const GLchar *vShaderCode = vertexCode.c_str();
-	const GLchar *fShaderCode = fragmentCode.c_str();
-	const GLchar *gShaderCode = (geometryPath != NULL ? geometryCode.c_str() : NULL);
-
 	// Compile Shader
 	GLuint vertex, fragment, geometry;
 	GLint success;
@@ -84,7 +41,7 @@ void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, co
 	}
 
 	// Geometry shader
-	if (geometryPath != NULL)
+	if (gShaderCode != NULL)
 	{
 		// Geometry shader
 		geometry = glCreateShader(GL_GEOMETRY_SHADER);
@@ -103,7 +60,7 @@ void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, co
 	this->Program = glCreateProgram();
 	glAttachShader(this->Program, vertex);
 	glAttachShader(this->Program, fragment);
-	if (geometryPath != NULL)
+	if (gShaderCode != NULL)
 		glAttachShader(this->Program, geometry);
 	glLinkProgram(this->Program);
 	// Print linking errors if any
@@ -111,14 +68,18 @@ void Shader::InitShader(const GLchar *vertexPath, const GLchar *fragmentPath, co
 	if (!success)
 	{
 		glGetProgramInfoLog(this->Program, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::Program::LINKING_FAILED:" << " " <<
-			vertexPath << " " << fragmentPath << (geometryPath != NULL ? geometryCode.c_str() : " ") << std::endl;
+		//std::cout << "ERROR::SHADER::Program::LINKING_FAILED:" << " " <<
+		//	vertexPath << " " << fragmentPath << (geometryPath != NULL ? geometryCode.c_str() : " ") << std::endl;
+	}
+	else
+	{
+		//std::cout << "SHADER::Program::LINKING_SUCESS " << vertexPath << " " << fragmentPath << " " << (geometryPath != NULL ? geometryCode.c_str() : " ") << std::endl;
 	}
 
 	// Delete the shaders as they are linked into Program now and no longer necessery
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
-	if (geometryPath != NULL)
+	if (gShaderCode != NULL)
 		glDeleteShader(geometry);
 }
 

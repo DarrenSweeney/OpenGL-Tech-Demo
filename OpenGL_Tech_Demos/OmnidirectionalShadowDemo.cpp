@@ -20,11 +20,68 @@ void OmnidirectionalShadowDemo::Initalize()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+#pragma region Skybox Vertices
+	GLfloat skyboxVertices[] = {
+		// Positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+#pragma endregion 
+
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glBindVertexArray(0);
+
 	// Setup and compile our shaders
-	shaderPointShadows.InitShader("Shaders/OmnidirectionalShadowDemo/point_shadows.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows.frag");
-	shaderDepth.InitShader("Shaders/OmnidirectionalShadowDemo/point_shadows_depth.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows_depth.frag",
+	shaderPointShadows.Compile("Shaders/OmnidirectionalShadowDemo/point_shadows.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows.frag");
+	shaderDepth.Compile("Shaders/OmnidirectionalShadowDemo/point_shadows_depth.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows_depth.frag",
 		"Shaders/OmnidirectionalShadowDemo/point_shadows_depth.gs");
-	shaderLightBox.InitShader("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
+	shaderCubeMap.Compile("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag");
 
 	// Load Models
 	modelPlatform.LoadModel("Resources/platform.obj");
@@ -57,9 +114,22 @@ void OmnidirectionalShadowDemo::Initalize()
 
 	// Configure depth map FBO
 	glGenFramebuffers(1, &depthMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	// Create depth cubemap texture
-	glGenTextures(1, &depthCubemap); 
+	glGenTextures(1, &depthCubemap);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+
+	// color
+	/*for (GLuint i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, ShadowWidth, ShadowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, depthCubemap, 0);*/
+
+	// depth
 	for (GLuint i = 0; i < 6; ++i)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, ShadowWidth, ShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -67,9 +137,8 @@ void OmnidirectionalShadowDemo::Initalize()
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	// Attach cubemap as depth map FBO's color buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -149,6 +218,21 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 		glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
 		SceneModels::RenderCube();
 	}
+
+	glDepthFunc(GL_LEQUAL);
+	shaderCubeMap.Use();
+	Matrix4 view_ = camera.GetViewMatrix();
+	view_.data[12] = 0; view_.data[13] = 0; view_.data[14] = 0;	// Take away the translation component.
+	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, "view"), 1, GL_FALSE, &view_.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+	glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shaderCubeMap.Program, "skybox"), 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS);
 }
 
 void OmnidirectionalShadowDemo::RenderScene(Shader &shader)

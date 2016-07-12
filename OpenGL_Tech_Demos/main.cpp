@@ -1,4 +1,11 @@
-// NOTE(Darren): May seperate these from the main class.
+/*
+	Darren Sweeney
+	darrensweeney.net
+	darrensweeneydev@gmail.com
+*/
+
+
+// Demos
 #include "CubeMapDemo.h"
 #include "ShadowMapping.h"
 #include "HDR_Demo.h"
@@ -10,6 +17,8 @@
 #include "ParallaxMappingDemo.h"
 #include "OmnidirectionalShadowDemo.h"
 #include "ModelLoadingDemo.h"
+
+#include "ResourceManager.h"
 
 #include "camera.h"
 
@@ -31,13 +40,13 @@
 
 #include <SOIL\SOIL.h>
 
+bool loaded = false;
+
 /*
 	Note:(Darren): From the GLFW documentation.
 			Do not pass the window size to glViewport or other pixel-based OpenGL calls. 
 			The window size is in screen coordinates, not pixels. Use the framebuffer size, which is in pixels, for pixel-based calls.
 */
-
-// TODO(Darren): May create ResourceManager to load textures and Primitive class to render shapes.
 
 // Camera movement for all the scene demos.
 void SceneMovement();
@@ -77,8 +86,7 @@ OmnidirectionalShadowDemo omnidirectionalShadowDemo;
 ModelLoadingDemo modelLoadingDemo;
 
 /*
-	For now i could have the basic of each demo and start code refactor.
-	Think i might do this! With work, there is less time. 
+	Create a resource manager and pull out all resources from each demo.
 */
 
 enum Demos
@@ -89,18 +97,17 @@ enum Demos
 	stencilReflection,			// *** DONE ***
 	instancing,					// *** DONE ***
 	deferredRendering,			// *** DONE ***
-	objectOutline,				// -Nearly Done-
+	objectOutline,				// *** DONE ***
 	ssao,						// ------------
 	parallaxingMappingDemo,		// *** DONE ***
 	omnidirectionalShadow,		// *** DONE ***
 	modelLoading				// *** DONE ***
 };
 
-Demos demos = Demos::objectOutline;
+Demos demos = Demos::modelLoading;
 
 const char* demoInfo = " ";
 
-// TODO(Darren): Seperate ImGui stuff.
 inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -253,11 +260,18 @@ int main(int, char**)
 	//stencilReflectionDemo.InitalizeScene();
 	//instancingDemo.InitalizeScene();
 	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
-	objectOutlineDemo.InitalizeScene();
+	//objectOutlineDemo.InitalizeScene();
 	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
 	//omnidirectionalShadowDemo.Initalize();
 	//modelLoadingDemo.Initalize();
 
+	ResourceManager::LoadShader("Shaders/ModelLoadingDemo/normal.vert", "Shaders/ModelLoadingDemo/normal.frag", "Shaders/ModelLoadingDemo/normal.gs",
+		"ModelNormal");
+	ResourceManager::LoadShader("Shaders/ModelLoadingDemo/modelLoading.vert", "Shaders/ModelLoadingDemo/modelLoading.frag", NULL, 
+		"ModelLoading");
+	ResourceManager::LoadShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag", NULL, 
+		"Skybox");
+	
 	// ImGui TODO(Darren): Remove this.
 	bool b1 = false;
 
@@ -346,7 +360,7 @@ int main(int, char**)
 
 #pragma region ImGui
 
-		/*int texture_id = cubeMapDemo.texColorBuffer;
+		/*int texture_id = omnidirectionalShadowDemo.depthCubemap;
 
 		ImGui::Begin("Cube Map - Framebuffer Test", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
 		ImGui::SetWindowPos(ImVec2(screenWidth - 460, screenHeight - 300));
@@ -579,7 +593,6 @@ int main(int, char**)
 				break;
 			}
 
-
 			case Demos::objectOutline:
 			{
 				objectOutlineDemo.Update(camera, screenWidth, screenHeight);
@@ -610,6 +623,17 @@ int main(int, char**)
 
 			case Demos::modelLoading:
 			{
+				/*
+					TODO(Darren): Load all shaders, models, textures first and output to console.
+								  Then initialise the scene based on the demo and only once.
+				*/
+				if (loaded == false)
+				{
+					modelLoadingDemo.Initalize();
+					loaded = true;
+				}
+
+
 				modelLoadingDemo.Update(camera, screenWidth, screenHeight);
 
 				break;
@@ -635,6 +659,7 @@ int main(int, char**)
 
     // Cleanup
     ImGui_ImplGlfwGL3_Shutdown();
+	ResourceManager::Clear();
     glfwTerminate();
 
     return 0;

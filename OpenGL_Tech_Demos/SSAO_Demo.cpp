@@ -22,10 +22,10 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	glEnable(GL_CULL_FACE);
 
 	// Setup and compile our shaders
-	shaderGeometryPass.InitShader("Shaders/SSAO_Demo/ssao_geometry.vert", "Shaders/SSAO_Demo/ssao_geometry.frag");
-	shaderLightingPass.InitShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_lighting.frag");
-	shaderSSAO.InitShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao.frag");
-	shaderSSAOBlur.InitShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_blur.frag");
+	shaderGeometryPass.Compile("Shaders/SSAO_Demo/ssao_geometry.vert", "Shaders/SSAO_Demo/ssao_geometry.frag");
+	shaderLightingPass.Compile("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_lighting.frag");
+	shaderSSAO.Compile("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao.frag");
+	shaderSSAOBlur.Compile("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_blur.frag");
 
 	// Set samplers
 	shaderLightingPass.Use();
