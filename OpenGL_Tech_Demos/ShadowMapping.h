@@ -15,6 +15,8 @@ class ShadowMapping
 public:
 	ShadowMapping();
 	~ShadowMapping();
+
+	bool initalizeScene;
 	GLuint depthMap, depthMapFBO;
 	bool moveLight, renderLight;
 
@@ -22,16 +24,15 @@ public:
 	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	Model modelTree, modelTeapot, modelRock;
-	Shader shaderDepth, shaderShadowMap;
-	Shader shaderDebugQuad;
-	Shader shaderLightBox;
+	Model *modelTree, *modelTeapot, *modelRock;
+	Shader *shaderDepth, *shaderShadowMap;
+	Shader *shaderDebugQuad;
+	Shader *shaderLightBox;
 	vector3 lightPosition;
-	GLuint floorTexture, cubeTexture, teapotTexture;
+	GLuint floorTextureID, cubeTextureID, teapotTextureID;
 	const GLuint ShadowWidth, ShadowHeight;
 
 	void RenderScene(Shader &shader);
-
 	GLuint GenerateMultiSampleTexture(GLuint samples);
 };
 

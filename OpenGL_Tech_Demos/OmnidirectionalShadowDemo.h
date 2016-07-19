@@ -22,21 +22,21 @@ class OmnidirectionalShadowDemo
 public:
 	OmnidirectionalShadowDemo();
 	~OmnidirectionalShadowDemo();
+	
+	bool initalizeScene;
 	bool moveLight, renderLight;
-	GLuint depthMapFBO, depthCubemap;
 
 	void Initalize();
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	GLuint skyboxVAO, skyboxVBO;
-	Model modelPlatform, modelColumn, modelBunny;
-	Shader shaderPointShadows, shaderDepth, shaderLightBox, shaderCubeMap;
 	GLuint textureID;
 	glm::vec3 lightPos;
-	GLuint woodTexture, wallTexture;
+	Shader *shaderPointShadows, *shaderPointShadowsDepth, *shaderLightBox;
+	GLuint woodTextureID, wallTextureID;
+	Model *modelPlatform, *modelColumn, *modelBunny;
+	GLuint depthMapFBO, depthCubemap;
 	const GLuint ShadowWidth, ShadowHeight;
-	//GLuint depthMapFBO, depthCubemap;
 
 	void RenderScene(Shader &shader);
 };

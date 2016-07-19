@@ -15,6 +15,8 @@ class ParallaxMappingDemo
 public:
 	ParallaxMappingDemo();
 	~ParallaxMappingDemo();
+
+	bool initalizeScene;
 	bool enableParallax = true;
 	float heightScale = 0.05f;
 
@@ -23,10 +25,11 @@ public:
 
 private:
 	vector3 lightPos;
-	Shader shaderParallax, shaderLightBox;
-	GLuint diffuseMap_SquareBricks, normalMap_SquareBricks, displacementMap_SquareBricks;
-	GLuint diffuseMap_GreyStonewall, normalMap_GreyStonewall, displacementMap_GreyStonewall;
-	GLuint diffuseMap_Pebbles, normalMap_Pebbles, displacementMap_Pebbles;
+	Shader *shaderParallax, *shaderLightBox;
+	// TODO(Darren): Could i pack these 3 in a struct?
+	GLuint diffuseMap_SquareBricksID, normalMap_SquareBricksID, displacementMap_SquareBricksID;
+	GLuint diffuseMap_GreyStonewallID, normalMap_GreyStonewallID, displacementMap_GreyStonewallID;
+	GLuint diffuseMap_PebblesID, normalMap_PebblesID, displacementMap_PebblesID;
 };
 
 #endif

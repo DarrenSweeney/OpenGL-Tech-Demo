@@ -1,7 +1,7 @@
 #include "ParallaxMappingDemo.h"
 
 ParallaxMappingDemo::ParallaxMappingDemo()
-	: enableParallax(true), lightPos(0.5f, 1.0f, 70.4f)
+	: enableParallax(true), lightPos(0.5f, 1.0f, 70.4f), initalizeScene(true)
 {
 	
 }
@@ -18,33 +18,38 @@ ParallaxMappingDemo::~ParallaxMappingDemo()
 */
 void ParallaxMappingDemo::Initalize(vector3 &cameraPos)
 {
-	cameraPos = vector3(0.0f, 0.0f, 60.0f);
+	if (initalizeScene)
+	{
+		cameraPos = vector3(0.0f, 0.0f, 60.0f);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 
-	// Setup and compile our shaders
-	shaderParallax.Compile("Shaders/ParallaxingMappingDemo/parallax_mapping.vert", "Shaders/ParallaxingMappingDemo/parallax_mapping.frag");
-	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
+		// Setup and compile our shaders
+		shaderParallax = ResourceManager::GetShader("ParallaxMapping");
+		shaderLightBox = ResourceManager::GetShader("LightBox");
 
-	// Load textures
-	diffuseMap_SquareBricks = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");
-	normalMap_SquareBricks = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-normal.jpg");
-	displacementMap_SquareBricks = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-displace.jpg");
+		// Load textures
+		diffuseMap_SquareBricksID = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");
+		normalMap_SquareBricksID = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-normal.jpg");
+		displacementMap_SquareBricksID = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-displace.jpg");
 
-	diffuseMap_GreyStonewall = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");
-	normalMap_GreyStonewall = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-normal.jpg");
-	displacementMap_GreyStonewall = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-displace.jpg");
+		diffuseMap_GreyStonewallID = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");
+		normalMap_GreyStonewallID = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-normal.jpg");
+		displacementMap_GreyStonewallID = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-displace.jpg");
 
-	diffuseMap_Pebbles = ResourceManager::LoadTexture("Resources/ParallaxTextures/Pebbles/photosculpt-pebbles-diffuse.jpg");
-	normalMap_Pebbles = ResourceManager::LoadTexture("Resources/ParallaxTextures/Pebbles/photosculpt-pebbles-normal.jpg");
-	displacementMap_Pebbles = ResourceManager::LoadTexture("Resources/ParallaxTextures/Pebbles/photosculpt-pebbles-displace.jpg");
+		diffuseMap_PebblesID = ResourceManager::LoadTexture("Resources/ParallaxTextures/Pebbles/photosculpt-pebbles-diffuse.jpg");
+		normalMap_PebblesID = ResourceManager::LoadTexture("Resources/ParallaxTextures/Pebbles/photosculpt-pebbles-normal.jpg");
+		displacementMap_PebblesID = ResourceManager::LoadTexture("Resources/ParallaxTextures/Pebbles/photosculpt-pebbles-displace.jpg");
 
-	// Set textures units
-	shaderParallax.Use();
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "diffuseMap"), 0);
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "normalMap"), 1);
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "depthMap"), 2);
+		// Set textures units
+		shaderParallax->Use();
+		glUniform1i(glGetUniformLocation(shaderParallax->Program, "diffuseMap"), 0);
+		glUniform1i(glGetUniformLocation(shaderParallax->Program, "normalMap"), 1);
+		glUniform1i(glGetUniformLocation(shaderParallax->Program, "depthMap"), 2);
+
+		initalizeScene = false;
+	}
 }
 
 void ParallaxMappingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
@@ -52,11 +57,11 @@ void ParallaxMappingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei sc
 	camera.ControllerMovement();
 
 	// Configure view/projection matrices
-	shaderParallax.Use();
+	shaderParallax->Use();
 	Matrix4 view = camera.GetViewMatrix();
 	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 600.0f);
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 	//			 Radius		   Angle		 Origin
 	lightPos.x = 65.0f * cos(glfwGetTime()) + 0.5f;
@@ -69,75 +74,75 @@ void ParallaxMappingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei sc
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -80.0f, 58.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = model.translate(vector3(0.0f, 0.0f, 60.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 	float lightData[] = { lightPos.x, lightPos.y, lightPos.z };
-	glUniform3fv(glGetUniformLocation(shaderParallax.Program, "lightPos"), 1, &lightData[0]);
+	glUniform3fv(glGetUniformLocation(shaderParallax->Program, "lightPos"), 1, &lightData[0]);
 	float cameraPos[] = { camera.position.x, camera.position.y, camera.position.z };
-	glUniform3fv(glGetUniformLocation(shaderParallax.Program, "viewPos"), 1, &cameraPos[0]);
-	glUniform1f(glGetUniformLocation(shaderParallax.Program, "height_scale"), heightScale);
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "parallax"), enableParallax);
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "invertLayerShift"), false);
+	glUniform3fv(glGetUniformLocation(shaderParallax->Program, "viewPos"), 1, &cameraPos[0]);
+	glUniform1f(glGetUniformLocation(shaderParallax->Program, "height_scale"), heightScale);
+	glUniform1i(glGetUniformLocation(shaderParallax->Program, "parallax"), enableParallax);
+	glUniform1i(glGetUniformLocation(shaderParallax->Program, "invertLayerShift"), false);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap_Pebbles);
+	glBindTexture(GL_TEXTURE_2D, diffuseMap_PebblesID);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalMap_Pebbles);
+	glBindTexture(GL_TEXTURE_2D, normalMap_PebblesID);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, displacementMap_Pebbles);
+	glBindTexture(GL_TEXTURE_2D, displacementMap_PebblesID);
 	SceneModels::RenderParallaxQuad(100.0f, 3.0f);
 
 	modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -5.6f, 150.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "invertLayerShift"), false);
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniform1i(glGetUniformLocation(shaderParallax->Program, "invertLayerShift"), false);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap_SquareBricks);
+	glBindTexture(GL_TEXTURE_2D, diffuseMap_SquareBricksID);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalMap_SquareBricks);
+	glBindTexture(GL_TEXTURE_2D, normalMap_SquareBricksID);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, displacementMap_SquareBricks);
+	glBindTexture(GL_TEXTURE_2D, displacementMap_SquareBricksID);
 	SceneModels::RenderParallaxQuad(100.0f, 3.0f);
 
 	modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -5.6f, -20.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 	SceneModels::RenderParallaxQuad(100.0f, 3.0f);
 
 	modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(80.0f, -5.6f, 50.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 	SceneModels::RenderParallaxQuad(100.0f, 3.0f);
 
 	modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(-90.0f, -5.6f, 50.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 	SceneModels::RenderParallaxQuad(100.0f, 3.0f);
 
-	glUniform1i(glGetUniformLocation(shaderParallax.Program, "invertLayerShift"), false);
+	glUniform1i(glGetUniformLocation(shaderParallax->Program, "invertLayerShift"), false);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap_GreyStonewall);
+	glBindTexture(GL_TEXTURE_2D, diffuseMap_GreyStonewallID);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalMap_GreyStonewall);
+	glBindTexture(GL_TEXTURE_2D, normalMap_GreyStonewallID);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, displacementMap_GreyStonewall);
+	glBindTexture(GL_TEXTURE_2D, displacementMap_GreyStonewallID);
 	modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 80.0f, 58.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderParallax.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(shaderParallax->Program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 	SceneModels::RenderParallaxQuad(100.0f, 3.0f);
 
-	shaderLightBox.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	shaderLightBox->Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, &view.data[0]);
 	model = Matrix4();
 	model = model.translate(lightPos);
 	model = model.scale(vector3(5.05f, 5.05f, 5.05f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	float lightColorData[] = {1.0f, 1.0f, 1.0f};
-	glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
+	glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 	SceneModels::RenderCube();
 }

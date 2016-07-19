@@ -1,7 +1,7 @@
 #include "InstancingDemo.h"
 
 InstancingDemo::InstancingDemo()
-	: amount(3000)
+	: amount(3000), initalizeScene(true)
 {
 	modelMatrices = new Matrix4[amount];
 }
@@ -27,24 +27,45 @@ struct GrassBlade
 
 void InstancingDemo::InitalizeScene()
 {
-	glEnable(GL_DEPTH_TEST);
-
-	shaderInstancing.Compile("Shaders/InstancingDemo/instance.vert", "Shaders/InstancingDemo/grass.frag");
-	shaderDirtGround.Compile("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag");
-
-	modelRock.LoadModel("Resources/rock/rock.obj");
-
-	grassTexture = ResourceManager::LoadTexture("Resources/grass.png", false, true);
-	groundTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg", false, false);
-
-	srand(glfwGetTime());
-	GLfloat radius = 5.0f;
-	GLfloat offset = 25.0f;
-	Matrix4 model = Matrix4();
-	GLfloat scale = 0.0f;
-	for (GLuint i = 0; i < amount; i++)
+	if (initalizeScene)
 	{
-		if (i % 2 == 0)
+		glEnable(GL_DEPTH_TEST);
+
+		shaderInstancing = ResourceManager::GetShader("Instancing");
+		shaderDirtGround = ResourceManager::GetShader("EnviromentObject");
+
+		modelRock = ResourceManager::GetModel("Rock");
+
+		grassTextureID = ResourceManager::LoadTexture("Resources/grass.png", false, true);
+		groundTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg", false, false);
+
+		srand(glfwGetTime());
+		GLfloat radius = 5.0f;
+		GLfloat offset = 25.0f;
+		Matrix4 model = Matrix4();
+		GLfloat scale = 0.0f;
+		for (GLuint i = 0; i < amount; i++)
+		{
+			if (i % 2 == 0)
+			{
+				model = Matrix4();
+				GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
+				GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+				GLfloat x = sin(angle) * radius + displacement;
+				displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+				GLfloat z = cos(angle) * radius + displacement;
+				model = model.translate(vector3(x, 0.0f, z));
+			}
+			else
+				model = model.rotate(MathHelper::DegressToRadians(90.0f), vector3(0.0f, 1.0f, 0.0f));
+
+			modelMatrices[i] = model;
+		}
+
+		SetUpBuffers(grassBlade.grassVAO, modelMatrices, grassBlade.grassVBO, sizeof(grassBlade.quadVertices), grassBlade.quadVertices);
+
+		srand(glfwGetTime());
+		for (GLuint i = 0; i < amount; i++)
 		{
 			model = Matrix4();
 			GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
@@ -52,35 +73,19 @@ void InstancingDemo::InitalizeScene()
 			GLfloat x = sin(angle) * radius + displacement;
 			displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
 			GLfloat z = cos(angle) * radius + displacement;
-			model = model.translate(vector3(x, 0.0f, z));
+			model = model.translate(vector3(x, -1.0f, z));
+
+			scale = (rand() % 20) / 100.0f + 0.05f;
+			model = model.scale(vector3(scale, scale, scale));
+
+			modelMatrices[i] = model;
 		}
-		else
-			model = model.rotate(MathHelper::DegressToRadians(90.0f), vector3(0.0f, 1.0f, 0.0f));
 
-		modelMatrices[i] = model;
+		for (GLuint i = 0; i < modelRock->meshes.size(); i++)
+			SetUpBuffers(modelRock->meshes[i].VAO, modelMatrices);
+
+		initalizeScene = false;
 	}
-
-	SetUpBuffers(grassBlade.grassVAO, modelMatrices, grassBlade.grassVBO, sizeof(grassBlade.quadVertices), grassBlade.quadVertices);
-
-	srand(glfwGetTime());
-	for (GLuint i = 0; i < amount; i++)
-	{
-		model = Matrix4();
-		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
-		GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
-		GLfloat x = sin(angle) * radius + displacement;
-		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
-		GLfloat z = cos(angle) * radius + displacement;
-		model = model.translate(vector3(x, -1.0f, z));
-
-		scale = (rand() % 20) / 100.0f + 0.05f;
-		model = model.scale(vector3(scale, scale, scale));
-
-		modelMatrices[i] = model;
-	}
-
-	for (GLuint i = 0; i < modelRock.meshes.size(); i++)
-		SetUpBuffers(modelRock.meshes[i].VAO, modelMatrices);
 }
 
 void InstancingDemo::SetUpBuffers(GLuint &vao, Matrix4 *matrices, GLuint vbo, int sizeOfVertices, GLfloat *vertices)
@@ -138,35 +143,37 @@ void InstancingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenH
 	view = camera.GetViewMatrix();
 	Matrix4 model;
 
-	shaderInstancing.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
-	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	shaderInstancing->Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
+	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing->Program, "view"), 1, GL_FALSE, &view.data[0]);
 
-	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	// Render the grass quads.
+	glBindTexture(GL_TEXTURE_2D, grassTextureID);
 	glBindVertexArray(grassBlade.grassVAO);
 	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, amount);
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glBindTexture(GL_TEXTURE_2D, modelRock.textures_loaded[0].id);
-	for (GLuint i = 0; i < modelRock.meshes.size(); i++)
+	// Render the rocks.
+	glBindTexture(GL_TEXTURE_2D, modelRock->textures_loaded[0].id);
+	for (GLuint i = 0; i < modelRock->meshes.size(); i++)
 	{
-		glBindVertexArray(modelRock.meshes[i].VAO);
-		glDrawElementsInstanced(GL_TRIANGLES, modelRock.meshes[i].vertices.size(), GL_UNSIGNED_INT, 0, amount);
+		glBindVertexArray(modelRock->meshes[i].VAO);
+		glDrawElementsInstanced(GL_TRIANGLES, modelRock->meshes[i].vertices.size(), GL_UNSIGNED_INT, 0, amount);
 		glBindVertexArray(0);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	// Draw the ground.
-	shaderDirtGround.Use();
+	// Render the plane.
+	shaderDirtGround->Use();
 	model = Matrix4();
 	model = model.translate(vector3(0.0f, -0.95f, 0.0f));
 	model = model.scale(vector3(31.0f, 0.0f, 31.0f));
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, groundTexture);
-	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
-	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround.Program, "view"), 1, GL_FALSE, &view.data[0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, groundTextureID);
+	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
+	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround->Program, "view"), 1, GL_FALSE, &view.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderDirtGround->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	SceneModels::RenderPlane(1.0f, 25.0f);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

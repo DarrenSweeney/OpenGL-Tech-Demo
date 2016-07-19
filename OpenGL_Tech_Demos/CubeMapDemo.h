@@ -22,6 +22,7 @@ public:
 	CubeMapDemo();
 	~CubeMapDemo();
 
+	bool initalizeScene;
 	GLuint texture, texColorBuffer;
 
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
@@ -29,20 +30,20 @@ public:
 
 private:
 	std::vector<const GLchar*> faces;
-	GLuint cubeMapTexture;
-	Shader shaderModel, shaderSkyBox, shaderEnviromentObject;
-	Model modelUtahTeaPot;
+	GLuint cubeMapTextureID;
+	Shader *shaderModel, *shaderSkyBox, *shaderEnviromentObject;
+	Model *modelUtahTeaPot;
 
-	Shader shaderCubeMap;
-	Shader modelCubes;
+	Shader *shaderCubeMap;
+	Shader *modelCubes;
 	GLuint dy_skyboxFBO, dy_skybox;
 	glm::vec3 modelOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
 	const GLuint dy_skyboxResWidth = 1024, dy_skyboxResHeight = 1024;
-	GLuint woodTexture;
+	GLuint woodTextureID;
 	
 	// Try agian, again here.
 	GLuint fbo, rbo, framebuffer;
-	Shader shaderDebugQuad;
+	Shader *shaderDebugQuad;
 
 	void RenderScene(Shader &shader);
 };

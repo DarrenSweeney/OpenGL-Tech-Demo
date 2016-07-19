@@ -2,16 +2,26 @@
 
 // Instantiate static variables
 std::map<std::string, Shader>       ResourceManager::Shaders;
+std::map<std::string,  Model>       ResourceManager::Models;
 
-Shader ResourceManager::LoadShader(const GLchar *vShaderFile, const GLchar *fShaderFile, const GLchar *gShaderFile, std::string name)
+void ResourceManager::LoadShader(const GLchar *vShaderFile, const GLchar *fShaderFile, const GLchar *gShaderFile, std::string name)
 {
 	Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
-	return Shaders[name];
 }
 
-Shader ResourceManager::GetShader(std::string name)
+Shader* ResourceManager::GetShader(std::string name)
 {
-	return Shaders[name];
+	return &Shaders[name];
+}
+
+void ResourceManager::LoadModel(const string path, bool loadTangent, std::string name)
+{
+	Models[name] = loadModel(path, loadTangent);
+}
+
+Model* ResourceManager::GetModel(std::string name)
+{
+	return &Models[name];
 }
 
 void ResourceManager::Clear()
@@ -19,6 +29,7 @@ void ResourceManager::Clear()
 	// (Properly) delete all shaders	
 	for (auto iter : Shaders)
 		glDeleteProgram(iter.second.Program);
+	// TODO(Darren): Delete all the models.
 }
 
 Shader ResourceManager::loadShaderFromFile(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
@@ -71,6 +82,13 @@ Shader ResourceManager::loadShaderFromFile(const GLchar *vertexPath, const GLcha
 	shader.Compile(vShaderCode, fShaderCode, gShaderCode != NULL ? gShaderCode : NULL);
 
 	return shader;
+}
+
+Model ResourceManager::loadModel(const string path, bool loadTangent)
+{
+	Model model;
+	model.LoadModel(path, loadTangent);
+	return model;
 }
 
 GLuint ResourceManager::LoadTexture(GLchar *path, GLboolean gammaCorrection, GLboolean alpha, GLboolean anisotropicFilter)
@@ -131,4 +149,97 @@ GLuint ResourceManager::LoadCubeMap(std::vector<const GLchar*> faces)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	return textureID;
+}
+
+// TODO(Darren): Need to start loading textures.
+void ResourceManager::LoadAllDemoResources()
+{
+	// Model Loading Demo.
+	LoadShader("Shaders/ModelLoadingDemo/normal.vert", "Shaders/ModelLoadingDemo/normal.frag", "Shaders/ModelLoadingDemo/normal.gs",
+		"ModelNormal");
+	LoadShader("Shaders/ModelLoadingDemo/modelLoading.vert", "Shaders/ModelLoadingDemo/modelLoading.frag", NULL,
+		"ModelLoading");
+	LoadModel("Resources/model/cyborg.obj", true,
+		"Cyborg");
+
+	// High Dynamic Range Lighting Demo.
+	LoadShader("Shaders/HDR_Demo/HDR.vert", "Shaders/HDR_Demo/HDR.frag", NULL,
+		"HDR");
+	LoadShader("Shaders/HDR_Demo/bloom.vert", "Shaders/HDR_Demo/bloom.frag", NULL,
+		"Bloom");
+	LoadShader("Shaders/HDR_Demo/blur.vert", "Shaders/HDR_Demo/blur.frag", NULL,
+		"Blur");
+
+	// Omnidirectional Shadow Mapping Demo.
+	LoadShader("Shaders/OmnidirectionalShadowDemo/point_shadows.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows.frag", NULL,
+		"PointShadows");
+	LoadShader("Shaders/OmnidirectionalShadowDemo/point_shadows_depth.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows_depth.frag", "Shaders/OmnidirectionalShadowDemo/point_shadows_depth.gs", 
+		"PointShadowsDepth");
+	LoadModel("Resources/platform.obj", false,
+		"Platform");
+	LoadModel("Resources/column.obj", false,
+		"Column");
+	LoadModel("Resources/bunny.obj", false,
+		"Bunny");
+
+	// Instancing Demo.
+	LoadShader("Shaders/InstancingDemo/instance.vert", "Shaders/InstancingDemo/grass.frag", NULL,
+		"Instancing");
+	LoadModel("Resources/rock/rock.obj", false,
+		"Rock");
+
+	// Stencil Reflection Demo.
+	LoadShader("Shaders/StencilReflectionDemo/lighting.vert", "Shaders/StencilReflectionDemo/lighting.frag", NULL,
+		"Lighting");
+	LoadModel("Resources/utah-teapot.obj", false,
+		"Utah_Teapot");
+	LoadModel("Resources/tree1b_lod0_2.obj", false,
+		"Tree");
+
+	// Object Outline Demo.
+	LoadShader("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/StencilTesting.frag", NULL,
+		"StencilTesting");
+	LoadShader("Shaders/ObjectOutlineDemo/StencilTesting.vert", "Shaders/ObjectOutlineDemo/ObjectOutline.frag", NULL,
+		"ObjectOutline");
+
+	// Deferred Rendering Demo.
+	LoadShader("Shaders/DeferredRendering/g_buffer.vert", "Shaders/DeferredRendering/g_buffer.frag", NULL,
+		"g_buffer");
+	LoadShader("Shaders/DeferredRendering/deferred_shading.vert", "Shaders/DeferredRendering/deferred_shading.frag", NULL,
+		"DeferredShading");
+
+	// CubeMap Demo.
+	LoadShader("Shaders/CubeMapDemo/model.vert", "Shaders/CubeMapDemo/model.frag", NULL,
+		"Model");
+	LoadShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag", NULL,
+		"Skybox");
+
+	// Directional Shadow Mapping Demo.
+	LoadShader("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag", NULL,
+		"ShadowMapping");
+	LoadShader("Shaders/ShadowMapDemo/ShadowMappingDepth.vert", "Shaders/ShadowMapDemo/ShadowMappingDepth.frag", NULL,
+		"ShadowMappingDepth");
+	LoadShader("Shaders/ShadowMapDemo/debugQuadDepth.vert", "Shaders/ShadowMapDemo/debugQuadDepth.frag", NULL,
+		"DebugQuadDepth");
+
+	// Parallax Mapping Demo.
+	LoadShader("Shaders/ParallaxingMappingDemo/parallax_mapping.vert", "Shaders/ParallaxingMappingDemo/parallax_mapping.frag", NULL,
+		"ParallaxMapping");
+
+	// Screen Space Ambient Occlusion Demo.
+	LoadShader("Shaders/SSAO_Demo/ssao_geometry.vert", "Shaders/SSAO_Demo/ssao_geometry.frag", NULL,
+		"ssao_geometry");
+	LoadShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_lighting.frag", NULL,
+		"ssao_lighting");
+	LoadShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao.frag", NULL,
+		"ssao");
+	LoadShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_blur.frag", NULL, 
+		"ssao_blur");
+
+	// General Shaders
+	LoadShader("Shaders/light_box.vert", "Shaders/light_box.frag", NULL,
+		"LightBox");
+	LoadShader("Shaders/EnviromentObject.vert", "Shaders/EnviromentObject.frag", NULL,
+		"EnviromentObject");
+
 }

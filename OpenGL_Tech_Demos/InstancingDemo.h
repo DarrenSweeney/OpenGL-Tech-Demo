@@ -15,15 +15,17 @@ public:
 	InstancingDemo();
 	~InstancingDemo();
 
+	bool initalizeScene;
+
 	void InitalizeScene();
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	Model modelRock;
-	Shader shaderInstancing, shaderDirtGround;
+	Model *modelRock;
+	Shader *shaderInstancing, *shaderDirtGround;
 	Matrix4 *modelMatrices;
-	const GLuint amount;
-	GLuint grassTexture, groundTexture;
+	const GLuint amount;	// The amount of rocks and grass quads to render.
+	GLuint grassTextureID, groundTextureID;
 
 	void SetUpBuffers(GLuint &vao, Matrix4 *matrices, GLuint vbo = NULL, 
 		int sizeOfVertices = NULL, GLfloat *vertices = NULL);

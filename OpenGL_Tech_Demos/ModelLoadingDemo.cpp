@@ -1,6 +1,7 @@
 #include "ModelLoadingDemo.h"
 
 ModelLoadingDemo::ModelLoadingDemo()
+	: lightPosition(0.0f, 0.0f, -5.0f), showNormals(false), showCubemap(false), initalizeScene(true)
 {
 
 }
@@ -11,89 +12,86 @@ ModelLoadingDemo::~ModelLoadingDemo()
 	// Dealocation? >>> glBindVertexArray(0);
 	//					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	//					glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//					glDeleteTextures(1, &diffuseMap);
+	//					glDeleteTextures(1, &diffuseMap);	// <-----
 	//					glDeleteTextures(1, &normalMap);
 }
 
 void ModelLoadingDemo::Initalize()
 {
-	glEnable(GL_DEPTH_TEST);
+	if (initalizeScene)
+	{
+		glEnable(GL_DEPTH_TEST);
 
-	sceneModel.LoadModel("Resources/model/cyborg.obj", true);
-	lightPosition = vector3(0.0f, 0.0f, -5.0f);
+		std::vector<const GLchar*> faces;
+		faces.push_back("Resources/skybox/posx.jpg");
+		faces.push_back("Resources/skybox/negx.jpg");
+		faces.push_back("Resources/skybox/posy.jpg");
+		faces.push_back("Resources/skybox/negy.jpg");
+		faces.push_back("Resources/skybox/posz.jpg");
+		faces.push_back("Resources/skybox/negz.jpg");
+		cubeMapTextureID = ResourceManager::LoadCubeMap(faces);
+		faces.clear();	// NOTE(Darren): Memory is not clearned here.
 
-	std::vector<const GLchar*> faces;
-	faces.push_back("Resources/skybox/posx.jpg");
-	faces.push_back("Resources/skybox/negx.jpg");
-	faces.push_back("Resources/skybox/posy.jpg");
-	faces.push_back("Resources/skybox/negy.jpg");
-	faces.push_back("Resources/skybox/posz.jpg");
-	faces.push_back("Resources/skybox/negz.jpg");
-	cubeMapTexture = ResourceManager::LoadCubeMap(faces);
-	faces.clear();
+		shaderModelLoading = ResourceManager::GetShader("ModelLoading");
+		shaderModelLoading->Use();
+		glUniform1i(glGetUniformLocation(shaderModelLoading->Program, "skybox"), 0); // Texture unit.
+		shaderNormal = ResourceManager::GetShader("ModelNormal");
+		shaderSkybox = ResourceManager::GetShader("Skybox");
+		shaderSkybox->Use();
+		glUniform1i(glGetUniformLocation(shaderSkybox->Program, "skybox"), 1); // Texture unit.
 
-	ResourceManager::GetShader("ModelLoading").Use();
-	GLuint ModelLoadingID = ResourceManager::GetShader("ModelLoading").Program;
-	shaderModelMatrix = glGetUniformLocation(ModelLoadingID, "modelMatrix");
-	shaderProjectionMatrix = glGetUniformLocation(ModelLoadingID, "projectionMatrix");
-	shaderViewMatrix = glGetUniformLocation(ModelLoadingID, "viewMatrix");
-	shaderCameraPos = glGetUniformLocation(ModelLoadingID, "cameraPosition");
-	shaderNormalMapping = glGetUniformLocation(ModelLoadingID, "normalMapping");
-	shaderInTangentSpace = glGetUniformLocation(ModelLoadingID, "inTangentSpace");
+		modelCyborg = ResourceManager::GetModel("Cyborg");
 
-	ResourceManager::GetShader("ModelNormal").Use();
-	GLuint ModelNormalID = ResourceManager::GetShader("ModelNormal").Program;
-	shaderNormalModel = glGetUniformLocation(ModelNormalID, "model");
-	shaderNormalProjection = glGetUniformLocation(ModelNormalID, "projection");
-	shaderNormalView = glGetUniformLocation(ModelNormalID, "view");
+		initalizeScene = false;
+	}
 }
 
 void ModelLoadingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	camera.ControllerMovement();
+	//camera.ControllerMovement();
 
-	ResourceManager::GetShader("ModelLoading").Use();
 	Matrix4 view;
 	view = camera.GetViewMatrix();
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
-	glUniformMatrix4fv(shaderViewMatrix, 1, GL_FALSE, &view.data[0]);
-	glUniformMatrix4fv(shaderProjectionMatrix, 1, GL_FALSE, &projection.data[0]);
-	glUniformMatrix4fv(shaderModelMatrix, 1, GL_FALSE, &modelMatrix.data[0]);
+	Matrix4 modelMatrix;
+
+	shaderModelLoading->Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderModelLoading->Program, "viewMatrix"), 1, GL_FALSE, &view.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModelLoading->Program, "projectionMatrix"), 1, GL_FALSE, &projection.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderModelLoading->Program, "modelMatrix"), 1, GL_FALSE, &modelMatrix.data[0]);
 
 	float lightPosData[] = { lightPosition.x, lightPosition.y, lightPosition.z };
 	Matrix4 lightMatrix = lightMatrix.translate(lightPosition);
 	lightMatrix = lightMatrix.scale(vector3(0.1f, 0.1f, 0.1f));
 
 	float cameraPosData[] = { camera.position.x, camera.position.y, camera.position.z };
-	glUniform3fv(shaderCameraPos, 1, &cameraPosData[0]);
-	glUniform1i(shaderNormalMapping, normalMapping);
-	glUniform1i(shaderInTangentSpace, inTangentSpace);
+	glUniform3fv(glGetUniformLocation(shaderModelLoading->Program, "cameraPosition"), 1, &cameraPosData[0]);
+	glUniform1i(glGetUniformLocation(shaderModelLoading->Program, "normalMapping"), normalMapping);
+	glUniform1i(glGetUniformLocation(shaderModelLoading->Program, "inTangentSpace"), inTangentSpace);
 
-	glUniform1i(glGetUniformLocation(ResourceManager::GetShader("ModelLoading").Program, "skybox"), 3);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-	sceneModel.Draw(ResourceManager::GetShader("ModelLoading"));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+	modelCyborg->Draw(*shaderModelLoading);
 
 	if (showNormals)
 	{
-		ResourceManager::GetShader("ModelNormal").Use();
-		glUniformMatrix4fv(shaderNormalView, 1, GL_FALSE, &view.data[0]);
-		glUniformMatrix4fv(shaderNormalProjection, 1, GL_FALSE, &projection.data[0]);
-		glUniformMatrix4fv(shaderNormalModel, 1, GL_FALSE, &modelMatrix.data[0]);
-		sceneModel.Draw(ResourceManager::GetShader("ModelNormal"));
+		shaderNormal->Use();
+		glUniformMatrix4fv(glGetUniformLocation(shaderNormal->Program, "view"), 1, GL_FALSE, &view.data[0]);
+		glUniformMatrix4fv(glGetUniformLocation(shaderNormal->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
+		glUniformMatrix4fv(glGetUniformLocation(shaderNormal->Program, "model"), 1, GL_FALSE, &modelMatrix.data[0]);
+		modelCyborg->Draw(*shaderNormal);
 	}
 
 	if (showCubemap)
 	{
-		ResourceManager::GetShader("Skybox").Use();
+		shaderSkybox->Use();
 		Matrix4 view = camera.GetViewMatrix();
 		view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
-		glUniformMatrix4fv(glGetUniformLocation(ResourceManager::GetShader("Skybox").Program, "view"), 1, GL_FALSE, &view.data[0]);
-		glUniformMatrix4fv(glGetUniformLocation(ResourceManager::GetShader("Skybox").Program, "projection"), 1, GL_FALSE, &projection.data[0]);
-		glUniform1i(glGetUniformLocation(ResourceManager::GetShader("Skybox").Program, "skybox"), 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkybox->Program, "view"), 1, GL_FALSE, &view.data[0]);
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkybox->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
 		SceneModels::RenderSkybox();
 	}
 }

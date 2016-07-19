@@ -4,7 +4,6 @@
 	darrensweeneydev@gmail.com
 */
 
-
 // Demos
 #include "CubeMapDemo.h"
 #include "ShadowMapping.h"
@@ -18,37 +17,25 @@
 #include "OmnidirectionalShadowDemo.h"
 #include "ModelLoadingDemo.h"
 
-#include "ResourceManager.h"
-
-#include "camera.h"
-
+// ImGui
 #include "Imgui\imgui.h"
 #include "imgui_impl_glfw_gl3.h"
-#include <stdio.h>
+
+// OpenGL and GLFW
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
-#include <string>
-#include <vector>
-#include <map>
-
-#include "shader.h"
-#include "camera.h"
-#include "model.h"
-
-#include "math.h"
-
-#include <SOIL\SOIL.h>
-
-bool loaded = false;
+// NOTE(Darren): Camera works here because it's included in other headers, is this a problem,
+//					longer compile time? What is the standard?
 
 /*
-	Note:(Darren): From the GLFW documentation.
+	NOTE:(Darren): From the GLFW documentation.
 			Do not pass the window size to glViewport or other pixel-based OpenGL calls. 
 			The window size is in screen coordinates, not pixels. Use the framebuffer size, which is in pixels, for pixel-based calls.
 */
 
 // Camera movement for all the scene demos.
+Camera camera(vector3(0.0f, 1.5f, 4.0f));
 void SceneMovement();
 
 // GLFW Callback functions.
@@ -59,55 +46,22 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
 
-bool keys[1024];
-GLfloat lastX = 400, lastY = 300;
-bool activeCamera;
-bool windowResized;
-
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
-
-Camera camera(vector3(0.0f, 1.5f, 4.0f));
-
-bool fullscreen = false;
-const GLFWvidmode* vidMode;
-
-// Demos
-CubeMapDemo cubeMapDemo;
-ShadowMapping shadowMappingDemo;
-HDR_DEMO hdrDemo;
-StencilReflectionDemo stencilReflectionDemo;
-InstancingDemo instancingDemo;
-DeferredRenderingDemo deferredRenderingDemo;
-ObjectOutlineDemo objectOutlineDemo;
-SSAO_Demo ssao_Demo;
-ParallaxMappingDemo parallaxingDemo;
-OmnidirectionalShadowDemo omnidirectionalShadowDemo;
-ModelLoadingDemo modelLoadingDemo;
-
 /*
-	Create a resource manager and pull out all resources from each demo.
+	-------------------------------------------------------------------------------
+*/
+	// TODO(Darren): Take this out.
+	bool keys[1024];
+	GLfloat lastX = 400, lastY = 300;
+	bool activeCamera;
+	bool windowResized;
+
+	GLfloat deltaTime = 0.0f;
+	GLfloat lastFrame = 0.0f;
+/*
+	-------------------------------------------------------------------------------
 */
 
-enum Demos
-{
-	cubeMap,					// ------------
-	shadowMap,					// *** DONE ***
-	hdr,						// *** DONE ***
-	stencilReflection,			// *** DONE ***
-	instancing,					// *** DONE ***
-	deferredRendering,			// *** DONE ***
-	objectOutline,				// *** DONE ***
-	ssao,						// ------------
-	parallaxingMappingDemo,		// *** DONE ***
-	omnidirectionalShadow,		// *** DONE ***
-	modelLoading				// *** DONE ***
-};
-
-Demos demos = Demos::modelLoading;
-
-const char* demoInfo = " ";
-
+// Take out white theme.
 inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -198,10 +152,10 @@ inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 	}
 }
 
+bool switchDeltaTime;
+
 int main(int, char**)
 {
-	GLsizei screenWidth = 800, screenHeight = 600;
-
     // Setup window
     glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
@@ -217,9 +171,11 @@ int main(int, char**)
 
 	// Get the desktop resolution.
 	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-	vidMode = glfwGetVideoMode(monitor);
-	screenWidth = vidMode->width - 200;		// ---
-	screenHeight = vidMode->height - 200;	// ---
+	const GLFWvidmode* vidMode = glfwGetVideoMode(monitor);
+	int screenWidth = vidMode->width;
+	int screenHeight = vidMode->height;
+
+	bool fullscreen = false;
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
 		fullscreen ? monitor : NULL, NULL);
@@ -233,7 +189,7 @@ int main(int, char**)
 
 	// Opitions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetWindowPos(window, 100, 50);		// ---
+	glfwSetWindowPos(window, 0, 0);
 
     glfwMakeContextCurrent(window);
 	if (gl3wInit()) 
@@ -246,36 +202,47 @@ int main(int, char**)
 	// Set the install_callbacks to false as i am setting up the GLFW input callbacks myself above.
     ImGui_ImplGlfwGL3_Init(window, false);
 	SetupImGuiStyle(true, 1.0f);
+	bool ImGui_WindowOpened = true;
 
-	bool windowOpened = true;
-    ImVec4 clear_color = ImColor(114, 144, 154);
+	// Demos
+	ModelLoadingDemo *modelLoadingDemo = new ModelLoadingDemo();
+	HDR_DEMO *hdrDemo = new HDR_DEMO();
+	OmnidirectionalShadowDemo *omnidirectionalShadowDemo = new OmnidirectionalShadowDemo();
+	InstancingDemo *instancingDemo = new InstancingDemo();
+	StencilReflectionDemo *stencilReflectionDemo = new StencilReflectionDemo();
+	ObjectOutlineDemo *objectOutlineDemo = new ObjectOutlineDemo();
+	DeferredRenderingDemo *deferredRenderingDemo = new DeferredRenderingDemo();
+	CubeMapDemo *cubeMapDemo = new CubeMapDemo();
+	ShadowMapping *directionalShadowDemo = new ShadowMapping();		// TODO(Darren): Rename this.
+	ParallaxMappingDemo *parallaxingDemo = new ParallaxMappingDemo();
+	SSAO_Demo *ssao_Demo = new SSAO_Demo();
 
-	// TODO(Darren): Rename shadowmappingdemo to directional shadow demo.
+	enum Demos
+	{
+		cubeMap,					// ------------
+		directionalShadow,			// *** DONE ***
+		hdr,						// *** DONE ***
+		stencilReflection,			// *** DONE ***
+		instancing,					// *** DONE ***
+		deferredRendering,			// *** DONE ***
+		objectOutline,				// *** DONE ***
+		ssao,						// ------------
+		parallaxingMapping,			// *** DONE ***
+		omnidirectionalShadow,		// *** DONE ***
+		modelLoading				// *** DONE ***
+	};
 
-	// Initializes scenes.
-	//cubeMapDemo.InitalizeScene(screenWidth, screenHeight);
-	//shadowMappingDemo.InitalizeScene();
-	//hdrDemo.InitalizeScene(screenWidth, screenHeight);
-	//parallaxingDemo.Initalize(camera.position);
-	//stencilReflectionDemo.InitalizeScene();
-	//instancingDemo.InitalizeScene();
-	//deferredRenderingDemo.InitalizeScene(screenWidth, screenHeight);
-	//objectOutlineDemo.InitalizeScene();
-	//ssao_Demo.InitalizeScene(screenWidth, screenHeight);
-	//omnidirectionalShadowDemo.Initalize();
-	//modelLoadingDemo.Initalize();
+	Demos currentDemo = Demos::modelLoading;
 
-	ResourceManager::LoadShader("Shaders/ModelLoadingDemo/normal.vert", "Shaders/ModelLoadingDemo/normal.frag", "Shaders/ModelLoadingDemo/normal.gs",
-		"ModelNormal");
-	ResourceManager::LoadShader("Shaders/ModelLoadingDemo/modelLoading.vert", "Shaders/ModelLoadingDemo/modelLoading.frag", NULL, 
-		"ModelLoading");
-	ResourceManager::LoadShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag", NULL, 
-		"Skybox");
-	
-	// ImGui TODO(Darren): Remove this.
-	bool b1 = false;
+	// TODO(Darren): Fill out demo info for each demo.
+	const char* demoInfo = " ";
 
+	// Scene opitions.
 	bool wireframeMode = false;
+
+	// Load all the shaders and models required for all the demos.
+	// All resources deallocated on program exiting.
+	ResourceManager::LoadAllDemoResources();
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -285,72 +252,12 @@ int main(int, char**)
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		// TODO(Darren): Make use of delta time.
 		camera.deltaTime = deltaTime;
 		SceneMovement();
+		camera.KeyboardMovement(keys, deltaTime);
 
 		SetupImGuiStyle(true, 1.0f);
-
-#if 0
-		// On input handling, check if F11 is down.
-		if (glfwGetKey(window, GLFW_KEY_F11))
-		{
-			// Toggle fullscreen flag.
-			fullscreen = !fullscreen;
-
-			// Close the current window.
-			glfwDestroyWindow(window);
-
-			// Setup window
-			glfwSetErrorCallback(error_callback);
-			if (!glfwInit())
-			{
-				printf("failed to initialize GLFW.\n");
-				return -1;
-			}
-
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-			glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
-			//monitor = glfwGetPrimaryMonitor();
-			//vidMode = glfwGetVideoMode(monitor);
-			screenWidth = 800;// vidMode->width;
-			screenHeight = 600;// vidMode->height;
-
-			// Create the new window.
-			window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
-				NULL, NULL);
-
-			// GLFW input callbacks.
-			glfwSetKeyCallback(window, key_callback);
-			glfwSetCursorPosCallback(window, mouse_callback);
-			//glfwSetScrollCallback(window, scroll_callback);
-			glfwSetMouseButtonCallback(window, mouse_button_callback);
-			glfwSetWindowSizeCallback(window, window_size_callback);
-
-			// Opitions
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-			glfwMakeContextCurrent(window);
-			if (gl3wInit())
-			{
-				printf("failed to initialize OpenGL\n");
-				return -1;
-			}
-
-			stencilReflectionDemo.InitalizeScene();
-
-			ImGui_ImplGlfwGL3_Init(window, false);
-			SetupImGuiStyle(true, 1.0f);
-
-			//ol windowOpened = true;
-			ImVec4 clear_color = ImColor(114, 144, 154);
-
-			glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
-			glViewport(0, 0, screenWidth, screenHeight);
-		}
-#endif
 
 		glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -369,10 +276,12 @@ int main(int, char**)
 		ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
 		ImGui::End();*/
 
-		ImGui::Begin("OpenGL Tech Demos", &windowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
+		ImGui::Begin("OpenGL Tech Demos", &ImGui_WindowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
 		ImGui::SetWindowPos(ImVec2(10, 10));
 		ImGui::SetWindowSize(ImVec2(255, screenHeight - 20));
 		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+		ImGui::Checkbox("Delta Time Mode", &switchDeltaTime);
 
 		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
@@ -380,7 +289,7 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("Cube Mapping Demo");
 				if(clicked)
-					demos = Demos::cubeMap;
+					currentDemo = Demos::cubeMap;
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Instancing"))
@@ -388,7 +297,7 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Instancing Demo");
 				if (clicked)
 				{
-					demos = Demos::instancing;
+					currentDemo = Demos::instancing;
 					demoInfo = "Example showing rendering of 6,000 objects, 3,000 grass and 3,000 rock objects.";
 				}
 				ImGui::TreePop();
@@ -398,11 +307,11 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Defered Rendering Demo");
 				if (clicked)
 				{
-					demos = Demos::deferredRendering;
+					currentDemo = Demos::deferredRendering;
 					demoInfo = "Defered Rendering of 100 Light sources around 100 models..\n";
 				}
-				ImGui::Checkbox("Move Lights", &deferredRenderingDemo.moveLights);
-				ImGui::Checkbox("Toggle Lights", &deferredRenderingDemo.renderLights);
+				ImGui::Checkbox("Move Lights", &deferredRenderingDemo->moveLights);
+				ImGui::Checkbox("Toggle Lights", &deferredRenderingDemo->renderLights);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Model Loading"))
@@ -410,11 +319,11 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Model Loading Demo");
 				if (clicked)
 				{
-					demos = Demos::modelLoading;
+					currentDemo = Demos::modelLoading;
 					demoInfo = "I used Assimp libiary to load the model\nMore info here.\n";
 				}
-				ImGui::Checkbox("Display Normals", &modelLoadingDemo.showNormals);
-				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo.showCubemap);
+				ImGui::Checkbox("Display Normals", &modelLoadingDemo->showNormals);
+				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo->showCubemap);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Stencil Buffer"))
@@ -424,12 +333,10 @@ int main(int, char**)
 					bool clicked = ImGui::Button("Stencil Reflection Demo");
 					if (clicked)
 					{
-						demos = Demos::stencilReflection;
+						currentDemo = Demos::stencilReflection;
 						demoInfo = "Shows stencil refleciton. By turning off the plane texutre you can see more clearly that the shadows are precerved when reflected.";
 					}
-					ImGui::Checkbox("Render Lights", &b1);
-					ImGui::Checkbox("Move Lights", &b1);
-					ImGui::Checkbox("Plane Texture Off", &stencilReflectionDemo.planeTextureOff);
+					ImGui::Checkbox("Plane Texture Off", &stencilReflectionDemo->planeTextureOff);
 					ImGui::TreePop();
 				}
 
@@ -437,8 +344,8 @@ int main(int, char**)
 				{
 					bool clicked = ImGui::Button("Stencil Outline Demo");
 					if (clicked)
-						demos = Demos::objectOutline;
-					ImGui::Checkbox("Render Lights", &objectOutlineDemo.renderLights);
+						currentDemo = Demos::objectOutline;
+					ImGui::Checkbox("Render Lights", &objectOutlineDemo->renderLights);
 					ImGui::TreePop();
 				}
 
@@ -449,11 +356,11 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Parralxing Mapping Demo");
 				if (clicked)
 				{
-					demos = Demos::parallaxingMappingDemo;
+					currentDemo = Demos::parallaxingMapping;
 					demoInfo = "Demostates steep parallax mapping along a walkable cobble floor.";
 				}
-				ImGui::SliderFloat("Depth", &parallaxingDemo.heightScale, 0.005f, 0.10f, "%.3f");
-				ImGui::Checkbox("Enable Parallax", &parallaxingDemo.enableParallax);
+				ImGui::SliderFloat("Depth", &parallaxingDemo->heightScale, 0.005f, 0.10f, "%.3f");
+				ImGui::Checkbox("Enable Parallax", &parallaxingDemo->enableParallax);
 				ImGui::Button("Pause Light");
 				ImGui::TreePop();
 			}
@@ -462,11 +369,11 @@ int main(int, char**)
 				bool clicked = ImGui::Button("HDR Demo");
 				if (clicked)
 				{
-					demos = Demos::hdr;
+					currentDemo = Demos::hdr;
 					demoInfo = "";
 				}
-				ImGui::SliderFloat("Exposure", &hdrDemo.exposure, 0.1f, 5.0f, "%.3f");
-				ImGui::Checkbox("Render Lights", &hdrDemo.renderLights);
+				ImGui::SliderFloat("Exposure", &hdrDemo->exposure, 0.1f, 5.0f, "%.3f");
+				ImGui::Checkbox("Render Lights", &hdrDemo->renderLights);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Shadow Maps"))
@@ -475,9 +382,9 @@ int main(int, char**)
 				{
 					bool clicked = ImGui::Button("Directional Shadow Demo");
 					if(clicked)
-						demos = Demos::shadowMap;
-					ImGui::Checkbox("Move Light Source", &shadowMappingDemo.moveLight);
-					ImGui::Checkbox("Render Light", &shadowMappingDemo.renderLight);
+						currentDemo = Demos::directionalShadow;
+					ImGui::Checkbox("Move Light Source", &directionalShadowDemo->moveLight);
+					ImGui::Checkbox("Render Light", &directionalShadowDemo->renderLight);
 					ImGui::TreePop();
 				}
 
@@ -485,9 +392,9 @@ int main(int, char**)
 				{
 					bool clicked = ImGui::Button("Omnidirectional Shadow Demo");
 					if (clicked)
-						demos = Demos::omnidirectionalShadow;
-					ImGui::Checkbox("Move Light Source", &omnidirectionalShadowDemo.moveLight);
-					ImGui::Checkbox("Render Light", &omnidirectionalShadowDemo.renderLight);
+						currentDemo = Demos::omnidirectionalShadow;
+					ImGui::Checkbox("Move Light Source", &omnidirectionalShadowDemo->moveLight);
+					ImGui::Checkbox("Render Light", &omnidirectionalShadowDemo->renderLight);
 					ImGui::TreePop();
 				}
 
@@ -497,7 +404,7 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("SSAO Demo");
 				if (clicked)
-					demos = Demos::ssao;
+					currentDemo = Demos::ssao;
 				ImGui::TreePop();
 			}
 		}
@@ -548,93 +455,92 @@ int main(int, char**)
 		glViewport(0, 0, screenWidth, screenHeight);
 
 #pragma region DemoUpdateCalls
-		// Render the demo scenes.
-		switch (demos)
+		switch (currentDemo)
 		{
 			case Demos::cubeMap:
 			{
-				cubeMapDemo.UpdateScene(camera, screenWidth, screenHeight);
+				cubeMapDemo->InitalizeScene(screenWidth, screenHeight);
+				cubeMapDemo->UpdateScene(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
-			case Demos::shadowMap:
+			case Demos::directionalShadow:
 			{
-				shadowMappingDemo.UpdateScene(camera, screenWidth, screenHeight);
+				directionalShadowDemo->InitalizeScene();
+				directionalShadowDemo->UpdateScene(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::hdr:
 			{
-				hdrDemo.UpdateScene(camera, screenWidth, screenHeight, windowResized);
+				hdrDemo->InitalizeScene(screenWidth, screenHeight);
+				hdrDemo->UpdateScene(camera, screenWidth, screenHeight, windowResized);
 
 				break;
 			}
 
 			case Demos::stencilReflection:
 			{
-				stencilReflectionDemo.Update(camera, screenWidth, screenHeight);
+				stencilReflectionDemo->InitalizeScene();
+				stencilReflectionDemo->Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::instancing:
 			{
-				instancingDemo.Update(camera, screenWidth, screenHeight);
+				instancingDemo->InitalizeScene();
+				instancingDemo->Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::deferredRendering:
 			{
-				deferredRenderingDemo.Update(camera, screenWidth, screenHeight, windowResized);
+				deferredRenderingDemo->InitalizeScene(screenWidth, screenHeight);
+				deferredRenderingDemo->Update(camera, screenWidth, screenHeight, windowResized);
 
 				break;
 			}
 
 			case Demos::objectOutline:
 			{
-				objectOutlineDemo.Update(camera, screenWidth, screenHeight);
+				objectOutlineDemo->InitalizeScene();
+				objectOutlineDemo->Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::ssao:
 			{
-				ssao_Demo.Update(camera, screenWidth, screenHeight, windowResized);
+				ssao_Demo->InitalizeScene(screenWidth, screenHeight);
+				ssao_Demo->Update(camera, screenWidth, screenHeight, windowResized);
 
 				break;
 			}
 
-			case Demos::parallaxingMappingDemo:
+			case Demos::parallaxingMapping:
 			{
-				parallaxingDemo.Update(camera, screenWidth, screenHeight);
+				parallaxingDemo->Initalize(camera.position);
+				parallaxingDemo->Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::omnidirectionalShadow:
 			{
-				omnidirectionalShadowDemo.Update(camera, screenWidth, screenHeight);
+				omnidirectionalShadowDemo->Initalize();
+				omnidirectionalShadowDemo->Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
 
 			case Demos::modelLoading:
 			{
-				/*
-					TODO(Darren): Load all shaders, models, textures first and output to console.
-								  Then initialise the scene based on the demo and only once.
-				*/
-				if (loaded == false)
-				{
-					modelLoadingDemo.Initalize();
-					loaded = true;
-				}
-
-
-				modelLoadingDemo.Update(camera, screenWidth, screenHeight);
+				modelLoadingDemo->Initalize();
+				modelLoadingDemo->Update(camera, screenWidth, screenHeight);
 
 				break;
 			}
@@ -660,14 +566,25 @@ int main(int, char**)
     // Cleanup
     ImGui_ImplGlfwGL3_Shutdown();
 	ResourceManager::Clear();
-    glfwTerminate();
+	delete modelLoadingDemo;
+	delete hdrDemo;
+	delete omnidirectionalShadowDemo;
+	delete instancingDemo;
+	delete stencilReflectionDemo;
+	delete objectOutlineDemo;
+	delete deferredRenderingDemo;
+	delete cubeMapDemo;
+	delete directionalShadowDemo;
+	delete parallaxingDemo;
+	delete ssao_Demo;
+	glfwTerminate();
 
     return 0;
 }
 
 void SceneMovement()
 {
-	camera.KeyboardMovement(keys, deltaTime);
+	camera.KeyboardMovement(keys, switchDeltaTime ? ImGui::GetIO().DeltaTime : deltaTime);//deltaTime);
 }
 
 #pragma region "GLFW callbacks"

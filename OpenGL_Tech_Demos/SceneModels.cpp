@@ -133,7 +133,7 @@ void SceneModels::RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale)
 		GLfloat xyRatio = xScale / yScale;
 		GLfloat xzRatio = xScale / zScale;
 		GLfloat zyRatio = zScale / yScale;
-		GLfloat yzRatio = yScale / zScale;
+		GLfloat yzRatio = 1.0f;// yScale / zScale;
 
 		GLfloat vertices[] = {
 			//	  Positions				 Normal			Texture Coords

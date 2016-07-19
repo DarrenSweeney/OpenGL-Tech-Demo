@@ -1,5 +1,6 @@
 #include "model.h"
 
+// TODO(Darren): Delete all the textures loaded into memory? Create a deconstructor.
 Model::Model()
 {
 	

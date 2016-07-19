@@ -6,15 +6,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DeferredRenderingDemo::DeferredRenderingDemo()
-	: NR_Lights(300), renderLights(true)
+	: NR_Lights(300), renderLights(true), initalizeScene(true)
 {
 
 }
 
-/*
-	Need to fix z fighting and fix deferred lighting fragment shader where i calculate
-	attenuation.
-*/
 DeferredRenderingDemo::~DeferredRenderingDemo()
 {
 	objectPositions.clear();
@@ -26,64 +22,69 @@ DeferredRenderingDemo::~DeferredRenderingDemo()
 
 void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 {
-	// Setup some OpenGL options
-	glEnable(GL_DEPTH_TEST);
-
-	// Setup and compile our shaders
-	shaderGeometryPass.Compile("Shaders/DeferredRendering/g_buffer.vert", "Shaders/DeferredRendering/g_buffer.frag");
-	shaderLightingPass.Compile("Shaders/DeferredRendering/deferred_shading.vert", "Shaders/DeferredRendering/deferred_shading.frag");
-	shaderLightBox.Compile("Shaders/light_box.vert", "Shaders/light_box.frag");
-
-	planeDiffuseTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");
-	planeSpecularTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-specular.jpg");
-	objectDiffuseTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");
-	objectSpecularTexture = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-specular.jpg");
-
-	// Set samplers
-	shaderLightingPass.Use();
-	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gPosition"), 0);
-	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gNormal"), 1);
-	glUniform1i(glGetUniformLocation(shaderLightingPass.Program, "gAlbedoSpec"), 2);
-
-	shaderGeometryPass.Use();
-	glUniform1i(glGetUniformLocation(shaderGeometryPass.Program, "texture_diffuse1"), 0);
-	glUniform1i(glGetUniformLocation(shaderGeometryPass.Program, "texture_specular1"), 1);
-
-	// Models
-	sceneModel.LoadModel("Resources/utah-teapot.obj");
-
-	GLuint counter = 0;
-	GLfloat zPos = -3.0f;
-	for (GLuint i = 0; i < 100; i++)
+	if (initalizeScene)
 	{
-		objectPositions.push_back(vector3((counter * 4.0f) - 3.0f, -3.0f, zPos));
+		// Setup some OpenGL options
+		glEnable(GL_DEPTH_TEST);
 
-		if (counter >= 9)
+		// Setup and compile our shaders
+		shaderGeometryPass = ResourceManager::GetShader("g_buffer");
+		shaderLightingPass = ResourceManager::GetShader("DeferredShading");
+		shaderLightBox = ResourceManager::GetShader("LightBox");
+
+		planeDiffuseTextureID = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-diffuse.jpg");
+		planeSpecularTextureID = ResourceManager::LoadTexture("Resources/ParallaxTextures/SquareBricks/photosculpt-squarebricks-specular.jpg");
+		objectDiffuseTextureID = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-diffuse.jpg");
+		objectSpecularTextureID = ResourceManager::LoadTexture("Resources/ParallaxTextures/GreyStonewall/photosculpt-graystonewall-specular.jpg");
+
+		// Set samplers
+		shaderLightingPass->Use();
+		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "gPosition"), 0);
+		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "gNormal"), 1);
+		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "gAlbedoSpec"), 2);
+
+		shaderGeometryPass->Use();
+		glUniform1i(glGetUniformLocation(shaderGeometryPass->Program, "texture_diffuse1"), 0);
+		glUniform1i(glGetUniformLocation(shaderGeometryPass->Program, "texture_specular1"), 1);
+
+		// Models
+		sceneModel = ResourceManager::GetModel("Utah_Teapot");
+
+		GLuint counter = 0;
+		GLfloat zPos = -3.0f;
+		for (GLuint i = 0; i < 100; i++)
 		{
-			zPos += 3.0f;
-			counter = 0;
+			objectPositions.push_back(vector3((counter * 4.0f) - 3.0f, -3.0f, zPos));
+
+			if (counter >= 9)
+			{
+				zPos += 3.0f;
+				counter = 0;
+			}
+			else
+				counter++;
 		}
-		else 
-			counter++;
-	}
 
-	// - Colors
-	srand(13);
-	for (GLuint i = 0; i < NR_Lights; i++)
-	{
-		// Calculate slightly random offsets
-		GLfloat xPos = ((rand() % 100) / 100.0) * 37.0 - 3.5f;
-		GLfloat yPos = -1.5f;// ((rand() % 100) / 100.0) - 2.0f;
-		GLfloat zPos = ((rand() % 100) / 100.0) * 30.0 - 3.5f;
-		lightPositions.push_back(vector3(xPos, yPos, zPos));
-		// Also calculate random color
-		GLfloat rColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
-		GLfloat gColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
-		GLfloat bColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
-		lightColors.push_back(vector3(rColor, gColor, bColor));
-	}
+		// - Colors
+		srand(13);
+		for (GLuint i = 0; i < NR_Lights; i++)
+		{
+			// Calculate slightly random offsets
+			GLfloat xPos = ((rand() % 100) / 100.0) * 37.0 - 3.5f;
+			GLfloat yPos = -1.5f;// ((rand() % 100) / 100.0) - 2.0f;
+			GLfloat zPos = ((rand() % 100) / 100.0) * 30.0 - 3.5f;
+			lightPositions.push_back(vector3(xPos, yPos, zPos));
+			// Also calculate random color
+			GLfloat rColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
+			GLfloat gColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
+			GLfloat bColor = ((rand() % 100) / 200.0f); // Between 0.5 and 1.0
+			lightColors.push_back(vector3(rColor, gColor, bColor));
+		}
 
-	SetupBuffers(screenWidth, screenHeight);
+		SetupBuffers(screenWidth, screenHeight);
+
+		initalizeScene = false;
+	}
 }
 
 void DeferredRenderingDemo::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
@@ -154,37 +155,37 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	Matrix4 view = camera.GetViewMatrix();
 	Matrix4 model;
 
-	shaderGeometryPass.Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "view"), 1, GL_FALSE, &view.data[0]);
+	shaderGeometryPass->Use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "view"), 1, GL_FALSE, &view.data[0]);
 	model = Matrix4();
 	model = model.translate(vector3(15.0f, -3.5f, 11.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, planeDiffuseTexture);
+	glBindTexture(GL_TEXTURE_2D, planeDiffuseTextureID);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, planeSpecularTexture);
+	glBindTexture(GL_TEXTURE_2D, planeSpecularTextureID);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SceneModels::RenderPlane(25.0f, 25.0f);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, objectDiffuseTexture);
+	glBindTexture(GL_TEXTURE_2D, objectDiffuseTextureID);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, objectSpecularTexture);
+	glBindTexture(GL_TEXTURE_2D, objectSpecularTextureID);
 	for (GLuint i = 0; i < objectPositions.size(); i++)
 	{
 		model = Matrix4();
 		model = model.translate(objectPositions[i]);
 		model = model.scale(vector3(0.08f, 0.08f, 0.08f));
-		glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass.Program, "model"), 1, GL_FALSE, &model.data[0]);
-		sceneModel.Draw(shaderGeometryPass);
+		glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
+		sceneModel->Draw(*shaderGeometryPass);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 2. Lighting Pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	shaderLightingPass.Use();
+	shaderLightingPass->Use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
 	glActiveTexture(GL_TEXTURE1);
@@ -203,18 +204,18 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 		// Get the light color data.
 		float lightColorData[] = { lightColors[i].x, lightColors[i].y, lightColors[i].z };
 
-		glUniform3fv(glGetUniformLocation(shaderLightingPass.Program, ("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
-		glUniform3fv(glGetUniformLocation(shaderLightingPass.Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColorData[0]);
+		glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
+		glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColorData[0]);
 		// Update attenuation parameters and calculate radius
 		// const GLfloat constant = 1.0; // Note that we don't send this to the shader, we assume it is always 1.0 (in our case)
 		const GLfloat linear = 0.7;
 		const GLfloat quadratic = 1.8;
-		glUniform1f(glGetUniformLocation(shaderLightingPass.Program, ("lights[" + std::to_string(i) + "].Linear").c_str()), linear);
-		glUniform1f(glGetUniformLocation(shaderLightingPass.Program, ("lights[" + std::to_string(i) + "].Quadratic").c_str()), quadratic);
+		glUniform1f(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Linear").c_str()), linear);
+		glUniform1f(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Quadratic").c_str()), quadratic);
 	}
 
 	float data[] = { camera.position.x, camera.position.y, camera.position.z };
-	glUniform3fv(glGetUniformLocation(shaderLightingPass.Program, "viewPos"), 1, &data[0]);
+	glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, "viewPos"), 1, &data[0]);
 	// Finally render quad
 	SceneModels::RenderQuad();
 
@@ -233,9 +234,9 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	// 3. Render lights on top of scene, by blitting.
 	if (renderLights)
 	{
-		shaderLightBox.Use();
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "view"), 1, GL_FALSE, &view.data[0]);
+		shaderLightBox->Use();
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, &view.data[0]);
 		for (GLuint i = 0; i < lightPositions.size(); i++)
 		{
 			// Get the light color data.
@@ -244,8 +245,8 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 			model = Matrix4();
 			model = model.translate(lightPositions[i]);
 			model = model.scale(vector3(0.25f, 0.25f, 0.25f));
-			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox.Program, "model"), 1, GL_FALSE, &model.data[0]);
-			glUniform3fv(glGetUniformLocation(shaderLightBox.Program, "lightColor"), 1, &lightColorData[0]);
+			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, &model.data[0]);
+			glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 			SceneModels::RenderCube();
 		}
 	}

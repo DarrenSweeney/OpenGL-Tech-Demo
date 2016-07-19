@@ -16,16 +16,15 @@ public:
 	SSAO_Demo();
 	~SSAO_Demo();
 
+	bool initalizeScene;
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized);
 
 private:
-	Shader shaderGeometryPass, shaderLightingPass;
-	Shader shaderSSAO, shaderSSAOBlur;
-	Model sceneModel;
-	
+	Shader *shaderGeometryPass, *shaderLightingPass;
+	Shader *shaderSSAO, *shaderSSAOBlur;
+	Model *sceneModel;
 	vector3 lightPos, lightColor;
-
 	GLuint gBuffer;
 	GLuint gPositionDepth, gNormal, gAlbedo;
 	GLuint rboDepth;
@@ -33,7 +32,7 @@ private:
 	GLuint ssaoColorBuffer, ssaoColorBufferBlur;
 	std::uniform_real_distribution<GLfloat> randomFloats;
 	std::default_random_engine generator;
-	std::vector<vector3> ssaoKernel;
+	std::vector<vector3> ssaoKernel;	// TODO(Darren): Check how this is deallocated?
 	std::vector<vector3> ssaoNoise;
 	GLuint noiseTexture;
 

@@ -12,18 +12,20 @@
 
 class StencilReflectionDemo
 {
-    public:
-    StencilReflectionDemo();
-    ~StencilReflectionDemo();
+public:
+	StencilReflectionDemo();
+	~StencilReflectionDemo();
+
+	bool initalizeScene;
 	bool planeTextureOff;
 
-    void InitalizeScene();
-    void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
-    
-    private:
-    GLuint cubeTexture, planeTexture;
-	Model modelStatue, modelColumn;
-	Shader shaderObject, shaderLighting;
+	void InitalizeScene();
+	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
+
+private:
+	GLuint cubeTextureID, planeTextureID;
+	Model *modelStatue, *modelColumn;
+	Shader *shaderObject, *shaderLighting;
 };
 
 #endif
