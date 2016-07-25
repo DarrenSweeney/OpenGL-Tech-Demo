@@ -25,5 +25,13 @@ void main()
 		reflect_color = texture(skybox, R) * reflection_Intensity;
 	}
 
+	//vec3 Tr = refract(I, normalize(Normal), 0.7);
+	//vec3 Tg = refract(I, normalize(Normal), 0.7);
+	//vec3 Tb = refract(I, normalize(Normal), 0.6);
+	//vec3 finalColor;
+	//finalColor.r = texture(skybox, normalize(Tr)).r;
+	//finalColor.g = texture(skybox, normalize(Tg)).g;
+	//finalColor.b = texture(skybox, normalize(Tb)).b;
+
 	color =	texture(skybox, R);	// diffuse_color + reflect_color;
 }

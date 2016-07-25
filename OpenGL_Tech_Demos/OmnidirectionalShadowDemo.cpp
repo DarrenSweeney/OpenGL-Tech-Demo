@@ -1,8 +1,5 @@
 #include "OmnidirectionalShadowDemo.h"
 
-#include "Imgui\imgui.h"
-#include "imgui_impl_glfw_gl3.h"
-
 OmnidirectionalShadowDemo::OmnidirectionalShadowDemo()
 	: ShadowWidth(1024), ShadowHeight(1024), moveLight(false), initalizeScene(true)
 {
@@ -30,6 +27,9 @@ void OmnidirectionalShadowDemo::Initalize()
 		glUniform1i(glGetUniformLocation(shaderPointShadows->Program, "depthMap"), 1);
 		shaderPointShadowsDepth = ResourceManager::GetShader("PointShadowsDepth");
 		shaderLightBox = ResourceManager::GetShader("LightBox");
+		shaderCubeMap = ResourceManager::GetShader("Skybox");
+		shaderCubeMap->Use();
+		glUniform1i(glGetUniformLocation(shaderCubeMap->Program, "skybox"), 0);
 
 		// Light source
 		lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -62,7 +62,6 @@ void OmnidirectionalShadowDemo::Initalize()
 		glReadBuffer(GL_NONE);
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			std::cout << "Framebuffer not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		initalizeScene = false;
 	}
@@ -95,8 +94,9 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	// 2. Render scene to depth cubemap
 	glViewport(0, 0, ShadowWidth, ShadowHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	shaderPointShadowsDepth->Use();
 	for (GLuint i = 0; i < 6; ++i)
 		glUniformMatrix4fv(glGetUniformLocation(shaderPointShadowsDepth->Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()),
 			1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
@@ -110,9 +110,10 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderPointShadows->Use();
 	glm::mat4 projection = glm::perspective(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-	glm::mat4 view = camera.GetViewMatrix2();
+	Matrix4 view;
+	view = camera.GetViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(shaderPointShadows->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shaderPointShadows->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(glGetUniformLocation(shaderPointShadows->Program, "view"), 1, GL_FALSE, &view.data[0]);
 	// Set light uniforms
 	glUniform3fv(glGetUniformLocation(shaderPointShadows->Program, "lightPos"), 1, &lightPos[0]);
 	glm::vec3 cameraPos(camera.position.x, camera.position.y, camera.position.z);
@@ -135,18 +136,30 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 		model = glm::translate(model, lightPos);
 		shaderLightBox->Use();
 		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, &view.data[0]);
 		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 		SceneModels::RenderCube();
 	}
+
+	// skybox 
+	shaderCubeMap->Use();
+	view = camera.GetViewMatrix();
+	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap->Program, "view"), 1, GL_FALSE, view.data);
+	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+	SceneModels::RenderSkybox();
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void OmnidirectionalShadowDemo::RenderScene(Shader &shader)
 {
 	// Render a flat cube as floor.
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, wallTextureID);
+	//glBindTexture(GL_TEXTURE_2D, wallTextureID);
 	glm::mat4 model = glm::mat4();
 	model = glm::translate(model, glm::vec3(0.0f, -6.0f, 0.0));
 	model = glm::scale(model, glm::vec3(40.0f, 0.2f, 40.0f));

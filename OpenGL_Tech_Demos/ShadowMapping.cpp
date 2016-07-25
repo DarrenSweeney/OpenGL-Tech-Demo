@@ -140,14 +140,14 @@ void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scr
 		SceneModels::RenderCube();
 	}
 
-	// 3. DEBUG: visualize depth map by rendering it to plane
-	shaderDebugQuad->Use();
-	// NOTE(Darren): Need these?
-	glUniform1f(glGetUniformLocation(shaderDebugQuad->Program, "near_plane"), near_plane);
-	glUniform1f(glGetUniformLocation(shaderDebugQuad->Program, "far_plane"), far_plane);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	SceneModels::RenderQuad();
+	//// 3. DEBUG: visualize depth map by rendering it to plane
+	//shaderDebugQuad->Use();
+	//// NOTE(Darren): Need these?
+	//glUniform1f(glGetUniformLocation(shaderDebugQuad->Program, "near_plane"), near_plane);
+	//glUniform1f(glGetUniformLocation(shaderDebugQuad->Program, "far_plane"), far_plane);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, depthMap);
+	//SceneModels::RenderQuad();
 }
 
 void ShadowMapping::RenderScene(Shader &shader)

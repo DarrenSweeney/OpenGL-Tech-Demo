@@ -177,8 +177,8 @@ void ResourceManager::LoadAllDemoResources()
 		"PointShadowsDepth");
 	LoadModel("Resources/platform.obj", false,
 		"Platform");
-	LoadModel("Resources/column.obj", false,
-		"Column");
+	LoadModel("Resources/Sphere.obj", false,
+		"Column");	// Column 
 	LoadModel("Resources/bunny.obj", false,
 		"Bunny");
 

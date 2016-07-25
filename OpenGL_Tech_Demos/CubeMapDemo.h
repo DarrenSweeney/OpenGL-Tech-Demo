@@ -24,6 +24,11 @@ public:
 
 	bool initalizeScene;
 	GLuint texture, texColorBuffer;
+	GLuint texCube, fb, drb; // ids of cube texture, framebuffer and depth renderbuffer
+	int size = 1024; // size of the cube map
+
+	// Debug texture IDs
+	GLuint redTex, blueTex, yellowTex, greenTex, pinkTex;
 
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
 	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
@@ -40,10 +45,6 @@ private:
 	glm::vec3 modelOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
 	const GLuint dy_skyboxResWidth = 1024, dy_skyboxResHeight = 1024;
 	GLuint woodTextureID;
-	
-	// Try agian, again here.
-	GLuint fbo, rbo, framebuffer;
-	Shader *shaderDebugQuad;
 
 	void RenderScene(Shader &shader);
 };

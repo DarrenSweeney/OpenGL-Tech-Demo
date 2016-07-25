@@ -152,6 +152,7 @@ inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 	}
 }
 
+// NOTE(Darren): Just for testings.
 bool switchDeltaTime;
 
 int main(int, char**)
@@ -232,7 +233,7 @@ int main(int, char**)
 		modelLoading				// *** DONE ***
 	};
 
-	Demos currentDemo = Demos::modelLoading;
+	Demos currentDemo = Demos::cubeMap;
 
 	// TODO(Darren): Fill out demo info for each demo.
 	const char* demoInfo = " ";
@@ -279,9 +280,9 @@ int main(int, char**)
 		ImGui::Begin("OpenGL Tech Demos", &ImGui_WindowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
 		ImGui::SetWindowPos(ImVec2(10, 10));
 		ImGui::SetWindowSize(ImVec2(255, screenHeight - 20));
-		ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		//ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		ImGui::Checkbox("Delta Time Mode", &switchDeltaTime);
+		//ImGui::Checkbox("Delta Time Mode", &switchDeltaTime);
 
 		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
@@ -584,7 +585,7 @@ int main(int, char**)
 
 void SceneMovement()
 {
-	camera.KeyboardMovement(keys, switchDeltaTime ? ImGui::GetIO().DeltaTime : deltaTime);//deltaTime);
+	camera.KeyboardMovement(keys, switchDeltaTime ? ImGui::GetIO().DeltaTime : deltaTime);
 }
 
 #pragma region "GLFW callbacks"

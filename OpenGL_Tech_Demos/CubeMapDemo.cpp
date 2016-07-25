@@ -1,8 +1,8 @@
 #include "CubeMapDemo.h"
 
 /*
-Scene List:
-- Both reflection and refraction can be choosen in ImGui
+TODO(Darren):
+	- Both reflection and refraction can be choosen in ImGui
 */
 
 CubeMapDemo::CubeMapDemo()
@@ -37,11 +37,11 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		shaderEnviromentObject->Use();
 		glUniform1i(glGetUniformLocation(shaderEnviromentObject->Program, "diffuseTexture"), 1);
 
-		modelUtahTeaPot = ResourceManager::GetModel("Utah_Teapot");
+		modelUtahTeaPot = ResourceManager::GetModel("Column");
 
 		//shaderCubeMap.Compile("Shaders/CubeMapDemo/dynamicCubeMap.vert", "Shaders/CubeMapDemo/dynamicCubeMap.frag");
 		//"Shaders/CubeMapDemo/dynamicCubeMap.gs");
-//modelCubes.Compile("Object.vert", "Object.frag");
+		//modelCubes.Compile("Object.vert", "Object.frag");
 
 /*
 	Order is based on the Layered Rendering specfic order.
@@ -57,49 +57,62 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		cubeMapTextureID = ResourceManager::LoadCubeMap(faces);
 		woodTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 
-		//modelCubes.Use();
-		//glUniform1i(glGetUniformLocation(modelCubes.Program, "texture1"), 0);
+		// Debug texture IDs
+		redTex = ResourceManager::LoadTexture("Resources/redTex.png");
+		blueTex = ResourceManager::LoadTexture("Resources/blueTex.png");
+		yellowTex = ResourceManager::LoadTexture("Resources/yellowTex.png");
+		greenTex = ResourceManager::LoadTexture("Resources/greenTex.png");
+		pinkTex = ResourceManager::LoadTexture("Resources/pinkTex.png");
 
-		// TODO(Darren): Create the 6 color buffers, depth buffers and framebuffers.
-		// ---
+		// Create dynamic cubemap
 
-		// IN PROGRESS: Create a framebuffer of a single view and work from there.
-		glGenFramebuffers(1, &fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		//////////////////////////////
+		// CREATE EMPTY CUBEMAP //////
+		//////////////////////////////
+		glGenTextures(1, &texCube);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texCube);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		// allocate space for each side of the cube map
+		for (GLuint i = 0; i < 6; ++i)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, size,
+				size, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+		/////////////////////////////////////////
+		// CREATE FRAMBUFFER ////////////////////
+		/////////////////////////////////////////
+		glGenFramebuffers(1, &fb); // generate new frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, fb); // and bind it as active framebuffer
+		glGenRenderbuffers(1, &drb); // generate new render buffer for depth buffer,
+		glBindRenderbuffer(GL_RENDERBUFFER, drb);// bind it as renderbuffer and set parameters
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size);
+		// Attach one of the faces of the cubemap texture to current framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X, texCube, 0);
+		// Attach depth buffer to framebuffer
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, drb);
+		// set current draw buffer
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, screenWidth, screenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+		//Check if current configuration of framebuffer is correct
+		GLenum status;
+		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		switch (status) {
+		case GL_FRAMEBUFFER_COMPLETE:
+			break;
+		default:
+			std::cout << "bad framebuffer!" << std::endl;
+			break;
+		}
 
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-		glGenFramebuffers(1, &framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-		// Generate texture
-		glGenTextures(1, &texColorBuffer);
-		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		// Attach it to the currently bound framebuffer object.
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-
-		/*shaderDebugQuad.Compile("debugQuad.vert", "debugQuad.frag");
-		shaderDebugQuad.Use();
-		glUniform1i(glGetUniformLocation(shaderDebugQuad.Program, "screenTexture"), 5);*/
+		// set default framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		initalizeScene = false;
 	}
@@ -114,42 +127,78 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 		*** Creating a dynamic cube map. ***
 	*/
 	// 1. Create depth cubemap transformation matrices.
-	GLfloat aspect = (GLfloat)dy_skyboxResWidth / (GLfloat)dy_skyboxResHeight;
 	GLfloat nearPlane = 1.0f;
-	GLfloat farPlane = 25.0f;
-	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
-	std::vector<glm::mat4> shadowTransforms;
-	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+	GLfloat farPlane = 10.0f;
+	glm::mat4 projection_ = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
+	glm::mat4 shadowProj = projection_;
+	std::vector<glm::mat4> viewTransforms;
+	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-	//// 2. Render scene to depth cubemap.
-	//glViewport(0, 0, dy_skyboxResWidth, dy_skyboxResHeight);
-	//glBindFramebuffer(GL_FRAMEBUFFER, dy_skyboxFBO);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//shaderCubeMap.Use();
-	//for (GLuint i = 0; i < 6; ++i)
-	//	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap.Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
-	//glUniform1f(glGetUniformLocation(shaderCubeMap.Program, "far_plane"), farPlane);
-	//glUniform3fv(glGetUniformLocation(shaderCubeMap.Program, "lightPos"), 1, &modelOrigin[0]);
-	//RenderScene(shaderCubeMap);	// ???
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// 2. Render scene to cubemap
+	//////////////////////////////////
+	// RENDER SCENE TO CUBE TEXTURE //
+	//////////////////////////////////
+	glViewport(0, 0, size, size); // set size of the viewport as size of cube map
+	Matrix4 view;
+	Matrix4 projection;
+	Matrix4 model;
+	glm::mat4 view_;
+	projection = projection.perspectiveProjection(90.0f, 1.0f, 0.1f, 1000.0f);
+	// HERE: set view matrix, look in positive direction of X axis
+	glBindFramebuffer(GL_FRAMEBUFFER, fb); // bind FBO to render to the texture
+	//glClearDepth(2.0f);       // 1/w depth buffer: depth = 0 means infinity
+	//glDepthFunc(GL_GREATER);  // 1/w depth buffer: closer objects have greater depth
+	// render to positive X face
+	// bind cube map face to current framebuffer as render target
+	for (GLuint face = 0; face < 6; ++face)
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texCube, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		view_ = viewTransforms.at(face);
+
+		// skybox 
+		shaderSkyBox->Use();
+		//view = camera.GetViewMatrix();
+		//view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "view"), 1, GL_FALSE, glm::value_ptr(view_));
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(shaderSkyBox->Program, "skybox"), 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+		SceneModels::RenderSkybox();
+
+		shaderEnviromentObject->Use();
+		model = Matrix4();
+		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, glm::value_ptr(view_));
+		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
+		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
+		RenderScene(*shaderEnviromentObject);
+	}
+
+	//shaderEnviromentObject->Use();
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, woodTextureID);
+	//model = Matrix4();
+	//glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, view.data);
+	//glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, projection.data);
+	//glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
+	//RenderScene(*shaderEnviromentObject);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind FBO, set default framebuffer
 
 	// 3. Render scene as normal.
 	glViewport(0, 0, screenWidth, screenHeight);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glEnable(GL_DEPTH_TEST);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderModel->Use();
-	Matrix4 view = camera.GetViewMatrix();
-	Matrix4 projection;
+	view = camera.GetViewMatrix();
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
-	Matrix4 model;
 	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "projection"), 1, GL_FALSE, projection.data);
@@ -158,45 +207,16 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 
 	glActiveTexture(GL_TEXTURE3);
 	glUniform1i(glGetUniformLocation(shaderModel->Program, "skybox"), 3);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texCube);	// texCube
+	model = Matrix4();
+	//model = model.scale(vector3(0.1f, 0.1f, 0.1f));
+	model = model.translate(vector3(modelOrigin.x, modelOrigin.y, modelOrigin.z));
+	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
 	modelUtahTeaPot->Draw(*shaderModel);
 
 	shaderEnviromentObject->Use();
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, woodTextureID);
-	model = Matrix4();
-	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, projection.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
-	RenderScene(*shaderEnviromentObject);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	/*shaderDebugQuad.Use();
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-	SceneModels::RenderQuad();
-	glBindTexture(GL_TEXTURE_2D, 0);*/
-
-	shaderModel->Use();
-	view = camera.GetViewMatrix();
-	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
-	
-	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "projection"), 1, GL_FALSE, projection.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
-	glUniform3f(glGetUniformLocation(shaderModel->Program, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
-
-	glActiveTexture(GL_TEXTURE3);
-	glUniform1i(glGetUniformLocation(shaderModel->Program, "skybox"), 3);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
-	modelUtahTeaPot->Draw(*shaderModel);
-
-	shaderEnviromentObject->Use();
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
 	model = Matrix4();
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, projection.data);
@@ -209,7 +229,6 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
 	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "projection"), 1, GL_FALSE, projection.data);
-
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shaderSkyBox->Program, "skybox"), 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
@@ -223,26 +242,31 @@ void CubeMapDemo::RenderScene(Shader &shader)
 {
 	shader.Use();
 	Matrix4 model = Matrix4();
-	model = model.translate(vector3(4.0f, -3.5f, 0.0f));
+	model = model.translate(vector3(15.0f, -3.5f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, redTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(2.0f, 3.0f, 1.0f));
+	model = model.translate(vector3(4.0f, 5.0f, 1.0f));
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, blueTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-3.0f, -1.0f, 0.0f));
+	model = model.translate(vector3(-5.0f, -1.0f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, yellowTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-1.5f, 1.0f, 1.5f));
+	model = model.translate(vector3(-4.5f, 1.0f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, greenTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
 	model = model.translate(vector3(-1.5f, 2.0f, -3.0f));
 	model = model.rotate(60.0f, vector3(1.0f, 0.0f, 1.0f).normalise());
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glBindTexture(GL_TEXTURE_2D, pinkTex);
 	SceneModels::RenderCube();
 }
