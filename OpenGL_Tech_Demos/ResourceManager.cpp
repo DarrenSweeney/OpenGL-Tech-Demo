@@ -177,8 +177,8 @@ void ResourceManager::LoadAllDemoResources()
 		"PointShadowsDepth");
 	LoadModel("Resources/platform.obj", false,
 		"Platform");
-	LoadModel("Resources/Sphere.obj", false,
-		"Column");	// Column 
+	LoadModel("Resources/Column.obj", false,
+		"Column");
 	LoadModel("Resources/bunny.obj", false,
 		"Bunny");
 
@@ -213,6 +213,10 @@ void ResourceManager::LoadAllDemoResources()
 		"Model");
 	LoadShader("Shaders/CubeMapDemo/skybox.vert", "Shaders/CubeMapDemo/skybox.frag", NULL,
 		"Skybox");
+	LoadModel("Resources/Sphere.obj", false,
+		"Sphere");
+	LoadModel("Resources/monkey.obj", false,
+		"Monkey");
 
 	// Directional Shadow Mapping Demo.
 	LoadShader("Shaders/ShadowMapDemo/ShadowMapping.vert", "Shaders/ShadowMapDemo/ShadowMapping.frag", NULL,

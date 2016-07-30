@@ -23,10 +23,13 @@ public:
 	~CubeMapDemo();
 
 	bool initalizeScene;
+	bool moveLights;
+	int currentModelID;
+
+	// Sort this out
 	GLuint texture, texColorBuffer;
 	GLuint texCube, fb, drb; // ids of cube texture, framebuffer and depth renderbuffer
 	int size = 1024; // size of the cube map
-
 	// Debug texture IDs
 	GLuint redTex, blueTex, yellowTex, greenTex, pinkTex;
 
@@ -37,13 +40,12 @@ private:
 	std::vector<const GLchar*> faces;
 	GLuint cubeMapTextureID;
 	Shader *shaderModel, *shaderSkyBox, *shaderEnviromentObject;
-	Model *modelUtahTeaPot;
+	Model *modelUtahTeaPot, *modelSphere, *modelBunny;
+
+	glm::vec3 modelOrigin;
 
 	Shader *shaderCubeMap;
 	Shader *modelCubes;
-	GLuint dy_skyboxFBO, dy_skybox;
-	glm::vec3 modelOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
-	const GLuint dy_skyboxResWidth = 1024, dy_skyboxResHeight = 1024;
 	GLuint woodTextureID;
 
 	void RenderScene(Shader &shader);

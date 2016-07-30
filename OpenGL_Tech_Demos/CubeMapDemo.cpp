@@ -37,7 +37,9 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		shaderEnviromentObject->Use();
 		glUniform1i(glGetUniformLocation(shaderEnviromentObject->Program, "diffuseTexture"), 1);
 
-		modelUtahTeaPot = ResourceManager::GetModel("Column");
+		modelUtahTeaPot = ResourceManager::GetModel("Utah_Teapot");
+		modelSphere = ResourceManager::GetModel("Sphere");
+		modelBunny = ResourceManager::GetModel("Monkey");
 
 		//shaderCubeMap.Compile("Shaders/CubeMapDemo/dynamicCubeMap.vert", "Shaders/CubeMapDemo/dynamicCubeMap.frag");
 		//"Shaders/CubeMapDemo/dynamicCubeMap.gs");
@@ -71,8 +73,8 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		//////////////////////////////
 		glGenTextures(1, &texCube);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, texCube);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -98,7 +100,10 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		// Attach depth buffer to framebuffer
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, drb);
 		// set current draw buffer
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		//glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		// attach only the +X cubemap texture (for completeness)
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, texCube, 0);
 
 		//Check if current configuration of framebuffer is correct
 		GLenum status;
@@ -128,16 +133,19 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	*/
 	// 1. Create depth cubemap transformation matrices.
 	GLfloat nearPlane = 1.0f;
-	GLfloat farPlane = 10.0f;
+	GLfloat farPlane = 1000.0f;
 	glm::mat4 projection_ = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
 	glm::mat4 shadowProj = projection_;
-	std::vector<glm::mat4> viewTransforms;
-	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-	viewTransforms.push_back(shadowProj * glm::lookAt(modelOrigin, modelOrigin + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+	Matrix4 cubemapProjection = cubemapProjection.perspectiveProjection(camera.zoom, 1.0f, 1.0f, 500.0f);
+	std::vector<Matrix4> cubemapTransforms;
+	Matrix4 lookAt;
+	cubemapTransforms.push_back(cubemapProjection * lookAt.lookAt(vector3(), vector3(1.0, 0.0, 0.0), vector3(0.0, -1.0, 0.0)));
+	cubemapTransforms.push_back(cubemapProjection *	lookAt.lookAt(vector3(), vector3(-1.0, 0.0, 0.0), vector3(0.0, -1.0, 0.0)));
+	cubemapTransforms.push_back(cubemapProjection * lookAt.lookAt(vector3(), vector3(0.0, 1.0, 0.0), vector3(0.0, 0.0, 1.0)));
+	cubemapTransforms.push_back(cubemapProjection * lookAt.lookAt(vector3(), vector3(0.0, -1.0, 0.0), vector3(0.0, 0.0, -1.0)));
+	cubemapTransforms.push_back(cubemapProjection * lookAt.lookAt(vector3(), vector3(0.0, 0.0, 1.0), vector3(0.0, -1.0, 0.0)));
+	cubemapTransforms.push_back(cubemapProjection * lookAt.lookAt(vector3(), vector3(0.0, 0.0, -1.0), vector3(0.0, -1.0, 0.0)));
 
 	// 2. Render scene to cubemap
 	//////////////////////////////////
@@ -147,7 +155,6 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	Matrix4 view;
 	Matrix4 projection;
 	Matrix4 model;
-	glm::mat4 view_;
 	projection = projection.perspectiveProjection(90.0f, 1.0f, 0.1f, 1000.0f);
 	// HERE: set view matrix, look in positive direction of X axis
 	glBindFramebuffer(GL_FRAMEBUFFER, fb); // bind FBO to render to the texture
@@ -159,15 +166,34 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texCube, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-		view_ = viewTransforms.at(face);
+		view = cubemapTransforms.at(face);
+
+		glm::vec3 targets[6] = {
+			glm::vec3(+1.0f, 0.0f, 0.0f),
+			glm::vec3(-1.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, +1.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, +1.0f),
+			glm::vec3(0.0f, 0.0f, -1.0f)
+		};
+		glm::vec3 ups[6] = {
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 1.0f),
+			glm::vec3(0.0f, 0.0f, -1.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f)
+		};
+
+		glm::mat4 v = glm::lookAt(modelOrigin, modelOrigin + targets[face], ups[face]);
 
 		// skybox 
 		shaderSkyBox->Use();
-		//view = camera.GetViewMatrix();
-		//view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
-		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "view"), 1, GL_FALSE, glm::value_ptr(view_));
+		view = camera.GetViewMatrix();
+		view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
+		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "view"), 1, GL_FALSE, glm::value_ptr(v));
 		glUniformMatrix4fv(glGetUniformLocation(shaderSkyBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(glGetUniformLocation(shaderSkyBox->Program, "skybox"), 0);
@@ -176,20 +202,11 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 
 		shaderEnviromentObject->Use();
 		model = Matrix4();
-		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, glm::value_ptr(view_));
+		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, glm::value_ptr(v));
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
 		RenderScene(*shaderEnviromentObject);
 	}
-
-	//shaderEnviromentObject->Use();
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, woodTextureID);
-	//model = Matrix4();
-	//glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, view.data);
-	//glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, projection.data);
-	//glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
-	//RenderScene(*shaderEnviromentObject);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind FBO, set default framebuffer
 
@@ -199,24 +216,34 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	shaderModel->Use();
 	view = camera.GetViewMatrix();
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
-	model = model.translate(vector3(0.0f, 0.0f, -50.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "projection"), 1, GL_FALSE, projection.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
 	glUniform3f(glGetUniformLocation(shaderModel->Program, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
 
 	glActiveTexture(GL_TEXTURE3);
 	glUniform1i(glGetUniformLocation(shaderModel->Program, "skybox"), 3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCube);	// texCube
 	model = Matrix4();
-	//model = model.scale(vector3(0.1f, 0.1f, 0.1f));
 	model = model.translate(vector3(modelOrigin.x, modelOrigin.y, modelOrigin.z));
-	glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
-	modelUtahTeaPot->Draw(*shaderModel);
+	switch (currentModelID)
+	{
+	case 0:
+		glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
+		modelSphere->Draw(*shaderModel);
+		break;
+	case 1:
+		model = model.scale(vector3(0.1f, 0.1f, 0.1f));
+		//glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
+		modelBunny->Draw(*shaderModel);
+		break;
+	case 2:
+		model = model.scale(vector3(0.1f, 0.1f, 0.1f));
+		glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
+		modelUtahTeaPot->Draw(*shaderModel);
+		break;
+	}
 
 	shaderEnviromentObject->Use();
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, woodTextureID);
 	model = Matrix4();
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, projection.data);
@@ -244,26 +271,36 @@ void CubeMapDemo::RenderScene(Shader &shader)
 	Matrix4 model = Matrix4();
 	model = model.translate(vector3(15.0f, -3.5f, 0.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, redTex);
 	SceneModels::RenderCube();
+
+	vector3 translatePos;
+	if (moveLights)
+	{
+		translatePos.x += sin(glfwGetTime()) * 4.5f;
+		//translatePos.y += sin(glfwGetTime()) * 4.5f;
+		translatePos.z += cos(glfwGetTime()) * 4.5f;
+	}
+
 	model = Matrix4();
-	model = model.translate(vector3(4.0f, 5.0f, 1.0f));
+	model = model.translate(vector3(4.0f, 5.0f, 1.0f) + translatePos);
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, blueTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-5.0f, -1.0f, 0.0f));
+	model = model.translate(vector3(-5.0f, -1.0f, 0.0f) + translatePos);
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, yellowTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-4.5f, 1.0f, 1.5f));
+	model = model.translate(vector3(-4.5f, 1.0f, 1.5f) + translatePos);
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, greenTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-1.5f, 2.0f, -3.0f));
+	model = model.translate(vector3(3.5f, 2.0f, 1.0f) + translatePos);
 	model = model.rotate(60.0f, vector3(1.0f, 0.0f, 1.0f).normalise());
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
