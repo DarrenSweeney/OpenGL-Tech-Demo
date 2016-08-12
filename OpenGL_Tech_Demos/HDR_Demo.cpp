@@ -25,8 +25,8 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		lightPositions.push_back(vector3(0.0f, 0.0f, 8.0f));
 		// - Colors
 		lightColors.push_back(glm::vec3(100.0f, 100.0f, 100.0f));
-		lightColors.push_back(glm::vec3(0.0f, 0.0f, 20.0f));
 		lightColors.push_back(glm::vec3(20.0f, 0.0f, 0.0f));
+		lightColors.push_back(glm::vec3(0.0f, 0.0f, 20.0f));
 		lightColors.push_back(glm::vec3(0.0f, 20.0f, 0.0f));
 
 		// Load textures
@@ -37,11 +37,11 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		shaderHDR = ResourceManager::GetShader("HDR");
 		// Set up bloom shader texture units.
 		shaderBloom = ResourceManager::GetShader("Bloom");
-		shaderBloom->Use();
-		glUniform1i(glGetUniformLocation(shaderBloom->Program, "scene"), 0);
-		glUniform1i(glGetUniformLocation(shaderBloom->Program, "bloomBlur"), 1);
+		shaderHDR->Use();
+		glUniform1i(glGetUniformLocation(shaderHDR->Program, "scene"), 0);
+		glUniform1i(glGetUniformLocation(shaderHDR->Program, "bloomBlur"), 1);
 		shaderBlur = ResourceManager::GetShader("Blur");
-		shaderLightBox = ResourceManager::GetShader("LightBox");
+		shaderLightBox = ResourceManager::GetShader("LightBoxBloom");
 
 		// TODO(Darren): Create the matrices for each shader.
 		// NOTE(Darren): Should revise this.
@@ -64,7 +64,7 @@ void HDR_DEMO::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
 	for (GLuint i = 0; i < 2; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenWidth, screenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// Clamp to the edge as the blur filter would otherwise sample repeated texture values.
@@ -169,7 +169,7 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 
 	// Blur bright fragments with two-pass Gaussian Blur 
 	GLboolean horizontal = true, first_iteration = true;
-	GLuint amount = 2;
+	GLuint amount = 10;
 	shaderBlur->Use();
 	for (GLuint i = 0; i < amount; i++)
 	{

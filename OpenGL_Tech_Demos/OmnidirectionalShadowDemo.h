@@ -32,7 +32,7 @@ public:
 private:
 	GLuint textureID;
 	glm::vec3 lightPos;
-	Shader *shaderPointShadows, *shaderPointShadowsDepth, *shaderLightBox, *shaderCubeMap;
+	Shader *shaderPointShadows, *shaderPointShadowsDepth, *shaderLightBox;
 	GLuint woodTextureID, wallTextureID;
 	Model *modelPlatform, *modelColumn, *modelBunny;
 	GLuint depthMapFBO, depthCubemap;

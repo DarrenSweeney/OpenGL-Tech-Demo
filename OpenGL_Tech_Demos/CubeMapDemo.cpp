@@ -8,12 +8,17 @@ TODO(Darren):
 CubeMapDemo::CubeMapDemo()
 	: initalizeScene(true)
 {
-
+	bluePos = vector3(4.0f, 5.0f, 1.0f);
+	yellowPos = vector3(-5.0f, -1.0f, 1.0f);
+	greenPos = vector3(4.5f, -5.0f, 1.5f);
+	pinkPos = vector3(-3.5f, 7.0f, 5.0f);
+	redPos = vector3(15.0f, -3.5f, 0.0f);
 }
 
 CubeMapDemo::~CubeMapDemo()
 {
 	// TODO(Darren): Delete the buffers when switching scenes.
+	std::cout << "deconstructor called" << std::endl;
 }
 
 /*
@@ -123,8 +128,7 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 	}
 }
 
-// TODO(Darren): Reset up the buffers when the screen is resised
-void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
+void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, GLfloat deltaTime)
 {
 	camera.ControllerMovement();
 
@@ -135,7 +139,6 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	GLfloat nearPlane = 1.0f;
 	GLfloat farPlane = 1000.0f;
 	glm::mat4 projection_ = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
-	glm::mat4 shadowProj = projection_;
 
 	Matrix4 cubemapProjection = cubemapProjection.perspectiveProjection(camera.zoom, 1.0f, 1.0f, 500.0f);
 	std::vector<Matrix4> cubemapTransforms;
@@ -162,6 +165,7 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	//glDepthFunc(GL_GREATER);  // 1/w depth buffer: closer objects have greater depth
 	// render to positive X face
 	// bind cube map face to current framebuffer as render target
+	// TODO(Darren): Try doing this in one render pass.
 	for (GLuint face = 0; face < 6; ++face)
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -205,7 +209,7 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, glm::value_ptr(v));
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection_));
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
-		RenderScene(*shaderEnviromentObject);
+		RenderScene(*shaderEnviromentObject, deltaTime);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind FBO, set default framebuffer
@@ -232,12 +236,12 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 		modelSphere->Draw(*shaderModel);
 		break;
 	case 1:
-		model = model.scale(vector3(0.1f, 0.1f, 0.1f));
-		//glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
+		model = model.scale(vector3(2.5f, 2.5f, 2.5f));
+		glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
 		modelBunny->Draw(*shaderModel);
 		break;
 	case 2:
-		model = model.scale(vector3(0.1f, 0.1f, 0.1f));
+		model = model.scale(vector3(0.2f, 0.2f, 0.2f));
 		glUniformMatrix4fv(glGetUniformLocation(shaderModel->Program, "model"), 1, GL_FALSE, model.data);
 		modelUtahTeaPot->Draw(*shaderModel);
 		break;
@@ -248,7 +252,7 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, projection.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "model"), 1, GL_FALSE, model.data);
-	RenderScene(*shaderEnviromentObject);
+	RenderScene(*shaderEnviromentObject, deltaTime);
 
 	// skybox 
 	shaderSkyBox->Use();
@@ -265,42 +269,53 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 	// NOTE(Darren): Really need to do this!!!
 }
 
-void CubeMapDemo::RenderScene(Shader &shader)
+void CubeMapDemo::RenderScene(Shader &shader, GLfloat deltaTime)
 {
 	shader.Use();
+
+	// NOTE(Darren): Make this into seperate method called UpdateCubes because
+	// im calling update of positions when binding the framebuffer.
+	if (animateScene)
+	{
+		redPos.y += cos(glfwGetTime()) * 0.5f * deltaTime;
+
+		bluePos.x += sin(glfwGetTime()) * 0.5f * deltaTime;
+		bluePos.z += cos(glfwGetTime()) * 0.5f * deltaTime;
+
+		yellowPos.y += sin(glfwGetTime()) * 0.5f * deltaTime;
+		yellowPos.z += cos(glfwGetTime()) * 0.5f * deltaTime;
+
+		greenPos.x += sin(glfwGetTime()) * 0.5f * deltaTime;
+		greenPos.z += cos(glfwGetTime()) * 0.5f * deltaTime;
+
+		pinkPos.x += sin(glfwGetTime()) * 0.5f * deltaTime;
+		pinkPos.y += cos(glfwGetTime()) * 0.5f * deltaTime;
+	}
+
 	Matrix4 model = Matrix4();
-	model = model.translate(vector3(15.0f, -3.5f, 0.0f));
+	model = model.translate(redPos);
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, redTex);
 	SceneModels::RenderCube();
-
-	vector3 translatePos;
-	if (moveLights)
-	{
-		translatePos.x += sin(glfwGetTime()) * 4.5f;
-		//translatePos.y += sin(glfwGetTime()) * 4.5f;
-		translatePos.z += cos(glfwGetTime()) * 4.5f;
-	}
-
 	model = Matrix4();
-	model = model.translate(vector3(4.0f, 5.0f, 1.0f) + translatePos);
+	model = model.translate(bluePos);
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, blueTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-5.0f, -1.0f, 0.0f) + translatePos);
+	model = model.translate(yellowPos);
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, yellowTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(-4.5f, 1.0f, 1.5f) + translatePos);
+	model = model.translate(greenPos);
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, greenTex);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(3.5f, 2.0f, 1.0f) + translatePos);
+	model = model.translate(pinkPos);
 	model = model.rotate(60.0f, vector3(1.0f, 0.0f, 1.0f).normalise());
 	model = model.scale(vector3(1.5f, 1.5f, 1.5f));
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);

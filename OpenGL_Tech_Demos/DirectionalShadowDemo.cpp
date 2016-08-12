@@ -1,22 +1,22 @@
-#include "ShadowMapping.h"
+#include "DirectionalShadowDemo.h"
 
 // GLM Mathemtics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-ShadowMapping::ShadowMapping()
+DirectionalShadowDemo::DirectionalShadowDemo()
 	: moveLight(false), ShadowWidth(1024), ShadowHeight(1024), initalizeScene(true)
 {
 
 }
 
-ShadowMapping::~ShadowMapping()
+DirectionalShadowDemo::~DirectionalShadowDemo()
 {
 	// TODO(Darren): Delete the buffers.
 }
 
-void ShadowMapping::InitalizeScene()
+void DirectionalShadowDemo::InitalizeScene()
 {
 	if (initalizeScene)
 	{
@@ -25,7 +25,6 @@ void ShadowMapping::InitalizeScene()
 
 		shaderShadowMap = ResourceManager::GetShader("ShadowMapping");
 		shaderDepth = ResourceManager::GetShader("ShadowMappingDepth");
-		shaderDebugQuad = ResourceManager::GetShader("DebugQuadDepth");
 		shaderLightBox = ResourceManager::GetShader("LightBox");
 
 		shaderShadowMap->Use();
@@ -69,7 +68,7 @@ void ShadowMapping::InitalizeScene()
 	}
 }
 
-void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
+void DirectionalShadowDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
 	// NOTE(Darren): From the CPU dignostic test _glfwPlatformJoystickPresent is using 71.09% 
 	// of 74.18%, why is the joystick using so much resources?
@@ -139,18 +138,9 @@ void ShadowMapping::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scr
 		glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 		SceneModels::RenderCube();
 	}
-
-	//// 3. DEBUG: visualize depth map by rendering it to plane
-	//shaderDebugQuad->Use();
-	//// NOTE(Darren): Need these?
-	//glUniform1f(glGetUniformLocation(shaderDebugQuad->Program, "near_plane"), near_plane);
-	//glUniform1f(glGetUniformLocation(shaderDebugQuad->Program, "far_plane"), far_plane);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, depthMap);
-	//SceneModels::RenderQuad();
 }
 
-void ShadowMapping::RenderScene(Shader &shader)
+void DirectionalShadowDemo::RenderScene(Shader &shader)
 {
 	// Floor
 	glActiveTexture(GL_TEXTURE0);
@@ -162,7 +152,6 @@ void ShadowMapping::RenderScene(Shader &shader)
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cubeTextureID);
-	// TODO(Darren): Check if matrix multiplication order is correct for this sort of stuff.
 	model = Matrix4();
 	model = model.translate(vector3(0.0f, -1.0f, 2.0f));
 	model = model.scale(vector3(0.5f, 0.5f, 0.5f));
@@ -186,7 +175,7 @@ void ShadowMapping::RenderScene(Shader &shader)
 }
 
 // TODO(Darren): This should be in resource manager.
-GLuint ShadowMapping::GenerateMultiSampleTexture(GLuint samples)
+GLuint DirectionalShadowDemo::GenerateMultiSampleTexture(GLuint samples)
 {
 	GLuint texture;
 	glGenTextures(1, &texture);

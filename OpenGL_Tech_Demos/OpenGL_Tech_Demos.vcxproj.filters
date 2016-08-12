@@ -45,14 +45,14 @@
     <Filter Include="Shaders\ParallaxingMappingDemo">
       <UniqueIdentifier>{cc52b13e-8b5b-46cf-b410-03daa8330f24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\ShadowMapDemo">
-      <UniqueIdentifier>{40bd7793-1b83-4dce-ba63-837dbbba3be0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\SSAO_Demo">
       <UniqueIdentifier>{e4d6d7e1-672e-4b14-810c-57b0c83ff520}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\StencilReflectionDemo">
       <UniqueIdentifier>{46ece838-f48f-4f73-8f0f-b1e0cb7d4e9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\DirectionalShadowDemo">
+      <UniqueIdentifier>{40bd7793-1b83-4dce-ba63-837dbbba3be0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -104,9 +104,6 @@
     <ClCompile Include="..\..\..\..\Desktop\imgui-master\imgui-master\examples\libs\gl3w\GL\gl3w.c">
       <Filter>gl3w</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowMapping.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HDR_Demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -142,6 +139,9 @@
     </ClCompile>
     <ClCompile Include="Math\MathHelper.cpp">
       <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalShadowDemo.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -202,9 +202,6 @@
     <ClInclude Include="mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowMapping.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HDR_Demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,6 +237,9 @@
     </ClInclude>
     <ClInclude Include="Math\MathHelper.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalShadowDemo.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -349,22 +349,22 @@
       <Filter>Shaders\ParallaxingMappingDemo</Filter>
     </None>
     <None Include="Shaders\ShadowMapDemo\debugQuadDepth.frag">
-      <Filter>Shaders\ShadowMapDemo</Filter>
+      <Filter>Shaders\DirectionalShadowDemo</Filter>
     </None>
     <None Include="Shaders\ShadowMapDemo\debugQuadDepth.vert">
-      <Filter>Shaders\ShadowMapDemo</Filter>
+      <Filter>Shaders\DirectionalShadowDemo</Filter>
     </None>
     <None Include="Shaders\ShadowMapDemo\ShadowMapping.frag">
-      <Filter>Shaders\ShadowMapDemo</Filter>
+      <Filter>Shaders\DirectionalShadowDemo</Filter>
     </None>
     <None Include="Shaders\ShadowMapDemo\ShadowMapping.vert">
-      <Filter>Shaders\ShadowMapDemo</Filter>
+      <Filter>Shaders\DirectionalShadowDemo</Filter>
     </None>
     <None Include="Shaders\ShadowMapDemo\ShadowMappingDepth.frag">
-      <Filter>Shaders\ShadowMapDemo</Filter>
+      <Filter>Shaders\DirectionalShadowDemo</Filter>
     </None>
     <None Include="Shaders\ShadowMapDemo\ShadowMappingDepth.vert">
-      <Filter>Shaders\ShadowMapDemo</Filter>
+      <Filter>Shaders\DirectionalShadowDemo</Filter>
     </None>
     <None Include="Shaders\SSAO_Demo\ssao_blur.frag">
       <Filter>Shaders\SSAO_Demo</Filter>
@@ -403,6 +403,11 @@
     </None>
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.frag">
       <Filter>Shaders\CubeMapDemo</Filter>
+    </None>
+    <None Include="light_box_blur.frag" />
+    <None Include="light_box_bloom.frag" />
+    <None Include="Shaders\HDR_Demo\light_box_bloom.frag">
+      <Filter>Shaders\HDR_Demo</Filter>
     </None>
   </ItemGroup>
 </Project>

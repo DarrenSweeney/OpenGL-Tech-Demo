@@ -23,7 +23,7 @@ public:
 	~CubeMapDemo();
 
 	bool initalizeScene;
-	bool moveLights;
+	bool animateScene;
 	int currentModelID;
 
 	// Sort this out
@@ -34,7 +34,7 @@ public:
 	GLuint redTex, blueTex, yellowTex, greenTex, pinkTex;
 
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
-	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
+	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, GLfloat deltaTime);
 
 private:
 	std::vector<const GLchar*> faces;
@@ -43,12 +43,17 @@ private:
 	Model *modelUtahTeaPot, *modelSphere, *modelBunny;
 
 	glm::vec3 modelOrigin;
+	vector3 bluePos;
+	vector3 yellowPos;
+	vector3 greenPos;
+	vector3 pinkPos;
+	vector3 redPos;
 
 	Shader *shaderCubeMap;
 	Shader *modelCubes;
 	GLuint woodTextureID;
 
-	void RenderScene(Shader &shader);
+	void RenderScene(Shader &shader, GLfloat deltaTime);
 };
 
 #endif

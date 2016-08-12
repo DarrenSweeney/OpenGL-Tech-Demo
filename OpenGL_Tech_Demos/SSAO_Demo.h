@@ -16,6 +16,12 @@ public:
 	SSAO_Demo();
 	~SSAO_Demo();
 
+	bool renderSSAO;
+	int kernelSize;
+	float radius;
+	int samples;
+	int noiseScale;
+
 	bool initalizeScene;
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized);
@@ -23,7 +29,8 @@ public:
 private:
 	Shader *shaderGeometryPass, *shaderLightingPass;
 	Shader *shaderSSAO, *shaderSSAOBlur;
-	Model *sceneModel;
+	Model *modelSphere, *modelMonkey, *modelStatue;
+	GLuint diffuse_texture;
 	vector3 lightPos, lightColor;
 	GLuint gBuffer;
 	GLuint gPositionDepth, gNormal, gAlbedo;

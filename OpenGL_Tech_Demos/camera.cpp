@@ -11,7 +11,7 @@ Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitc
 	UpdateCameraVectors();
 
 	flyCamera = true;		// ---
-	movementSpeed = 7.0f;	// ---
+	movementSpeed = 5.0f;	// ---
 }
 
 Matrix4 &Camera::Camera::GetViewMatrix()

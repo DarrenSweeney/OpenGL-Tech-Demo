@@ -7,7 +7,7 @@
 
 
 SSAO_Demo::SSAO_Demo()
-	: initalizeScene(true)
+	: initalizeScene(true), kernelSize(64), radius(1.0f), samples(64), noiseScale(4)
 {
 
 }
@@ -30,6 +30,8 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		shaderSSAO = ResourceManager::GetShader("ssao");
 		shaderSSAOBlur = ResourceManager::GetShader("ssao_blur");
 
+		diffuse_texture = ResourceManager::LoadTexture("Resources/marble.jpg");
+
 		// Set samplers
 		shaderLightingPass->Use();
 		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "gPositionDepth"), 0);
@@ -37,22 +39,29 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "gAlbedo"), 2);
 		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "ssao"), 3);
 		shaderSSAO->Use();
+		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "diffuse"), 5);
 		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "gPositionDepth"), 0);
 		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "gNormal"), 1);
 		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "texNoise"), 2);
+		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "screenWidth"), screenWidth);
+		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "screenHeight"), screenHeight);
+		shaderGeometryPass->Use();
+		glUniform1i(glGetUniformLocation(shaderGeometryPass->Program, "diffuse_texture"), 5);
 
-		sceneModel = ResourceManager::GetModel("Utah_Teapot");
+		modelSphere = ResourceManager::GetModel("Sphere");
+		modelMonkey = ResourceManager::GetModel("Monkey");
+		modelStatue = ResourceManager::GetModel("Statue");
 
 		// Lights
-		lightPos = vector3(2.0f, 4.0f, -2.0f);
-		lightColor = vector3(0.2f, 0.2f, 0.7f);
+		lightPos = vector3(2.0f, 4.0f, 0.0f);
+		lightColor = vector3(1.0f, 1.0f, 1.0f);
 
 		SetupBuffers(screenWidth, screenHeight);
 
 		// Sample kernel
 		randomFloats = std::uniform_real_distribution<GLfloat>(0.0, 1.0); // generates random floats between 0.0 and 1.0
 
-		for (GLuint i = 0; i < 16; ++i)
+		for (GLuint i = 0; i < 64; ++i)
 		{
 			vector3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
 			sample = sample.normalise();
@@ -164,7 +173,13 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	camera.ControllerMovement();
 
 	if (windowResized)
+	{
 		SetupBuffers(screenWidth, screenHeight);
+
+		shaderSSAO->Use();
+		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "screenWidth"), screenWidth);
+		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "screenHeight"), screenHeight);
+	}
 
 	// 1. Geometry Pass: render scene's geometry/color data into gbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -179,13 +194,35 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	model = model.translate(vector3(0.0, -1.0f, 0.0f));
 	model = model.scale(vector3(20.0f, 1.0f, 20.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
+	//glActiveTexture(GL_TEXTURE5);
+	//glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+	SceneModels::RenderCube();
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	glm::mat4 model_ = glm::mat4();
+	model_ = glm::translate(model_, glm::vec3(-3.5f, 0.0f, 0.0f));
+	model_ = glm::scale(model_, glm::vec3(3.0f, 1.0f, 3.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
 	SceneModels::RenderCube();
 	// Render model on the floor
 	model = Matrix4();
-	model = model.rotate(0.0f, vector3(1.0, 0.0, 0.0));
-	model = model.scale(vector3(0.05f, 0.05f, 0.05f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
-	sceneModel->Draw(*shaderGeometryPass);
+	model = model.translate(vector3(0.0f, -0.5f, 0.0f));
+
+	model_ = glm::mat4();
+	model_ = glm::translate(model_, glm::vec3(0.0f, 0.5f, 5.0));
+	//model_ = glm::rotate(model_, -90.0f, glm::vec3(1.0, 0.0, 0.0));
+	model_ = glm::scale(model_, glm::vec3(0.5f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	modelSphere->Draw(*shaderGeometryPass);
+	model_ = glm::mat4();
+	model_ = glm::translate(model_, glm::vec3(-1.2f, 0.5f, -1.0));
+	model_ = glm::rotate(model_, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	modelMonkey->Draw(*shaderGeometryPass);
+	model_ = glm::mat4();
+	model_ = glm::translate(model_, glm::vec3(5.0f, -0.5f, -5.0));
+	model_ = glm::scale(model_, glm::vec3(0.04f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	modelStatue->Draw(*shaderGeometryPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 2. Create SSAO texture
@@ -193,6 +230,8 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	glClear(GL_COLOR_BUFFER_BIT);
 	// TODO(Darren): Will have to optimise the ssao frag shader. Take out matrix calculations:)
 	shaderSSAO->Use();
+	//glUniform1i(glGetUniformLocation(shaderSSAO->Program, "kernelSize"), kernelSize);
+	//glUniform1i(glGetUniformLocation(shaderSSAO->Program, "radius"), radius);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, gPositionDepth);
 	glActiveTexture(GL_TEXTURE1);
@@ -200,15 +239,15 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	// Send kernel + rotation 
-	for (GLuint i = 0; i < 16; ++i)
+	for (GLuint i = 0; i < 64; ++i)
 	{
 		GLfloat ssaoKernelData[] = {ssaoKernel[i].x, ssaoKernel[i].y, ssaoKernel[i].z};	
 		glUniform3fv(glGetUniformLocation(shaderSSAO->Program, ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssaoKernelData[0]);
 	}
 	glUniformMatrix4fv(glGetUniformLocation(shaderSSAO->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	SceneModels::RenderQuad();
+	//if(renderSSAO)
+		SceneModels::RenderQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 
 	// 3. Blur SSAO texture to remove noise
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);

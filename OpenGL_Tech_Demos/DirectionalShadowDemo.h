@@ -10,11 +10,11 @@
 #include <SOIL\SOIL.h>
 #include <GL/glext.h>
 
-class ShadowMapping
+class DirectionalShadowDemo
 {
 public:
-	ShadowMapping();
-	~ShadowMapping();
+	DirectionalShadowDemo();
+	~DirectionalShadowDemo();
 
 	bool initalizeScene;
 	GLuint depthMap, depthMapFBO;
@@ -26,7 +26,6 @@ public:
 private:
 	Model *modelTree, *modelTeapot, *modelRock;
 	Shader *shaderDepth, *shaderShadowMap;
-	Shader *shaderDebugQuad;
 	Shader *shaderLightBox;
 	vector3 lightPosition;
 	GLuint floorTextureID, cubeTextureID, teapotTextureID;

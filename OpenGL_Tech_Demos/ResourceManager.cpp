@@ -26,7 +26,7 @@ Model* ResourceManager::GetModel(std::string name)
 
 void ResourceManager::Clear()
 {
-	// (Properly) delete all shaders	
+	// (Properly) delete all shaders
 	for (auto iter : Shaders)
 		glDeleteProgram(iter.second.Program);
 	// TODO(Darren): Delete all the models.
@@ -169,6 +169,8 @@ void ResourceManager::LoadAllDemoResources()
 		"Bloom");
 	LoadShader("Shaders/HDR_Demo/blur.vert", "Shaders/HDR_Demo/blur.frag", NULL,
 		"Blur");
+	LoadShader("Shaders/HDR_Demo/bloom.vert", "Shaders/HDR_Demo/light_box_bloom.frag", NULL,
+		"LightBoxBloom");
 
 	// Omnidirectional Shadow Mapping Demo.
 	LoadShader("Shaders/OmnidirectionalShadowDemo/point_shadows.vert", "Shaders/OmnidirectionalShadowDemo/point_shadows.frag", NULL,
@@ -239,6 +241,10 @@ void ResourceManager::LoadAllDemoResources()
 		"ssao");
 	LoadShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_blur.frag", NULL, 
 		"ssao_blur");
+	LoadModel("Resources/nanosuit/nanosuit.obj", false, 
+		"nanosuit");
+	LoadModel("Resources/statue.obj", false,
+		"Statue");
 
 	// General Shaders
 	LoadShader("Shaders/light_box.vert", "Shaders/light_box.frag", NULL,

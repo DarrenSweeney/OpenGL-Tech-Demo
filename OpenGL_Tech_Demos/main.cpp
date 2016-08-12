@@ -6,7 +6,7 @@
 
 // Demos
 #include "CubeMapDemo.h"
-#include "ShadowMapping.h"
+#include "DirectionalShadowDemo.h"
 #include "HDR_Demo.h"
 #include "StencilReflectionsDemo.h"
 #include "InstancingDemo.h"
@@ -36,7 +36,6 @@
 
 // Camera movement for all the scene demos.
 Camera camera(vector3(0.0f, 1.5f, 4.0f));
-void SceneMovement();
 
 // GLFW Callback functions.
 static void error_callback(int error, const char* description);
@@ -152,9 +151,6 @@ inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 	}
 }
 
-// NOTE(Darren): Just for testings.
-bool switchDeltaTime;
-
 int main(int, char**)
 {
     // Setup window
@@ -214,29 +210,28 @@ int main(int, char**)
 	ObjectOutlineDemo *objectOutlineDemo = new ObjectOutlineDemo();
 	DeferredRenderingDemo *deferredRenderingDemo = new DeferredRenderingDemo();
 	CubeMapDemo *cubeMapDemo = new CubeMapDemo();
-	ShadowMapping *directionalShadowDemo = new ShadowMapping();		// TODO(Darren): Rename this.
+	DirectionalShadowDemo *directionalShadowDemo = new DirectionalShadowDemo();
 	ParallaxMappingDemo *parallaxingDemo = new ParallaxMappingDemo();
 	SSAO_Demo *ssao_Demo = new SSAO_Demo();
 
 	enum Demos
 	{
-		cubeMap,					// ------------
-		directionalShadow,			// *** DONE ***
-		hdr,						// *** DONE ***
-		stencilReflection,			// *** DONE ***
-		instancing,					// *** DONE ***
-		deferredRendering,			// *** DONE ***
-		objectOutline,				// *** DONE ***
-		ssao,						// ------------
-		parallaxingMapping,			// *** DONE ***
-		omnidirectionalShadow,		// *** DONE ***
-		modelLoading				// *** DONE ***
+		cubeMap,
+		directionalShadow,
+		hdr,
+		stencilReflection,
+		instancing,
+		deferredRendering,
+		objectOutline,
+		ssao,
+		parallaxingMapping,
+		omnidirectionalShadow,
+		modelLoading
 	};
 
-	Demos currentDemo = Demos::cubeMap;
-
-	// TODO(Darren): Fill out demo info for each demo.
-	const char* demoInfo = " ";
+	// The first demo will be the dynamic enviroment cube map demo.
+	Demos currentDemo = Demos::ssao;
+	const char* demoInfo = "Enviroment cube mapping done by rendering the scene each frame from the models orgin to each face of a cube map and subsequently applying that cubemap texture to the model.";
 
 	// Scene opitions.
 	bool wireframeMode = false;
@@ -253,9 +248,6 @@ int main(int, char**)
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// TODO(Darren): Make use of delta time.
-		camera.deltaTime = deltaTime;
-		SceneMovement();
 		camera.KeyboardMovement(keys, deltaTime);
 
 		SetupImGuiStyle(true, 1.0f);
@@ -268,31 +260,22 @@ int main(int, char**)
 
 #pragma region ImGui
 
-		/*int texture_id = omnidirectionalShadowDemo.depthCubemap;
-
-		ImGui::Begin("Cube Map - Framebuffer Test", &windowOpened, ImVec2(430, 250), 0.5f, ImGuiWindowFlags_NoSavedSettings);
-		ImGui::SetWindowPos(ImVec2(screenWidth - 460, screenHeight - 300));
-		ImVec2 uv0 = ImVec2(0, 1);
-		ImVec2 uv1 = ImVec2(1, 0);
-		ImGui::Image((ImTextureID)texture_id, ImVec2(400, 200), uv0, uv1);
-		ImGui::End();*/
-
 		ImGui::Begin("OpenGL Tech Demos", &ImGui_WindowOpened, ImVec2(0, 0), 0.5f, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
 		ImGui::SetWindowPos(ImVec2(10, 10));
 		ImGui::SetWindowSize(ImVec2(255, screenHeight - 20));
-		//ImGui::Text("Application average:\n\t %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-		//ImGui::Checkbox("Delta Time Mode", &switchDeltaTime);
 
 		if (ImGui::CollapsingHeader("Demos", 0, true, true))
 		{
 			if (ImGui::TreeNode("Cube Mapping"))
 			{
 				bool clicked = ImGui::Button("Cube Mapping Demo");
-				if(clicked)
+				if (clicked)
+				{
 					currentDemo = Demos::cubeMap;
+					demoInfo = "Enviroment cube mapping done by rendering the scene each frame from the models orgin to each face of a cube map and subsequently applying that cubemap texture to the model.";
+				}
 
-				ImGui::Checkbox("Move Lights", &cubeMapDemo->moveLights);
+				ImGui::Checkbox("Animate Scene", &cubeMapDemo->animateScene);
 				
 				const char* items[] = 
 				{ 
@@ -311,7 +294,7 @@ int main(int, char**)
 				if (clicked)
 				{
 					currentDemo = Demos::instancing;
-					demoInfo = "Example showing rendering of 6,000 objects, 3,000 grass and 3,000 rock objects.";
+					demoInfo = "Example showing rendering of 6,000 objects, 3,000 grass and 3,000 rock objects though instancing";
 				}
 				ImGui::TreePop();
 			}
@@ -321,7 +304,7 @@ int main(int, char**)
 				if (clicked)
 				{
 					currentDemo = Demos::deferredRendering;
-					demoInfo = "Defered Rendering of 100 Light sources around 100 models..\n";
+					demoInfo = "Example showing deferred Rendering of 100 Light sources around 100 models\n";
 				}
 				ImGui::Checkbox("Move Lights", &deferredRenderingDemo->moveLights);
 				ImGui::Checkbox("Toggle Lights", &deferredRenderingDemo->renderLights);
@@ -333,7 +316,7 @@ int main(int, char**)
 				if (clicked)
 				{
 					currentDemo = Demos::modelLoading;
-					demoInfo = "I used Assimp libiary to load the model\nMore info here.\n";
+					demoInfo = "Loading of a .obj model using the assimp libiary, demonstrating applying diffuse, specular, bump and reflection maps.\n";
 				}
 				ImGui::Checkbox("Display Normals", &modelLoadingDemo->showNormals);
 				ImGui::Checkbox("Display Enviroment Map", &modelLoadingDemo->showCubemap);
@@ -347,7 +330,7 @@ int main(int, char**)
 					if (clicked)
 					{
 						currentDemo = Demos::stencilReflection;
-						demoInfo = "Shows stencil refleciton. By turning off the plane texutre you can see more clearly that the shadows are precerved when reflected.";
+						demoInfo = "Shows refleciton of the objects on the floor using the stencil buffer. By turning off the plane texutre you can see more clearly that the shadows are precerved when reflected.";
 					}
 					ImGui::Checkbox("Plane Texture Off", &stencilReflectionDemo->planeTextureOff);
 					ImGui::TreePop();
@@ -357,7 +340,10 @@ int main(int, char**)
 				{
 					bool clicked = ImGui::Button("Stencil Outline Demo");
 					if (clicked)
+					{
 						currentDemo = Demos::objectOutline;
+						demoInfo = "Shows outline of enenmy models and abilty to see them though walls using the stencil buffer.";
+					}
 					ImGui::Checkbox("Render Lights", &objectOutlineDemo->renderLights);
 					ImGui::TreePop();
 				}
@@ -370,7 +356,7 @@ int main(int, char**)
 				if (clicked)
 				{
 					currentDemo = Demos::parallaxingMapping;
-					demoInfo = "Demostates steep parallax mapping along a walkable cobble floor.";
+					demoInfo = "Demonstates steep parallax mapping allowing for steep viewing angles inside a cube made up of 6 planes.";
 				}
 				ImGui::SliderFloat("Depth", &parallaxingDemo->heightScale, 0.005f, 0.10f, "%.3f");
 				ImGui::Checkbox("Enable Parallax", &parallaxingDemo->enableParallax);
@@ -383,8 +369,10 @@ int main(int, char**)
 				if (clicked)
 				{
 					currentDemo = Demos::hdr;
-					demoInfo = "";
+					demoInfo = "Demonstates high dynamic range lighting with bloom lights in a stretch of tunnel with bright and dark areas.";
 				}
+				// Slider will fill the space and leave 60 pixels for the label
+				ImGui::PushItemWidth(-60);
 				ImGui::SliderFloat("Exposure", &hdrDemo->exposure, 0.1f, 5.0f, "%.3f");
 				ImGui::Checkbox("Render Lights", &hdrDemo->renderLights);
 				ImGui::TreePop();
@@ -394,8 +382,11 @@ int main(int, char**)
 				if (ImGui::TreeNode("Directional Shadow Maps"))
 				{
 					bool clicked = ImGui::Button("Directional Shadow Demo");
-					if(clicked)
+					if (clicked)
+					{
 						currentDemo = Demos::directionalShadow;
+						demoInfo = "Demonstrates directional shadow mapping from a point light source, a depth map is generated from the lights perspective to calculate the shadow.";
+					}
 					ImGui::Checkbox("Move Light Source", &directionalShadowDemo->moveLight);
 					ImGui::Checkbox("Render Light", &directionalShadowDemo->renderLight);
 					ImGui::TreePop();
@@ -405,7 +396,10 @@ int main(int, char**)
 				{
 					bool clicked = ImGui::Button("Omnidirectional Shadow Demo");
 					if (clicked)
+					{ 
 						currentDemo = Demos::omnidirectionalShadow;
+						demoInfo = "Demonstrates omnidirectional shadow mapping where a depth cube map is generated from the ligths position, the cube map is the sampled to generated the enviroment shadows.";
+					}
 					ImGui::Checkbox("Move Light Source", &omnidirectionalShadowDemo->moveLight);
 					ImGui::Checkbox("Render Light", &omnidirectionalShadowDemo->renderLight);
 					ImGui::TreePop();
@@ -417,7 +411,17 @@ int main(int, char**)
 			{
 				bool clicked = ImGui::Button("SSAO Demo");
 				if (clicked)
+				{
 					currentDemo = Demos::ssao;
+					demoInfo = "Demonstrates screen based ambient occlusion by sampling a normal oriented hemisphere kernel on the depth buffer to generate a per-pixel occlusion factor in screen space, which is then used as an input to the lighting model.";
+				}
+				// Slider will fill the space and leave 80 pixels for the label
+				ImGui::PushItemWidth(-80);
+				//ImGui::Checkbox("Render SSAO", &ssao_Demo->renderSSAO);
+				ImGui::SliderInt("Kernel Size", &ssao_Demo->kernelSize, 0, 64, "%.3f");
+				ImGui::SliderFloat("Radius", &ssao_Demo->radius, 0.0f, 4.0f, "%.3f");
+				ImGui::SliderInt("Samples", &ssao_Demo->samples, 0, 64, "%.3f");
+				ImGui::SliderInt("Noise Scale", &ssao_Demo->noiseScale, 0, 8, "%.3f");
 				ImGui::TreePop();
 			}
 		}
@@ -429,12 +433,11 @@ int main(int, char**)
 		{
 			char* version = (char*)glGetString(GL_VERSION);
 			char* renderer = (char*)glGetString(GL_RENDERER);
-
-			// TODO(Darren): Figure out how to add the two string together.
+			
+			ImGui::Text("Version:");
 			ImGui::Text(version);
+			ImGui::Text("Renderer:");
 			ImGui::Text(renderer);
-			ImGui::Text("Draw Calls: ");
-			ImGui::Text("Post Processing Time: ");
 
 			ImGui::Checkbox("FullScreen", &fullscreen);
 		}
@@ -443,24 +446,24 @@ int main(int, char**)
 			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
 
-		if (ImGui::CollapsingHeader("Debug Controls", 0, true, true))
-		{
-			if (ImGui::TreeNode("Camera"))
-			{
-				ImGui::Checkbox("Fly Camera", &camera.flyCamera);
+		//if (ImGui::CollapsingHeader("Debug Controls", 0, true, true))
+		//{
+		//	if (ImGui::TreeNode("Camera"))
+		//	{
+		//		ImGui::Checkbox("Fly Camera", &camera.flyCamera);
 
-				// TODO(Darren): Figure out a way i can render labels above sliders.
-				ImGui::SliderFloat("movement_speed", &camera.movementSpeed, 0.0f, 50.0f, "%.3f");
-				ImGui::SliderFloat("camera_speed", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
+		//		// TODO(Darren): Figure out a way i can render labels above sliders.
+		//		ImGui::SliderFloat("movement_speed", &camera.movementSpeed, 0.0f, 50.0f, "%.3f");
+		//		ImGui::SliderFloat("camera_speed", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
 
-				// Camera Bobing
-				ImGui::SliderFloat("camera_ampletude", &camera.ampletude, 0.0f, 1.0f, "%.36f");
-				ImGui::SliderFloat("camera_frequincy", &camera.frequincy, 0.0f, 1.0f, "%.36f");
-				ImGui::TreePop();
-			}
+		//		// Camera Bobing
+		//		ImGui::SliderFloat("camera_ampletude", &camera.ampletude, 0.0f, 1.0f, "%.36f");
+		//		ImGui::SliderFloat("camera_frequincy", &camera.frequincy, 0.0f, 1.0f, "%.36f");
+		//		ImGui::TreePop();
+		//	}
 
-			ImGui::Checkbox("Wireframe Mode", &wireframeMode);
-		}
+		//	ImGui::Checkbox("Wireframe Mode", &wireframeMode);
+		//}
 		ImGui::End();
 #pragma endregion
 
@@ -473,7 +476,7 @@ int main(int, char**)
 			case Demos::cubeMap:
 			{
 				cubeMapDemo->InitalizeScene(screenWidth, screenHeight);
-				cubeMapDemo->UpdateScene(camera, screenWidth, screenHeight);
+				cubeMapDemo->UpdateScene(camera, screenWidth, screenHeight, deltaTime);
 
 				break;
 			}
@@ -593,11 +596,6 @@ int main(int, char**)
 	glfwTerminate();
 
     return 0;
-}
-
-void SceneMovement()
-{
-	camera.KeyboardMovement(keys, switchDeltaTime ? ImGui::GetIO().DeltaTime : deltaTime);
 }
 
 #pragma region "GLFW callbacks"

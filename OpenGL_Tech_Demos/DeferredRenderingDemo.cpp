@@ -193,8 +193,6 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 
-	// TODO(Darren): Need to create a better way to pass vector data to the uniforms.
-
 	// Also send light relevant uniforms
 	for (GLuint i = 0; i < lightPositions.size(); i++)
 	{

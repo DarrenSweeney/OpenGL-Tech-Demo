@@ -139,11 +139,11 @@ void SceneModels::RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale)
 			//	  Positions				 Normal			Texture Coords
 			// Back face
 			-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 0.0f,		// Bottom-left
-			 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	xScale, yScale,		// top-right
-			 0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	xScale, 0.0f,		// bottom-right         
-			 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	xScale, yScale,		// top-right
+			 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	1.0f, 1.0f,		// top-right
+			 0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	1.0f, 0.0f,		// bottom-right         
+			 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	1.0f, 1.0f,		// top-right
 			-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 0.0f,		// bottom-left
-			-0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, yScale,		// top-left
+			-0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 1.0f,		// top-left
 			// Front face
 			-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,		// bottom-left
 			 0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 0.0f,		// bottom-right

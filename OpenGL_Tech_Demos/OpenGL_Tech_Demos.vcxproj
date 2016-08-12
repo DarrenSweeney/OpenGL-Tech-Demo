@@ -179,7 +179,7 @@
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SceneModels.cpp" />
     <ClCompile Include="shader.cpp" />
-    <ClCompile Include="ShadowMapping.cpp" />
+    <ClCompile Include="DirectionalShadowDemo.cpp" />
     <ClCompile Include="SSAO_Demo.cpp" />
     <ClCompile Include="StencilReflectionDemo.cpp" />
   </ItemGroup>
@@ -213,7 +213,7 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SceneModels.h" />
     <ClInclude Include="shader.h" />
-    <ClInclude Include="ShadowMapping.h" />
+    <ClInclude Include="DirectionalShadowDemo.h" />
     <ClInclude Include="SSAO_Demo.h" />
     <ClInclude Include="StencilReflectionsDemo.h" />
   </ItemGroup>
@@ -223,6 +223,8 @@
     <None Include="dynamicCubeMap.gs" />
     <None Include="dynamicCubeMap.vert" />
     <None Include="dynamicCubMap.frag" />
+    <None Include="light_box_bloom.frag" />
+    <None Include="light_box_blur.frag" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.frag" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.gs" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.vert" />
@@ -242,6 +244,7 @@
     <None Include="Shaders\HDR_Demo\blur.vert" />
     <None Include="Shaders\HDR_Demo\HDR.frag" />
     <None Include="Shaders\HDR_Demo\HDR.vert" />
+    <None Include="Shaders\HDR_Demo\light_box_bloom.frag" />
     <None Include="Shaders\InstancingDemo\grass.frag" />
     <None Include="Shaders\InstancingDemo\instance.vert" />
     <None Include="Shaders\light_box.frag" />

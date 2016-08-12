@@ -27,9 +27,6 @@ void OmnidirectionalShadowDemo::Initalize()
 		glUniform1i(glGetUniformLocation(shaderPointShadows->Program, "depthMap"), 1);
 		shaderPointShadowsDepth = ResourceManager::GetShader("PointShadowsDepth");
 		shaderLightBox = ResourceManager::GetShader("LightBox");
-		shaderCubeMap = ResourceManager::GetShader("Skybox");
-		shaderCubeMap->Use();
-		glUniform1i(glGetUniformLocation(shaderCubeMap->Program, "skybox"), 0);
 
 		// Light source
 		lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -141,18 +138,6 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 		glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 		SceneModels::RenderCube();
 	}
-
-	// skybox 
-	shaderCubeMap->Use();
-	view = camera.GetViewMatrix();
-	view.data[12] = 0; view.data[13] = 0; view.data[14] = 0;	// Take away the translation component.
-	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap->Program, "view"), 1, GL_FALSE, view.data);
-	glUniformMatrix4fv(glGetUniformLocation(shaderCubeMap->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-	SceneModels::RenderSkybox();
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void OmnidirectionalShadowDemo::RenderScene(Shader &shader)
