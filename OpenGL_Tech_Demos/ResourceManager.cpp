@@ -26,10 +26,8 @@ Model* ResourceManager::GetModel(std::string name)
 
 void ResourceManager::Clear()
 {
-	// (Properly) delete all shaders
 	for (auto iter : Shaders)
 		glDeleteProgram(iter.second.Program);
-	// TODO(Darren): Delete all the models.
 }
 
 Shader ResourceManager::loadShaderFromFile(const GLchar *vertexPath, const GLchar *fragmentPath, const GLchar *geometryPath)
@@ -151,7 +149,6 @@ GLuint ResourceManager::LoadCubeMap(std::vector<const GLchar*> faces)
 	return textureID;
 }
 
-// TODO(Darren): Need to start loading textures.
 void ResourceManager::LoadAllDemoResources()
 {
 	// Model Loading Demo.

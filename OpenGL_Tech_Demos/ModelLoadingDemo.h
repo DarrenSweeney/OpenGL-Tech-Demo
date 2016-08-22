@@ -22,8 +22,7 @@ public:
 
 private:
 	GLuint cubeMapTextureID;
-	bool normalMapping = true, inTangentSpace = true;
-	vector3 lightPosition;
+	bool normalMapping, inTangentSpace;
 	Shader *shaderModelLoading, *shaderNormal, *shaderSkybox;
 	Model *modelCyborg;
 };

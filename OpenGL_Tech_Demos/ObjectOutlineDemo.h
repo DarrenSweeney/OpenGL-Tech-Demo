@@ -7,7 +7,6 @@
 #include "model.h"
 #include "camera.h"
 #include "Math\MathHelper.h"
-#include <SOIL\SOIL.h>
 
 class ObjectOutlineDemo
 {

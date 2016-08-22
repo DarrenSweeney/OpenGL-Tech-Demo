@@ -1,11 +1,5 @@
 #include "SSAO_Demo.h"
 
-// GLM Mathemtics
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-
 SSAO_Demo::SSAO_Demo()
 	: initalizeScene(true), kernelSize(64), radius(1.0f), samples(64), noiseScale(4)
 {
@@ -14,7 +8,28 @@ SSAO_Demo::SSAO_Demo()
 
 SSAO_Demo::~SSAO_Demo()
 {
+	if (noiseTexture)
+		glDeleteTextures(1, &noiseTexture);
 
+	// Delete all the allocated buffers.
+	if(gBuffer)
+		glDeleteBuffers(1, &gBuffer);
+	if (gPositionDepth)
+		glDeleteBuffers(1, &gPositionDepth);
+	if(gNormal)
+		glDeleteBuffers(1, &gNormal);
+	if (gAlbedo)
+		glDeleteBuffers(1, &gAlbedo);
+	if (rboDepth)
+		glDeleteBuffers(1, &rboDepth);
+	if (ssaoFBO)
+		glDeleteBuffers(1, &ssaoFBO);
+	if (ssaoBlurFBO)
+		glDeleteBuffers(1, &ssaoBlurFBO);
+	if (ssaoColorBuffer)
+		glDeleteBuffers(1, &ssaoColorBuffer);
+	if (ssaoColorBufferBlur)
+		glDeleteBuffers(1, &ssaoColorBufferBlur);
 }
 
 void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
@@ -30,8 +45,6 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		shaderSSAO = ResourceManager::GetShader("ssao");
 		shaderSSAOBlur = ResourceManager::GetShader("ssao_blur");
 
-		diffuse_texture = ResourceManager::LoadTexture("Resources/marble.jpg");
-
 		// Set samplers
 		shaderLightingPass->Use();
 		glUniform1i(glGetUniformLocation(shaderLightingPass->Program, "gPositionDepth"), 0);
@@ -45,8 +58,6 @@ void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "texNoise"), 2);
 		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "screenWidth"), screenWidth);
 		glUniform1i(glGetUniformLocation(shaderSSAO->Program, "screenHeight"), screenHeight);
-		shaderGeometryPass->Use();
-		glUniform1i(glGetUniformLocation(shaderGeometryPass->Program, "diffuse_texture"), 5);
 
 		modelSphere = ResourceManager::GetModel("Sphere");
 		modelMonkey = ResourceManager::GetModel("Monkey");
@@ -170,8 +181,6 @@ GLfloat SSAO_Demo::Lerp(GLfloat a, GLfloat b, GLfloat f)
 
 void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool windowResized)
 {
-	camera.ControllerMovement();
-
 	if (windowResized)
 	{
 		SetupBuffers(screenWidth, screenHeight);
@@ -184,52 +193,54 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	// 1. Geometry Pass: render scene's geometry/color data into gbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 50.0f);
+	Matrix4 projection = Matrix4();
+	projection = projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 50.0f);
 	Matrix4 view = camera.GetViewMatrix();
-	Matrix4 model;
 	shaderGeometryPass->Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "view"), 1, GL_FALSE, &view.data[0]);
 	// Floor cube
-	model = model.translate(vector3(0.0, -1.0f, 0.0f));
-	model = model.scale(vector3(20.0f, 1.0f, 20.0f));
+	Matrix4 model = Matrix4();
+	Matrix4 scale = Matrix4();
+	Matrix4 translate = Matrix4();
+	Matrix4 rotate = Matrix4();
+	translate = translate.translate(vector3(0.0, -1.0f, 0.0f));
+	scale = scale.scale(vector3(20.0f, 1.0f, 20.0f));
+	model = translate * scale;
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
-	//glActiveTexture(GL_TEXTURE5);
-	//glBindTexture(GL_TEXTURE_2D, diffuse_texture);
 	SceneModels::RenderCube();
-	//glBindTexture(GL_TEXTURE_2D, 0);
-	glm::mat4 model_ = glm::mat4();
-	model_ = glm::translate(model_, glm::vec3(-3.5f, 0.0f, 0.0f));
-	model_ = glm::scale(model_, glm::vec3(3.0f, 1.0f, 3.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	model = Matrix4();
+	translate = translate.translate(vector3(-2.0f, 0.0f, 0.0f));
+	scale = scale.scale(vector3(3.0f, 1.0f, 3.0f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	SceneModels::RenderCube();
 	// Render model on the floor
 	model = Matrix4();
-	model = model.translate(vector3(0.0f, -0.5f, 0.0f));
-
-	model_ = glm::mat4();
-	model_ = glm::translate(model_, glm::vec3(0.0f, 0.5f, 5.0));
-	//model_ = glm::rotate(model_, -90.0f, glm::vec3(1.0, 0.0, 0.0));
-	model_ = glm::scale(model_, glm::vec3(0.5f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	translate = translate.translate(vector3(0.0f, 0.5f, 10.0f));
+	scale = scale.scale(vector3(0.5f, 0.5f, 0.5f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelSphere->Draw(*shaderGeometryPass);
-	model_ = glm::mat4();
-	model_ = glm::translate(model_, glm::vec3(-1.2f, 0.5f, -1.0));
-	model_ = glm::rotate(model_, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	model = Matrix4();
+	translate = translate.translate(vector3(-3.7f, 0.5f, -1.0f));
+	rotate = rotate.rotateY(MathHelper::DegressToRadians(90.0f));
+	model = rotate * translate;
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelMonkey->Draw(*shaderGeometryPass);
-	model_ = glm::mat4();
-	model_ = glm::translate(model_, glm::vec3(5.0f, -0.5f, -5.0));
-	model_ = glm::scale(model_, glm::vec3(0.04f));
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, glm::value_ptr(model_));
+	model = Matrix4();
+	translate = translate.translate(vector3(80.0f, -15.0f, -125.0f));
+	scale = scale.scale(vector3(0.04f, 0.04f, 0.04f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelStatue->Draw(*shaderGeometryPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 2. Create SSAO texture
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 	glClear(GL_COLOR_BUFFER_BIT);
-	// TODO(Darren): Will have to optimise the ssao frag shader. Take out matrix calculations:)
 	shaderSSAO->Use();
+	// TODO(Darren): Add this in.
 	//glUniform1i(glGetUniformLocation(shaderSSAO->Program, "kernelSize"), kernelSize);
 	//glUniform1i(glGetUniformLocation(shaderSSAO->Program, "radius"), radius);
 	glActiveTexture(GL_TEXTURE0);
@@ -244,9 +255,8 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 		GLfloat ssaoKernelData[] = {ssaoKernel[i].x, ssaoKernel[i].y, ssaoKernel[i].z};	
 		glUniform3fv(glGetUniformLocation(shaderSSAO->Program, ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssaoKernelData[0]);
 	}
-	glUniformMatrix4fv(glGetUniformLocation(shaderSSAO->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	//if(renderSSAO)
-		SceneModels::RenderQuad();
+	glUniformMatrix4fv(glGetUniformLocation(shaderSSAO->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
+	SceneModels::RenderQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 3. Blur SSAO texture to remove noise
@@ -267,12 +277,13 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	glBindTexture(GL_TEXTURE_2D, gNormal);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gAlbedo);
-	glActiveTexture(GL_TEXTURE3); // Add extra SSAO texture to lighting pass
+	glActiveTexture(GL_TEXTURE3); 
+	// Add extra SSAO texture to lighting pass
 	glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
 	// Also send light relevant uniforms 
-	//vector3 lightPosView = vector3(camera.GetViewMatrix() * vector4(lightPos.x, lightPos.y, lightPos.z, 1.0));
-	glm::vec3 lightPosView = glm::vec3(camera.GetViewMatrix2() * glm::vec4(glm::vec3(lightPos.x, lightPos.y, lightPos.z), 1.0));
-	glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, "light.Position"), 1, &lightPosView[0]);
+	vector4 lightPosView_ = camera.GetViewMatrix() * vector4(lightPos.x, lightPos.y, lightPos.z, 1.0);
+	float lightPosViewData[] = { lightPosView_.x, lightPosView_.y , lightPosView_.z };
+	glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, "light.Position"), 1, &lightPosViewData[0]);
 	GLfloat lightColorData[] = { lightColor.x, lightColor.y, lightColor.z };
 	glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, "light.Color"), 1, &lightColorData[0]);
 	// Update attenuation parameters

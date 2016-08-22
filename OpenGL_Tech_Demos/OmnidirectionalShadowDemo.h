@@ -3,19 +3,11 @@
 
 #include "ResourceManager.h"
 #include "SceneModels.h"
-#include "shader.h"
-#include "model.h"
 #include "Math\vector3.h"
+#include "Math\MathHelper.h"
 #include "camera.h"
-#include <SOIL\SOIL.h>
 #include <vector>
 #include <GL/glext.h>
-
-// TODO(Darren): Remove GLM.
-// GLM Mathemtics
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 class OmnidirectionalShadowDemo
 {
@@ -30,8 +22,7 @@ public:
 	void Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight);
 
 private:
-	GLuint textureID;
-	glm::vec3 lightPos;
+	vector3 lightPosition;
 	Shader *shaderPointShadows, *shaderPointShadowsDepth, *shaderLightBox;
 	GLuint woodTextureID, wallTextureID;
 	Model *modelPlatform, *modelColumn, *modelBunny;
@@ -39,7 +30,6 @@ private:
 	const GLuint ShadowWidth, ShadowHeight;
 
 	void RenderScene(Shader &shader);
-	void CreateCubeMap();
 };
 
 #endif

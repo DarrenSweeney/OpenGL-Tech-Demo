@@ -44,7 +44,6 @@ vec3 CalPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {
-	// Properties
 	vec3 norm = normalize(Normal);
 	vec3 viewDir = normalize(viewPos - FragPos);
 	
@@ -85,7 +84,7 @@ vec3 CalPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 	float distance = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
-	//// Combine results
+	// Combine results
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 	vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
 

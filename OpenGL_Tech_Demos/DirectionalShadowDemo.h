@@ -4,8 +4,6 @@
 #include "ResourceManager.h"
 #include "SceneModels.h"
 #include "camera.h"
-#include "shader.h"
-#include "model.h"
 #include "Math\vector3.h"
 #include <SOIL\SOIL.h>
 #include <GL/glext.h>
@@ -32,7 +30,6 @@ private:
 	const GLuint ShadowWidth, ShadowHeight;
 
 	void RenderScene(Shader &shader);
-	GLuint GenerateMultiSampleTexture(GLuint samples);
 };
 
 #endif

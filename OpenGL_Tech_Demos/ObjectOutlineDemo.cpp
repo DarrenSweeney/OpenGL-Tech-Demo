@@ -1,14 +1,18 @@
 #include "ObjectOutlineDemo.h"
 
 ObjectOutlineDemo::ObjectOutlineDemo()
-	: initalizeScene(true)
+	: initalizeScene(true), renderLights(false)
 {
 
 }
 
 ObjectOutlineDemo::~ObjectOutlineDemo()
 {
-	// TODO(Darren): Do things like delete shader.
+	if (cubeTextureID)
+		glDeleteTextures(1, &cubeTextureID);
+	if (floorTextureID)
+		glDeleteTextures(1, &floorTextureID);
+
 }
 
 void ObjectOutlineDemo::InitalizeScene()
@@ -89,15 +93,15 @@ void ObjectOutlineDemo::InitalizeScene()
 
 void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	camera.ControllerMovement();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	Matrix4 model;
 	Matrix4 view;
 	view = camera.GetViewMatrix();
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	Matrix4 model = Matrix4();
+	Matrix4 scale = Matrix4();
+	Matrix4 translate = Matrix4();
 	shaderOutline->Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline->Program, "view"), 1, GL_FALSE, view.data);
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
@@ -126,9 +130,9 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 		for (int i = 0; i < 4; i++)
 		{
 			model = Matrix4();
-			model = model.translate(lightPositions[i]);
-			model = model.scale(vector3(0.5f, 0.5f, 0.5f));
-
+			translate = translate.translate(lightPositions[i]);
+			scale = scale.scale(vector3(0.25f, 0.25f, 0.25f));
+			model = scale * translate;
 			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, &model.data[0]);
 			SceneModels::RenderCube();
 		}
@@ -136,15 +140,17 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 
 	shaderLighting->Use();
 	model = Matrix4();
-	model = model.translate(vector3(-4.0f, 0.5f, -2.0f));
-	model = model.scale(vector3(6.0f, 2.0f, 1.0f));
+	translate = translate.translate(vector3(-4.0f, 0.3f, -2.0f));
+	scale = scale.scale(vector3(4.0f, 2.0f, 1.0f));
+	model = scale * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cubeTextureID);
 	SceneModels::RenderCube();
 	model = Matrix4();
-	model = model.translate(vector3(0.0f, 0.5f, 2.0f));
-	model = model.scale(vector3(4.0f, 2.0f, 1.0f));
+	translate = translate.translate(vector3(0.0f, 0.3f, 2.0f));
+	scale = scale.scale(vector3(4.0f, 2.0f, 1.0f));
+	model = scale * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, cubeTextureID);
 	SceneModels::RenderCube();
@@ -186,14 +192,16 @@ void ObjectOutlineDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei scre
 	shaderOutline->Use();
 
 	model = Matrix4();
-	model = model.translate(vector3(-2.0f, -0.63f, -10.0f));
-	model = model.scale(vector3(1.03f, 1.03f, 1.03f));
+	translate = translate.translate(vector3(-2.0f, -0.63f, -10.0f));
+	scale = scale.scale(vector3(1.03f, 1.03f, 1.03f));
+	model = scale * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelEnemy->Draw(*shaderOutline);
 
 	model = Matrix4();
-	model = model.translate(vector3(0.0f, -0.63f, 0.0f));
-	model = model.scale(vector3(1.03f, 1.03f, 1.03f));
+	translate = translate.translate(vector3(0.0f, -0.63f, 0.0f));
+	scale = scale.scale(vector3(1.03f, 1.03f, 1.03f));
+	model = scale * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderOutline->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelEnemy->Draw(*shaderOutline);
 

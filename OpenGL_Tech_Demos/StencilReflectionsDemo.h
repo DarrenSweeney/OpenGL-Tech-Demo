@@ -24,7 +24,7 @@ public:
 
 private:
 	GLuint cubeTextureID, planeTextureID;
-	Model *modelStatue, *modelColumn;
+	Model *sceneModel;
 	Shader *shaderObject, *shaderLighting;
 };
 

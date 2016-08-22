@@ -8,18 +8,13 @@
 #include "shader.h"
 #include <SOIL\SOIL.h>
 
-// GLM Mathemtics
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 class HDR_DEMO
 {
 public:
 	HDR_DEMO();
 	~HDR_DEMO();
 
-	GLfloat exposure = 0.05f;
+	GLfloat exposure;
 	bool renderLights;
 	bool initalizeScene;
 
@@ -27,11 +22,9 @@ public:
 	void UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized);
 
 private:
-	GLboolean hrd = true; // NOTE(Darren): Do i need this??
-	GLboolean bloom = true;
-	GLuint woodTexture;
-	std::vector<vector3> lightPositions;
-	std::vector<glm::vec3> lightColors;
+	bool bloom;
+	GLuint woodTextureID;
+	std::vector<vector3> lightPositions, lightColors;
 	Shader *shaderHDR, *shaderBloom, *shaderBlur, *shaderLightBox;
 	GLuint hdrFBO;
 	GLuint colorBuffers[2];

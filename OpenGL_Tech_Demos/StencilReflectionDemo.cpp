@@ -8,18 +8,16 @@ StencilReflectionDemo::StencilReflectionDemo()
 
 StencilReflectionDemo::~StencilReflectionDemo()
 {
-
+	if (cubeTextureID)
+		glDeleteTextures(1, &cubeTextureID);
+	if (planeTextureID)
+		glDeleteTextures(1, &planeTextureID);
 }
 
-/*
-	ay clean up initalising on the point light uniforms.
-	Look into rendering stencil buffer to ImGui::Image();
-*/
 void StencilReflectionDemo::InitalizeScene()
 {
 	if (initalizeScene)
 	{
-		// TODO(Darren): Need to comment on my purpose of calling OpenGL function calls4
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LESS);
@@ -28,8 +26,7 @@ void StencilReflectionDemo::InitalizeScene()
 		cubeTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 		planeTextureID = ResourceManager::LoadTexture("Resources/marble.jpg");
 
-		modelStatue = ResourceManager::GetModel("Utah_Teapot");
-		modelColumn = ResourceManager::GetModel("Tree");
+		sceneModel = ResourceManager::GetModel("Utah_Teapot");
 
 		shaderObject = ResourceManager::GetShader("EnviromentObject");
 		shaderLighting = ResourceManager::GetShader("Lighting");
@@ -92,9 +89,6 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	camera.ControllerMovement();
-
-	Matrix4 model;
 	Matrix4 view;
 	view = camera.GetViewMatrix();
 	Matrix4 projection;
@@ -114,6 +108,10 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glDisable(GL_STENCIL_TEST);
 	// Draw Cubes
 	glBindTexture(GL_TEXTURE_2D, cubeTextureID);
+	Matrix4 model = Matrix4();
+	Matrix4 scale = Matrix4();
+	Matrix4 rotate = Matrix4();
+	Matrix4 translate = Matrix4();
 	model = model.translate(vector3(-1.0f, 0.5f, -1.0f));
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting->Program, "model"), 1, GL_FALSE, model.data);
 	SceneModels::RenderCube();
@@ -123,10 +121,11 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	SceneModels::RenderCube();
     
     model = Matrix4();
-	model = model.translate(vector3(0.0f, 0.5f, 0.0f));
-	model = model.scale(vector3(0.05f, 0.05f, 0.05f));
+	translate = translate.translate(vector3(0.0f, 0.5f, 0.0f));
+	scale = scale.scale(vector3(0.05f, 0.05f, 0.05f));
+	model = scale * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting->Program, "model"), 1, GL_FALSE, model.data);
-	modelStatue->Draw(*shaderLighting);
+	sceneModel->Draw(*shaderLighting);
 
 	// Draw Floor
 	glEnable(GL_BLEND);
@@ -164,11 +163,12 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	SceneModels::RenderCube();
 
 	model = Matrix4();
-	model = model.translate(vector3(0.0f, -0.5f, 0.0f));
-	model = model.rotateX(MathHelper::DegressToRadians(180.0f));
-	model = model.scale(vector3(0.05f, 0.05f, 0.05f));
+	translate = translate.translate(vector3(0.0f, -0.5f, 0.0f));
+	rotate = rotate.rotateX(MathHelper::DegressToRadians(180.0f));
+	scale = scale.scale(vector3(0.05f, 0.05f, 0.05f));
+	model = scale * rotate * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderLighting->Program, "model"), 1, GL_FALSE, model.data);
-	modelStatue->Draw(*shaderLighting);
+	sceneModel->Draw(*shaderLighting);
 
 	glDisable(GL_STENCIL_TEST);
 }

@@ -3,6 +3,8 @@
 
 #include "vector3.h"
 #include "vector4.h"
+#include "MathHelper.h"
+#include <math.h>
 
 /*
 	TODO: Take out binary operators + because copy of object. (Decide this.)

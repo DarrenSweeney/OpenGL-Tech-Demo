@@ -27,7 +27,7 @@ private:
 	const GLuint amount;	// The amount of rocks and grass quads to render.
 	GLuint grassTextureID, groundTextureID;
 
-	void SetUpBuffers(GLuint &vao, Matrix4 *matrices, GLuint vbo = NULL, 
+	void SetUpBuffers(GLuint &vao, Matrix4 *matrices, GLuint vbo = NULL,
 		int sizeOfVertices = NULL, GLfloat *vertices = NULL);
 };
 

@@ -1,14 +1,25 @@
 #include "HDR_Demo.h"
 
 HDR_DEMO::HDR_DEMO()
-	: renderLights(true), initalizeScene(true)
+	: renderLights(true), initalizeScene(true), bloom(true), exposure(0.100f)
 {
 
 }
 
 HDR_DEMO::~HDR_DEMO()
 {
-	// TODO(Darren): Delete the loaded textures hers.
+	if (woodTextureID)
+		glDeleteTextures(1, &woodTextureID);
+	if (hdrFBO)
+		glDeleteBuffers(1, &hdrFBO);
+	if (colorBuffers)
+		glDeleteBuffers(2, colorBuffers);
+	if (rboDepth)
+		glDeleteBuffers(1, &rboDepth);
+	if (pingpongFBO)
+		glDeleteBuffers(2, pingpongFBO);
+	if (pingpongColorbuffers)
+		glDeleteBuffers(2, pingpongColorbuffers);
 }
 
 void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
@@ -24,41 +35,45 @@ void HDR_DEMO::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		lightPositions.push_back(vector3(0.0f, 0.0f, 30.0f));
 		lightPositions.push_back(vector3(0.0f, 0.0f, 8.0f));
 		// - Colors
-		lightColors.push_back(glm::vec3(100.0f, 100.0f, 100.0f));
-		lightColors.push_back(glm::vec3(20.0f, 0.0f, 0.0f));
-		lightColors.push_back(glm::vec3(0.0f, 0.0f, 20.0f));
-		lightColors.push_back(glm::vec3(0.0f, 20.0f, 0.0f));
+		lightColors.push_back(vector3(100.0f, 100.0f, 100.0f));
+		lightColors.push_back(vector3(20.0f, 0.0f, 0.0f));
+		lightColors.push_back(vector3(0.0f, 0.0f, 20.0f));
+		lightColors.push_back(vector3(0.0f, 20.0f, 0.0f));
 
 		// Load textures
-		woodTexture = ResourceManager::LoadTexture("Resources/brickwall.jpg");
+		woodTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 
 		SetupBuffers(screenWidth, screenHeight);
 
 		shaderHDR = ResourceManager::GetShader("HDR");
 		// Set up bloom shader texture units.
 		shaderBloom = ResourceManager::GetShader("Bloom");
+
+		// Set lighting uniforms.
+		shaderBloom->Use();
+		for (GLuint i = 0; i < lightPositions.size(); i++)
+		{
+			float lightPosData[] = { lightPositions[i].x, lightPositions[i].y, lightPositions[i].z };
+			glUniform3fv(glGetUniformLocation(shaderBloom->Program, ("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
+			float lightColorData[] = { lightColors[i].x, lightColors[i].y, lightColors[i].z };
+			glUniform3fv(glGetUniformLocation(shaderBloom->Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColorData[0]);
+		}
 		shaderHDR->Use();
 		glUniform1i(glGetUniformLocation(shaderHDR->Program, "scene"), 0);
 		glUniform1i(glGetUniformLocation(shaderHDR->Program, "bloomBlur"), 1);
 		shaderBlur = ResourceManager::GetShader("Blur");
 		shaderLightBox = ResourceManager::GetShader("LightBoxBloom");
-
-		// TODO(Darren): Create the matrices for each shader.
-		// NOTE(Darren): Should revise this.
+		shaderLightBox->Use();
 
 		initalizeScene = false;
 	}
 }
 
-// NOTE(Darren): Should i have a set up buffers for all demos, really need to
-// organise my demos.
-// TODO(Darren): Create the final colors buffers and depth buffers for both hdr and bloom.
 void HDR_DEMO::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
 {
 	// Set up floating point framebuffer to render scene to
 	glGenFramebuffers(1, &hdrFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-	// TODO(Darren): Consistency with comments.
 	// - Create 2 floating point color buffers (1 for normal rendering, other for brightness treshold values)
 	glGenTextures(2	, colorBuffers);
 	for (GLuint i = 0; i < 2; i++)
@@ -108,8 +123,6 @@ void HDR_DEMO::SetupBuffers(GLsizei screenWidth, GLsizei screenHeight)
 
 void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized)
 {
-	camera.ControllerMovement();
-
 	glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 
 	if (resized)
@@ -117,51 +130,48 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// 1. Render scene into floating point framebuffer
+	// Render scene into floating point framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 500.0f);
-	Matrix4 _projection;
-	_projection = _projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 500.0f);
+	Matrix4 projection = Matrix4();
+	projection = projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 500.0f);
 	Matrix4 view = camera.GetViewMatrix();
-	Matrix4 model;
+	Matrix4 model = Matrix4();
+	Matrix4 scale = Matrix4();
+	Matrix4 translate = Matrix4();
 	shaderBloom->Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderBloom->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderBloom->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderBloom->Program, "view"), 1, GL_FALSE, &view.data[0]);
 
-	// Set lighting uniforms.
-	for (GLuint i = 0; i < lightPositions.size(); i++)
-	{
-		float lightPosData[] = {lightPositions[i].x, lightPositions[i].y, lightPositions[i].z};
-		glUniform3fv(glGetUniformLocation(shaderBloom->Program,("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
-		glUniform3fv(glGetUniformLocation(shaderBloom->Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColors[i][0]);
-	}
 	float data[] = { camera.position.x, camera.position.y, camera.position.z };
 	glUniform3fv(glGetUniformLocation(shaderBloom->Program, "viewPos"), 1, &data[0]);
 
 	// Render tunnel.
 	model = Matrix4();
-	model = model.translate(vector3(0.0f, 0.0f, 25.0f));
-	model = model.scale(vector3(5.0f, 6.0f, 55.0f));
+	translate = translate.translate(vector3(0.0f, 0.0f, 25.0f));
+	scale = scale.scale(vector3(5.0f, 6.0f, 55.0f));
+	model = scale * translate;
 	glUniformMatrix4fv(glGetUniformLocation(shaderBloom->Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glUniform1i(glGetUniformLocation(shaderBloom->Program, "inverse_normals"), GL_TRUE);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, woodTexture);
+	glBindTexture(GL_TEXTURE_2D, woodTextureID);
 	SceneModels::RenderCube(5.0f, 6.0f, 55.0f);
 
 	// Show all the light sources as bright cubes.
 	if (renderLights)
 	{
 		shaderLightBox->Use();
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, &view.data[0]);
 		for (GLuint i = 0; i < lightPositions.size(); i++)
 		{
 			model = Matrix4();
-			model = model.translate(vector3(lightPositions[i]));
-			model = model.scale(vector3(0.5f, 0.5f, 0.5f));
+			translate = translate.translate(vector3(lightPositions[i]));
+			scale = scale.scale(vector3(0.5f, 0.5f, 0.5f));
+			model = scale * translate;
 			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, &model.data[0]);
-			glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColors[i][0]);
+			float lightColorData[] = { lightColors[i].x, lightColors[i].y, lightColors[i].z };
+			glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 			SceneModels::RenderCube(0.5f, 0.5f, 0.5f);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -184,16 +194,14 @@ void HDR_DEMO::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHe
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// 2. Now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
+	// Now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderHDR->Use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
-	// TODO(Darren): May create a bool here.
-	glUniform1i(glGetUniformLocation(shaderHDR->Program, "hdr"), true);
-	glUniform1i(glGetUniformLocation(shaderHDR->Program, "bloom"), true);
+	glUniform1i(glGetUniformLocation(shaderHDR->Program, "bloom"), bloom);
 	glUniform1f(glGetUniformLocation(shaderHDR->Program, "exposure"), exposure);
 	SceneModels::RenderQuad();
 }

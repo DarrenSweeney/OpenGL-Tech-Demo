@@ -12,16 +12,6 @@
 
 using namespace std;
 
-/*
-A struct memory layout is sequential.
-If we have a filled Vertex struct its memory layout would be equal to:
-Vertex vertex;
-vertex.Position = glm::vec3(0.2f, 0.4f, 0.6f);
-vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
-vertex.TexCoords = glm::vec2(1.0f, 0.0f);
-// = [0.2f, 0.4f, 0.6f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f];
-*/
-
 struct Vertex
 {
 	vector3 Position;

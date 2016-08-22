@@ -1,12 +1,7 @@
 #include "DeferredRenderingDemo.h"
 
-// GLM Mathemtics
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 DeferredRenderingDemo::DeferredRenderingDemo()
-	: NR_Lights(300), renderLights(true), initalizeScene(true)
+	: NR_Lights(300), moveLights(false), renderLights(true), initalizeScene(true)
 {
 
 }
@@ -17,7 +12,23 @@ DeferredRenderingDemo::~DeferredRenderingDemo()
 	lightPositions.clear();
 	lightColors.clear();
 
-	// TODO(Darren): Create a destructor for the model and shader class.
+	if (planeDiffuseTextureID)
+		glDeleteTextures(1, &planeDiffuseTextureID);
+	if (planeSpecularTextureID)
+		glDeleteTextures(1, &planeSpecularTextureID);
+	if (objectDiffuseTextureID)
+		glDeleteTextures(1, &objectDiffuseTextureID);
+	if (objectSpecularTextureID)
+		glDeleteTextures(1, &objectSpecularTextureID);
+
+	if (gBuffer)
+		glDeleteBuffers(1, &gBuffer);
+	if (gNormal)
+		glDeleteBuffers(1, &gNormal);
+	if (gAlbedoSpec)
+		glDeleteBuffers(1, &gAlbedoSpec);
+	if (rboDepth)
+		glDeleteBuffers(1, &rboDepth);
 }
 
 void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
@@ -71,7 +82,7 @@ void DeferredRenderingDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHe
 		{
 			// Calculate slightly random offsets
 			GLfloat xPos = ((rand() % 100) / 100.0) * 37.0 - 3.5f;
-			GLfloat yPos = -1.5f;// ((rand() % 100) / 100.0) - 2.0f;
+			GLfloat yPos = -1.5f;
 			GLfloat zPos = ((rand() % 100) / 100.0) * 30.0 - 3.5f;
 			lightPositions.push_back(vector3(xPos, yPos, zPos));
 			// Also calculate random color
@@ -133,8 +144,6 @@ void DeferredRenderingDemo::SetupBuffers(GLsizei screenWidth, GLsizei screenHeig
 
 void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, bool resized)
 {
-	camera.ControllerMovement();
-
 	if (moveLights)
 	{
 		for (GLuint i = 0; i < lightPositions.size(); i++)
@@ -151,12 +160,16 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	glm::mat4 projection = glm::perspective(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
-	Matrix4 view = camera.GetViewMatrix();
-	Matrix4 model;
+	Matrix4 projection;
+	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 1.0f, 100.0f);
+	Matrix4 view;
+	view = camera.GetViewMatrix();
+	Matrix4 model = Matrix4();
+	Matrix4 scale = Matrix4();
+	Matrix4 translate = Matrix4();
 
 	shaderGeometryPass->Use();
-	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "view"), 1, GL_FALSE, &view.data[0]);
 	model = Matrix4();
 	model = model.translate(vector3(15.0f, -3.5f, 11.0f));
@@ -175,8 +188,9 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	for (GLuint i = 0; i < objectPositions.size(); i++)
 	{
 		model = Matrix4();
-		model = model.translate(objectPositions[i]);
-		model = model.scale(vector3(0.08f, 0.08f, 0.08f));
+		translate = translate.translate(objectPositions[i]);
+		scale = scale.scale(vector3(0.08f, 0.08f, 0.08f));
+		model = scale * translate;
 		glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass->Program, "model"), 1, GL_FALSE, &model.data[0]);
 		sceneModel->Draw(*shaderGeometryPass);
 	}
@@ -196,7 +210,6 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	// Also send light relevant uniforms
 	for (GLuint i = 0; i < lightPositions.size(); i++)
 	{
-		// TODO(Darren): Replace all float data as GLfloat
 		// Get the light position data.
 		float lightPosData[] = { lightPositions[i].x, lightPositions[i].y, lightPositions[i].z };
 		// Get the light color data.
@@ -206,6 +219,7 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 		glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColorData[0]);
 		// Update attenuation parameters and calculate radius
 		// const GLfloat constant = 1.0; // Note that we don't send this to the shader, we assume it is always 1.0 (in our case)
+		// TODO(Darren): Sort this out.
 		const GLfloat linear = 0.7;
 		const GLfloat quadratic = 1.8;
 		glUniform1f(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Linear").c_str()), linear);
@@ -233,7 +247,7 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	if (renderLights)
 	{
 		shaderLightBox->Use();
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, &view.data[0]);
 		for (GLuint i = 0; i < lightPositions.size(); i++)
 		{
@@ -241,8 +255,9 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 			float lightColorData[] = { lightColors[i].x, lightColors[i].y, lightColors[i].z };
 
 			model = Matrix4();
-			model = model.translate(lightPositions[i]);
-			model = model.scale(vector3(0.25f, 0.25f, 0.25f));
+			translate = translate.translate(lightPositions[i]);
+			scale = scale.scale(vector3(0.25f, 0.25f, 0.25f));
+			model = scale * translate;
 			glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, &model.data[0]);
 			glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 			SceneModels::RenderCube();

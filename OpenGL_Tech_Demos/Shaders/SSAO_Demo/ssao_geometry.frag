@@ -7,9 +7,6 @@ in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
 
-// TODO(Darren): Add diffuse texture the the scenes geometry.
-uniform sampler2D diffuse_texture;
-
 const float NEAR = 0.1; // Projection matrix's near plane distance
 const float FAR = 50.0f; // Projection matrix's far plane distance
 float LinearizeDepth(float depth)
@@ -27,6 +24,5 @@ void main()
     // Also store the per-fragment normals into the gbuffer
     gNormal = normalize(Normal);
     // And the diffuse per-fragment color
-    //gAlbedoSpec.rgb = vec3(0.95); // Currently all objects have constant albedo color
-	gAlbedoSpec.rgb = texture(diffuse_texture, TexCoords).rgb;
+    gAlbedoSpec.rgb = vec3(0.95); // Currently all objects have constant albedo color
 }

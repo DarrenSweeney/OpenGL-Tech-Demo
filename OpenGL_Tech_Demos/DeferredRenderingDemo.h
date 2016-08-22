@@ -3,8 +3,6 @@
 
 #include "ResourceManager.h"
 #include "SceneModels.h"
-#include "shader.h"
-#include "model.h"
 #include "camera.h"
 #include "Math\vector3.h"
 #include <GL/glext.h>

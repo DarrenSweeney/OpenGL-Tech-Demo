@@ -1,19 +1,16 @@
 #include "ModelLoadingDemo.h"
 
 ModelLoadingDemo::ModelLoadingDemo()
-	: lightPosition(0.0f, 0.0f, -5.0f), showNormals(false), showCubemap(false), initalizeScene(true)
+	:  showNormals(false), showCubemap(false), initalizeScene(true), 
+		normalMapping(true), inTangentSpace(true)
 {
 
 }
 
 ModelLoadingDemo::~ModelLoadingDemo()
 {
-	// TODO(Darren):
-	// Dealocation? >>> glBindVertexArray(0);
-	//					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	//					glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//					glDeleteTextures(1, &diffuseMap);	// <-----
-	//					glDeleteTextures(1, &normalMap);
+	if(cubeMapTextureID)
+		glDeleteTextures(1, &cubeMapTextureID);
 }
 
 void ModelLoadingDemo::Initalize()
@@ -30,7 +27,7 @@ void ModelLoadingDemo::Initalize()
 		faces.push_back("Resources/skybox/posz.jpg");
 		faces.push_back("Resources/skybox/negz.jpg");
 		cubeMapTextureID = ResourceManager::LoadCubeMap(faces);
-		faces.clear();	// NOTE(Darren): Memory is not clearned here.
+		faces.clear();
 
 		shaderModelLoading = ResourceManager::GetShader("ModelLoading");
 		shaderModelLoading->Use();
@@ -48,22 +45,16 @@ void ModelLoadingDemo::Initalize()
 
 void ModelLoadingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	//camera.ControllerMovement();
-
 	Matrix4 view;
 	view = camera.GetViewMatrix();
 	Matrix4 projection;
 	projection = projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
-	Matrix4 modelMatrix;
+	Matrix4 modelMatrix  = Matrix4();
 
 	shaderModelLoading->Use();
 	glUniformMatrix4fv(glGetUniformLocation(shaderModelLoading->Program, "viewMatrix"), 1, GL_FALSE, &view.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModelLoading->Program, "projectionMatrix"), 1, GL_FALSE, &projection.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderModelLoading->Program, "modelMatrix"), 1, GL_FALSE, &modelMatrix.data[0]);
-
-	float lightPosData[] = { lightPosition.x, lightPosition.y, lightPosition.z };
-	Matrix4 lightMatrix = lightMatrix.translate(lightPosition);
-	lightMatrix = lightMatrix.scale(vector3(0.1f, 0.1f, 0.1f));
 
 	float cameraPosData[] = { camera.position.x, camera.position.y, camera.position.z };
 	glUniform3fv(glGetUniformLocation(shaderModelLoading->Program, "cameraPosition"), 1, &cameraPosData[0]);

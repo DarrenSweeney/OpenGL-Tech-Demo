@@ -1,14 +1,21 @@
 #include "OmnidirectionalShadowDemo.h"
 
 OmnidirectionalShadowDemo::OmnidirectionalShadowDemo()
-	: ShadowWidth(1024), ShadowHeight(1024), moveLight(false), initalizeScene(true)
+	: ShadowWidth(1024), ShadowHeight(1024), moveLight(false), renderLight(false), initalizeScene(true)
 {
 
 }
 
 OmnidirectionalShadowDemo::~OmnidirectionalShadowDemo()
 {
-
+	if (woodTextureID)
+		glDeleteTextures(1, &woodTextureID);
+	if (wallTextureID)
+		glDeleteTextures(1, &wallTextureID);
+	if (depthMapFBO)
+		glDeleteBuffers(1, &depthMapFBO);
+	if (depthCubemap)
+		glDeleteTextures(1, &depthCubemap);
 }
 
 void OmnidirectionalShadowDemo::Initalize()
@@ -20,7 +27,6 @@ void OmnidirectionalShadowDemo::Initalize()
 		glEnable(GL_CULL_FACE);
 
 		// Set texture samplers for point shadows
-		// TODO(Darren): Really need to implement error check if shader is not found
 		shaderPointShadows = ResourceManager::GetShader("PointShadows");
 		shaderPointShadows->Use();
 		glUniform1i(glGetUniformLocation(shaderPointShadows->Program, "diffuseTexture"), 0);
@@ -29,7 +35,7 @@ void OmnidirectionalShadowDemo::Initalize()
 		shaderLightBox = ResourceManager::GetShader("LightBox");
 
 		// Light source
-		lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		lightPosition = vector3();
 
 		// Load textures
 		woodTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg");
@@ -66,39 +72,40 @@ void OmnidirectionalShadowDemo::Initalize()
 
 void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight)
 {
-	camera.ControllerMovement();
-
 	if (moveLight)
 	{
-		lightPos.x = sin(glfwGetTime()) * 4.0f;
-		lightPos.z = cos(glfwGetTime()) * 4.0f;
-		lightPos.y = cos(glfwGetTime()) * 1.0f;
+		lightPosition.x = sin(glfwGetTime()) * 4.0f;
+		lightPosition.z = cos(glfwGetTime()) * 4.0f;
+		lightPosition.y = cos(glfwGetTime()) * 1.0f;
 	}
 
 	// 1. Create depth cubemap transformation matrices
-	GLfloat aspect = (GLfloat)ShadowWidth / (GLfloat)ShadowHeight;
 	GLfloat nearPlane = 1.0f;
 	GLfloat farPlane = 25.0f;
-	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
-	std::vector<glm::mat4> shadowTransforms;
-	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-	shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+	GLfloat aspect = (GLfloat)ShadowWidth / (GLfloat)ShadowHeight;
+	Matrix4 shadowProjection = Matrix4();
+	shadowProjection.perspectiveProjection(90.0f, aspect, nearPlane, farPlane);
+	std::vector<Matrix4> shadowTrans;
+	Matrix4 LookAt = Matrix4();
+	//																	   Target vectors				 Up vectors
+	shadowTrans.push_back(LookAt.lookAt(lightPosition, lightPosition + vector3(1.0f, 0.0f, 0.0f), vector3(0.0f, -1.0f, 0.0f)) * shadowProjection);
+	shadowTrans.push_back(LookAt.lookAt(lightPosition, lightPosition + vector3(-1.0f, 0.0f, 0.0f), vector3(0.0f, -1.0f, 0.0f)) * shadowProjection);
+	shadowTrans.push_back(LookAt.lookAt(lightPosition, lightPosition + vector3(0.0f, 1.0f, 0.0f), vector3(0.0f, 0.0f, 1.0f)) * shadowProjection);
+	shadowTrans.push_back(LookAt.lookAt(lightPosition, lightPosition + vector3(0.0f, -1.0f, 0.0f), vector3(0.0f, 0.0f, -1.0f)) * shadowProjection);
+	shadowTrans.push_back(LookAt.lookAt(lightPosition, lightPosition + vector3(0.0f, 0.0f, 1.0f), vector3(0.0f, -1.0f, 0.0f)) * shadowProjection);
+	shadowTrans.push_back(LookAt.lookAt(lightPosition, lightPosition + vector3(0.0f, 0.0f, -1.0f), vector3(0.0f, -1.0f, 0.0f)) *  shadowProjection);
 
 	// 2. Render scene to depth cubemap
 	glViewport(0, 0, ShadowWidth, ShadowHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glClear(GL_DEPTH_BUFFER_BIT);
 	shaderPointShadowsDepth->Use();
 	for (GLuint i = 0; i < 6; ++i)
 		glUniformMatrix4fv(glGetUniformLocation(shaderPointShadowsDepth->Program, ("shadowMatrices[" + std::to_string(i) + "]").c_str()),
-			1, GL_FALSE, glm::value_ptr(shadowTransforms[i]));
+			1, GL_FALSE, &shadowTrans[i].data[0]);
 	glUniform1f(glGetUniformLocation(shaderPointShadowsDepth->Program, "far_plane"), farPlane);
-	glUniform3fv(glGetUniformLocation(shaderPointShadowsDepth->Program, "lightPos"), 1, &lightPos[0]);
+	float lightPosData[] = { lightPosition.x, lightPosition.y, lightPosition.z };
+	glUniform3fv(glGetUniformLocation(shaderPointShadowsDepth->Program, "lightPos"), 1, &lightPosData[0]);
 	RenderScene(*shaderPointShadowsDepth);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -106,15 +113,16 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	shaderPointShadows->Use();
-	glm::mat4 projection = glm::perspective(camera.zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	Matrix4 projection;
+	projection = projection.perspectiveProjection(camera.zoom, (float)screenWidth / (float)screenHeight, 1.0f, 100.0f);
 	Matrix4 view;
 	view = camera.GetViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(shaderPointShadows->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shaderPointShadows->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderPointShadows->Program, "view"), 1, GL_FALSE, &view.data[0]);
 	// Set light uniforms
-	glUniform3fv(glGetUniformLocation(shaderPointShadows->Program, "lightPos"), 1, &lightPos[0]);
-	glm::vec3 cameraPos(camera.position.x, camera.position.y, camera.position.z);
-	glUniform3fv(glGetUniformLocation(shaderPointShadows->Program, "viewPos"), 1, &cameraPos[0]);
+	glUniform3fv(glGetUniformLocation(shaderPointShadows->Program, "lightPos"), 1, &lightPosData[0]);
+	float cameraPosData[] = { camera.position.x, camera.position.y, camera.position.z };
+	glUniform3fv(glGetUniformLocation(shaderPointShadows->Program, "viewPos"), 1, &cameraPosData[0]);
 	glUniform1i(glGetUniformLocation(shaderPointShadows->Program, "shadows"), true);
 	glUniform1f(glGetUniformLocation(shaderPointShadows->Program, "far_plane"), farPlane);
 	glActiveTexture(GL_TEXTURE0);
@@ -128,13 +136,13 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 	{
 		vector3 lightColor = vector3(1.0f, 1.0f, 1.0f);
 		float lightColorData[] = { lightColor.x, lightColor.y, lightColor.z };
-		glm::mat4 model;
-		model = glm::scale(model, glm::vec3(0.5f));
-		model = glm::translate(model, lightPos);
+		Matrix4 model = Matrix4();
+		model = model.scale(vector3(0.5f, 0.5f, 0.5f));
+		model = model.translate(lightPosition);
 		shaderLightBox->Use();
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "projection"), 1, GL_FALSE, &projection.data[0]);
 		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "view"), 1, GL_FALSE, &view.data[0]);
-		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(shaderLightBox->Program, "model"), 1, GL_FALSE, &model.data[0]);
 		glUniform3fv(glGetUniformLocation(shaderLightBox->Program, "lightColor"), 1, &lightColorData[0]);
 		SceneModels::RenderCube();
 	}
@@ -142,70 +150,80 @@ void OmnidirectionalShadowDemo::Update(Camera &camera, GLsizei screenWidth, GLsi
 
 void OmnidirectionalShadowDemo::RenderScene(Shader &shader)
 {
-	// Render a flat cube as floor.
-	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, wallTextureID);
-	glm::mat4 model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, -6.0f, 0.0));
-	model = glm::scale(model, glm::vec3(40.0f, 0.2f, 40.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	SceneModels::RenderCube();
-
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, woodTextureID);
-	// Render Stand.
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0));
-	model = glm::scale(model, glm::vec3(5.0f, 1.0f, 5.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+	Matrix4 model = Matrix4();
+	Matrix4 scale = Matrix4();
+	Matrix4 rotate = Matrix4();
+	Matrix4 translate = Matrix4();
+
+	scale = scale.scale(vector3(40.0f, 0.2f, 40.0f));
+	translate = translate.translate(vector3(0.0f, -30.5f, 0.0f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	SceneModels::RenderCube();
 
-	model = glm::mat4();
-	model = glm::scale(model, glm::vec3(6.0f));
-	//model = glm::rotate(model, 60.0f, glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	// Render Stand
+	model = Matrix4();
+	scale = scale.scale(vector3(5.0f, 1.0f, 5.0f));
+	translate = translate.translate(vector3(0.0f, -5.0f, 0.0f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
+	SceneModels::RenderCube();
+
+	model = Matrix4();
+	scale = scale.scale(vector3(6.0f, 6.0f, 6.0f));
+	translate = translate.translate(vector3(0.0f, -1.0f, 0.0f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelPlatform->Draw(shader);
 
-	model = glm::mat4();
-	model = glm::scale(model, glm::vec3(6.0f));
-	model = glm::rotate(model, glm::radians(180.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
-	model = glm::translate(model, glm::vec3(0.0f, -0.4f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	scale = scale.scale(vector3(6.0f, 6.0f, 6.0f));
+	rotate = rotate.rotateX(MathHelper::DegressToRadians(180.0f));
+	translate = translate.translate(vector3(0.0f, -0.4f, 0.0f));
+	model = translate * rotate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelPlatform->Draw(shader);
 
 	// Draw Columns
-	model = glm::mat4();
-	model = glm::scale(model, glm::vec3(0.5f));
-	model = glm::translate(model, glm::vec3(-9.0f, -11.5f, -9.0f));
-	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	scale = scale.scale(vector3(0.5f, 0.5f, 0.5f));
+	rotate = rotate.rotateY(MathHelper::DegressToRadians(90.0f));
+	translate = translate.translate(vector3(-9.0f, -11.5f, -9.0f));
+	model = translate * rotate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelColumn->Draw(shader);
 
-	model = glm::mat4();
-	model = glm::scale(model, glm::vec3(0.5f));
-	model = glm::translate(model, glm::vec3(9.0f, -11.5f, -9.0f));
-	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	scale = scale.scale(vector3(0.5f, 0.5f, 0.5f));
+	rotate = rotate.rotateY(MathHelper::DegressToRadians(90.0f));
+	translate = translate.translate(vector3(9.0f, -11.5f, -9.0f));
+	model = translate * rotate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelColumn->Draw(shader);
 
-	model = glm::mat4();
-	model = glm::scale(model, glm::vec3(0.5f));
-	model = glm::translate(model, glm::vec3(-9.0f, -11.5f, 9.0f));
-	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	scale = scale.scale(vector3(0.5f, 0.5f, 0.5f));
+	rotate = rotate.rotateY(MathHelper::DegressToRadians(90.0f));
+	translate = translate.translate(vector3(-9.0f, -11.5f, 9.0f));
+	model = translate * rotate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelColumn->Draw(shader);
 
-	model = glm::mat4();
-	model = glm::scale(model, glm::vec3(0.5f));
-	model = glm::translate(model, glm::vec3(9.0f, -11.5f, 9.0f));
-	model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	scale = scale.scale(vector3(0.5f, 0.5f, 0.5f));
+	translate = translate.translate(vector3(9.0f, -11.5f, 9.0f));
+	rotate = rotate.rotateY(MathHelper::DegressToRadians(90.0f));
+	model = translate * rotate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	modelColumn->Draw(shader);
 
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, -4.5f, 0.0));
-	model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	model = Matrix4();
+	scale = scale.scale(vector3(1.5f, 1.5f, 1.5f));
+	translate = translate.translate(vector3(0.0f, -3.0f, 0.0f));
+	model = translate * scale;
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE,  &model.data[0]);
 	modelBunny->Draw(shader);
 }

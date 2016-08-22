@@ -1,7 +1,7 @@
 #include "camera.h"
 
 Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitch, GLfloat speed, GLfloat sensitivity, GLfloat zoom)
-	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), cameraSpeed(60.0f), ampletude(0.036f), frequincy(0.077f)
+	: movementSpeed(speed), mouseSensitivity(sensitivity), zoom(zoom), cameraSpeed(60.0f)
 {
 	position = _position;
 	upVec = worldUp;
@@ -9,9 +9,7 @@ Camera::Camera(vector3 &_position, vector3 &worldUp, GLfloat _yaw, GLfloat _pitc
 	pitch = _pitch;
 	frontVec = vector3(0.0f, 0.0f, -1.0f);
 	UpdateCameraVectors();
-
-	flyCamera = true;		// ---
-	movementSpeed = 5.0f;	// ---
+	movementSpeed = 15.0f;
 }
 
 Matrix4 &Camera::Camera::GetViewMatrix()
@@ -19,21 +17,6 @@ Matrix4 &Camera::Camera::GetViewMatrix()
 	return view.lookAt(position, position + frontVec, upVec);
 }
 
-// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
-glm::mat4 Camera::GetViewMatrix2()
-{
-	return glm::lookAt(glm::vec3(position.x, position.y, position.z),
-		glm::vec3(position.x, position.y, position.z) + glm::vec3(frontVec.x, frontVec.y, frontVec.z), glm::vec3(upVec.x, upVec.y, upVec.z));
-}
-
-const GLfloat PI = 3.141592;
-GLfloat DegressToRadians(GLfloat degrees)
-{
-	return degrees * (PI / 180.0f);
-}
-
-float camHeadBob = 0;
-const float Speed = 8.0f;
 void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 {
 	bool moving = false;
@@ -60,42 +43,6 @@ void Camera::KeyboardMovement(bool keys[], GLfloat deltaTime)
 		moving = true;
 	}
 
-	/*if (keys[GLFW_KEY_E])
-	{
-		GLfloat angle = 0;
-		angle += 0.01f;
-		Roll(angle);
-	}*/
-	//
-	//if (keys[GLFW_KEY_Q])
-	//{
-	//	//view = view.rotate(30.0f, vector3(0.0f, 0.0f, 1.0f));
-	//	GLfloat angle = 0;
-	//	angle += 0.0015f;
-	//	Roll(angle);
-	//}
-
-#if 0
-	if (!flyCamera)
-	{
-		movementSpeed = 2.0f;
-
-		if (camHeadBob > 4 * PI)
-		{
-			camHeadBob -= 4 * PI;
-		}
-
-		if (moving)
-		{
-			camHeadBob += frequincy;
-		}
-		else
-			camHeadBob = 0.0f;
-
-		position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
-	}
-#endif
-
 	UpdateCameraVectors();
 }
 
@@ -105,7 +52,6 @@ void Camera::ControllerMovement()
 	// PlayStation Controller
 	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
 	const float *axis = NULL;
-	// std::cout << present << std::endl;
 	int count;
 	if (1 == present)
 	{
@@ -129,28 +75,7 @@ void Camera::ControllerMovement()
 			yaw += (axis[2] * (cameraSpeed)) * deltaTime;
 		if (axis[3] > 0.3 || axis[3] < -0.3)
 			pitch -= (axis[3] * (cameraSpeed)) * deltaTime;
-
-		//if (axis[4] > 0.3)	// R2
-		//	zoom -= 0.01f;
-		//if (axis[5] > 0.3)	// L2
-		//	zoom += 0.01f;
 	}
-
-#if 0
-	if (camHeadBob > 4 * PI)
-	{ 
-		camHeadBob -= 4 * PI; 
-	}
-
-	if (moving)
-	{
-		camHeadBob += frequincy;
-	}
-	else
-		camHeadBob = 0.0f;
-
-	position.y = 0.6f + (ampletude * cos(camHeadBob)) / 2.0f;
-#endif
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;
@@ -176,20 +101,10 @@ void Camera::MouseMovement(GLfloat xOffset, GLfloat yOffset)
 	UpdateCameraVectors();
 }
 
-void Camera::MouseScroll(GLfloat yOffset)
-{
-	/*if (zoom >= 1.0f && zoom <= 45.0f)
-		zoom -= yOffset;
-	if (zoom <= 1.0f)
-		zoom = 1.0f;
-	if (zoom >= 45.0f)
-		zoom = 45.0f;*/
-}
-
 void Camera::Roll(GLfloat angle)
 {
-	rightVec = (rightVec * cos(DegressToRadians(angle)) +
-				upVec * sin(DegressToRadians(angle))).normalise();
+	rightVec = (rightVec * cos(MathHelper::DegressToRadians(angle)) +
+				upVec * sin(MathHelper::DegressToRadians(angle))).normalise();
 
 	upVec = frontVec.vectorProduct(rightVec).normalise();
 
@@ -199,9 +114,9 @@ void Camera::Roll(GLfloat angle)
 void Camera::UpdateCameraVectors()
 {
 	vector3 frontVec;
-	frontVec.x = cos(DegressToRadians(yaw)) * cos(DegressToRadians(pitch));
-	frontVec.y = sin(DegressToRadians(pitch));
-	frontVec.z = sin(DegressToRadians(yaw)) * cos(DegressToRadians(pitch));
+	frontVec.x = cos(MathHelper::DegressToRadians(yaw)) * cos(MathHelper::DegressToRadians(pitch));
+	frontVec.y = sin(MathHelper::DegressToRadians(pitch));
+	frontVec.z = sin(MathHelper::DegressToRadians(yaw)) * cos(MathHelper::DegressToRadians(pitch));
 	frontVec.normalise();
 
 	this->frontVec = frontVec;

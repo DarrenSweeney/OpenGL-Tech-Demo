@@ -25,22 +25,12 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
-// NOTE(Darren): Camera works here because it's included in other headers, is this a problem,
-//					longer compile time? What is the standard?
-
-/*
-	NOTE:(Darren): From the GLFW documentation.
-			Do not pass the window size to glViewport or other pixel-based OpenGL calls. 
-			The window size is in screen coordinates, not pixels. Use the framebuffer size, which is in pixels, for pixel-based calls.
-*/
-
 // Camera movement for all the scene demos.
 Camera camera(vector3(0.0f, 1.5f, 4.0f));
 
 // GLFW Callback functions.
 static void error_callback(int error, const char* description);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
-void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
 void mouse_callback(GLFWwindow *window, double xPos, double yPos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
@@ -53,6 +43,7 @@ void window_size_callback(GLFWwindow* window, int width, int height);
 	GLfloat lastX = 400, lastY = 300;
 	bool activeCamera;
 	bool windowResized;
+	bool setUpWindow;
 
 	GLfloat deltaTime = 0.0f;
 	GLfloat lastFrame = 0.0f;
@@ -171,7 +162,6 @@ int main(int, char**)
 	const GLFWvidmode* vidMode = glfwGetVideoMode(monitor);
 	int screenWidth = vidMode->width;
 	int screenHeight = vidMode->height;
-
 	bool fullscreen = false;
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
@@ -180,7 +170,6 @@ int main(int, char**)
 	// GLFW input callbacks.
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
@@ -219,18 +208,18 @@ int main(int, char**)
 		cubeMap,
 		directionalShadow,
 		hdr,
-		stencilReflection,
+		stencilReflection,						//	> Fix culling issue.
 		instancing,
-		deferredRendering,
+		deferredRendering,						//	> Sort out linear and quadratic variables input for lighting.
 		objectOutline,
-		ssao,
+		ssao,									//	> Add in kernel size and radius adjustement.
 		parallaxingMapping,
 		omnidirectionalShadow,
 		modelLoading
 	};
 
 	// The first demo will be the dynamic enviroment cube map demo.
-	Demos currentDemo = Demos::ssao;
+	Demos currentDemo = Demos::objectOutline;
 	const char* demoInfo = "Enviroment cube mapping done by rendering the scene each frame from the models orgin to each face of a cube map and subsequently applying that cubemap texture to the model.";
 
 	// Scene opitions.
@@ -249,6 +238,7 @@ int main(int, char**)
 		lastFrame = currentFrame;
 
 		camera.KeyboardMovement(keys, deltaTime);
+		camera.ControllerMovement();
 
 		SetupImGuiStyle(true, 1.0f);
 
@@ -304,7 +294,7 @@ int main(int, char**)
 				if (clicked)
 				{
 					currentDemo = Demos::deferredRendering;
-					demoInfo = "Example showing deferred Rendering of 100 Light sources around 100 models\n";
+					demoInfo = "Example showing deferred Rendering of 300 Light sources around 100 models\n";
 				}
 				ImGui::Checkbox("Move Lights", &deferredRenderingDemo->moveLights);
 				ImGui::Checkbox("Toggle Lights", &deferredRenderingDemo->renderLights);
@@ -360,7 +350,8 @@ int main(int, char**)
 				}
 				ImGui::SliderFloat("Depth", &parallaxingDemo->heightScale, 0.005f, 0.10f, "%.3f");
 				ImGui::Checkbox("Enable Parallax", &parallaxingDemo->enableParallax);
-				ImGui::Button("Pause Light");
+				if (ImGui::Button("Pause Light"))
+					parallaxingDemo->pauseLight = !parallaxingDemo->pauseLight;
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("HDR Lighting"))
@@ -438,35 +429,14 @@ int main(int, char**)
 			ImGui::Text(version);
 			ImGui::Text("Renderer:");
 			ImGui::Text(renderer);
-
-			ImGui::Checkbox("FullScreen", &fullscreen);
 		}
 		if (ImGui::CollapsingHeader("About", 0, true, true))
 		{
 			ImGui::Text("OpenGL Tech Demo by Darren Sweeney\n\nWebsite: darrensweeney.net\nEmail: darrensweeneydev@gmail.com\nTwitter: @_DarrenSweeney");
 		}
 
-		//if (ImGui::CollapsingHeader("Debug Controls", 0, true, true))
-		//{
-		//	if (ImGui::TreeNode("Camera"))
-		//	{
-		//		ImGui::Checkbox("Fly Camera", &camera.flyCamera);
-
-		//		// TODO(Darren): Figure out a way i can render labels above sliders.
-		//		ImGui::SliderFloat("movement_speed", &camera.movementSpeed, 0.0f, 50.0f, "%.3f");
-		//		ImGui::SliderFloat("camera_speed", &camera.cameraSpeed, 0.0f, 136.0f, "%.3f");
-
-		//		// Camera Bobing
-		//		ImGui::SliderFloat("camera_ampletude", &camera.ampletude, 0.0f, 1.0f, "%.36f");
-		//		ImGui::SliderFloat("camera_frequincy", &camera.frequincy, 0.0f, 1.0f, "%.36f");
-		//		ImGui::TreePop();
-		//	}
-
-		//	ImGui::Checkbox("Wireframe Mode", &wireframeMode);
-		//}
 		ImGui::End();
 #pragma endregion
-
 		glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 		glViewport(0, 0, screenWidth, screenHeight);
 
@@ -566,7 +536,6 @@ int main(int, char**)
 		}
 #pragma endregion
 
-
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDisable(GL_STENCIL_TEST);
 		// Render the GUI pannel.
@@ -648,10 +617,6 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos)
 
 	if(activeCamera)
 		camera.MouseMovement(xOffset, yOffset);
-}
-void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
-{
-	camera.MouseScroll(yOffset);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

@@ -19,7 +19,7 @@ public:
 	bool renderSSAO;
 	int kernelSize;
 	float radius;
-	int samples;
+	int samples;	// TODO(Darre): I need to make use of this.
 	int noiseScale;
 
 	bool initalizeScene;
@@ -30,7 +30,6 @@ private:
 	Shader *shaderGeometryPass, *shaderLightingPass;
 	Shader *shaderSSAO, *shaderSSAOBlur;
 	Model *modelSphere, *modelMonkey, *modelStatue;
-	GLuint diffuse_texture;
 	vector3 lightPos, lightColor;
 	GLuint gBuffer;
 	GLuint gPositionDepth, gNormal, gAlbedo;
@@ -39,7 +38,7 @@ private:
 	GLuint ssaoColorBuffer, ssaoColorBufferBlur;
 	std::uniform_real_distribution<GLfloat> randomFloats;
 	std::default_random_engine generator;
-	std::vector<vector3> ssaoKernel;	// TODO(Darren): Check how this is deallocated?
+	std::vector<vector3> ssaoKernel;
 	std::vector<vector3> ssaoNoise;
 	GLuint noiseTexture;
 

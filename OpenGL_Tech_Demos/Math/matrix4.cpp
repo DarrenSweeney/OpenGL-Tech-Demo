@@ -1,5 +1,4 @@
 #include "matrix4.h"
-#include <math.h>
 
 Matrix4::Matrix4()
 {
@@ -50,15 +49,16 @@ Matrix4 Matrix4::operator*=(float value)
 	return *this;
 }
 
-// TODO: Fix
 vector4 Matrix4::operator*(vector4 &vec4)
 {
-	vec4.x = data[0] * vec4.x + data[1] * vec4.y + data[2] * vec4.z + data[3] * vec4.w;
-	vec4.y = data[4] * vec4.x + data[5] * vec4.y + data[6] * vec4.z + data[7] * vec4.w;
-	vec4.z = data[8] * vec4.x + data[9] * vec4.y + data[10] * vec4.z + data[11] * vec4.w;
-	vec4.w = data[12] * vec4.x + data[13] * vec4.y + data[14] * vec4.z + data[15] * vec4.w;
+	vector4 result = vector4();
 
-	return vec4;
+	result.x = data[0] * vec4.x + data[1] * vec4.y + data[2] * vec4.z + data[3] * vec4.w;
+	result.y = data[4] * vec4.x + data[5] * vec4.y + data[6] * vec4.z + data[7] * vec4.w;
+	result.z = data[8] * vec4.x + data[9] * vec4.y + data[10] * vec4.z + data[11] * vec4.w;
+	result.w = data[12] * vec4.x + data[13] * vec4.y + data[14] * vec4.z + data[15] * vec4.w;
+
+	return result;
 }
 
 Matrix4 Matrix4::operator*=(Matrix4 &matrix)
@@ -140,6 +140,8 @@ Matrix4 Matrix4::operator=(Matrix4 & matrix)
 
 Matrix4 &Matrix4::scale(vector3 &scale)
 {
+	*this = Matrix4();
+
 	data[0] *= scale.x;
 	data[5] *= scale.y;
 	data[10] *= scale.z;
@@ -149,6 +151,8 @@ Matrix4 &Matrix4::scale(vector3 &scale)
 
 Matrix4 &Matrix4::translate(vector3 &vec3)
 {
+	*this = Matrix4();
+
 	data[12] += vec3.x;
 	data[13] += vec3.y;
 	data[14] += vec3.z;
@@ -160,6 +164,8 @@ Matrix4 &Matrix4::translate(vector3 &vec3)
 // Where x^2 + y^2 + z^2 = 1;
 Matrix4 &Matrix4::rotate(float angle, vector3 &vec3)
 {
+	*this = Matrix4();
+
 	// Normalize vector
 	vec3.normalise();
 
@@ -181,6 +187,8 @@ Matrix4 &Matrix4::rotate(float angle, vector3 &vec3)
 // Anti-clockwise rotation around the x axis.
 Matrix4 &Matrix4::rotateX(float angle)
 {
+	*this = Matrix4();
+
 	data[5] = cos(angle);
 	data[6] = sin(angle);
 	data[9] = -sin(angle);
@@ -192,6 +200,8 @@ Matrix4 &Matrix4::rotateX(float angle)
 // Anti-clockwise rotation around the y axis.
 Matrix4 &Matrix4::rotateY(float angle)
 {
+	*this = Matrix4();
+
 	data[0] = cos(angle);
 	data[2] = -sin(angle);
 	data[8] = sin(angle);
@@ -203,6 +213,8 @@ Matrix4 &Matrix4::rotateY(float angle)
 // Anti-clockwise rotation around the z axis.
 Matrix4 &Matrix4::rotateZ(float angle)
 {
+	*this = Matrix4();
+
 	data[0] = cos(angle);
 	data[1] = sin(angle);
 	data[4] = -sin(angle);
@@ -225,7 +237,6 @@ Matrix4 &Matrix4::setFrustrum(float l, float r, float b, float t, float n, float
 	return *this;
 }
 
-const double PI = 3.14159265358979323846;
 Matrix4 &Matrix4::perspectiveProjection(float fov, float aspectRatio, float nearPlane, float farPlane)
 {
 	float tangent = tanf((fov * 0.5) * (PI / 180));
@@ -233,14 +244,6 @@ Matrix4 &Matrix4::perspectiveProjection(float fov, float aspectRatio, float near
 	float width = height * aspectRatio;
 	
 	setFrustrum(-width, width, -height, height, nearPlane, farPlane);
-
-	//const float tanHalfFOV = tanf(fov / 2.0);
-	//// http://www.ogldev.org/www/tutorial12/tutorial12.html
-	//data[0] = 1.0f / (tanHalfFOV * aspectRatio);
-	//data[5] = 1.0f / tanHalfFOV;
-	//data[10] = -(farPlane + nearPlane) / (farPlane - nearPlane);
-	//data[11] = -1.0f;
-	//data[14] = -(2.0f * farPlane * nearPlane) / (farPlane - nearPlane);
 
 	return *this;
 }
@@ -287,17 +290,6 @@ Matrix4 &Matrix4::lookAt(vector3 &position, vector3 &target, vector3 &worldUp)
 	return *this;
 }
 
-/*
-	0, 1, 2, 3,
-	4, 5, 6, 7,
-	8, 9, 10, 11
-	12, 13, 14, 15
-
-	0, 4, 8, 12
-	1, 5, 9, 13
-	2, 6, 10, 14
-	3, 7, 11, 15
-*/
 Matrix4 &Matrix4::transpose(Matrix4 matrix)
 {
 	data[0] = matrix.data[0];

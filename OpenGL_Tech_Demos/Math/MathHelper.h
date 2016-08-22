@@ -1,12 +1,12 @@
 #ifndef MATH_HELPER_H
 #define MATH_HELPER_H
 
-#include <GL\gl3w.h>
+#define PI 3.141592
 
 class MathHelper
 {
 public:
-	static GLfloat DegressToRadians(GLfloat degrees);
+	static float DegressToRadians(float degrees);
 };
 
 #endif

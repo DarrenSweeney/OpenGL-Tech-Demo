@@ -34,7 +34,7 @@ void SceneModels::RenderQuad()
 GLuint parQuadVAO = 0, parQuadVBO = 0;
 void SceneModels::RenderParallaxQuad(GLfloat pos, GLfloat texCoords)
 {
-	if (quadVAO == 0)
+	if (parQuadVAO == 0)
 	{
 		// Positions
 		vector3 pos1(-pos,  pos, 0.0f);

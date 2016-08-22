@@ -7,7 +7,6 @@ uniform sampler2D scene;
 uniform sampler2D bloomBlur;
 uniform bool bloom;
 uniform float exposure;
-uniform bool hdr;
 
 void main()
 {

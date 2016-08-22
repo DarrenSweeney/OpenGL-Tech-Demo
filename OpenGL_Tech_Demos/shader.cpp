@@ -2,13 +2,6 @@
 
 Shader::Shader() {}
 
-Shader::~Shader()
-{
-	// TODO(Darren): Delete the shader from a call instead.
-	// NOTE(Darren): Might do this in resource manager.
-	//glDeleteProgram(Program);
-}
-
 void Shader::Compile(const GLchar *vShaderCode, const GLchar *fShaderCode, const GLchar *gShaderCode)
 {
 	// Compile Shader
@@ -68,12 +61,6 @@ void Shader::Compile(const GLchar *vShaderCode, const GLchar *fShaderCode, const
 	if (!success)
 	{
 		glGetProgramInfoLog(this->Program, 512, NULL, infoLog);
-		//std::cout << "ERROR::SHADER::Program::LINKING_FAILED:" << " " <<
-		//	vertexPath << " " << fragmentPath << (geometryPath != NULL ? geometryCode.c_str() : " ") << std::endl;
-	}
-	else
-	{
-		//std::cout << "SHADER::Program::LINKING_SUCESS " << vertexPath << " " << fragmentPath << " " << (geometryPath != NULL ? geometryCode.c_str() : " ") << std::endl;
 	}
 
 	// Delete the shaders as they are linked into Program now and no longer necessery
