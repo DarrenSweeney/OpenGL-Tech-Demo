@@ -5,6 +5,8 @@ I am using GLFW for window management and input, Assimp for model loading,
 SOIL for image loading and ImGui for the UI panel, everything else is written 
 by me from scratch.
 
+Video of the demo is on YouTube, link here: https://www.youtube.com/watch?v=OaShCXXvGzc
+
 Website: darrensweeney.net
 
 Email: darrensweeneydev@gmail.com
