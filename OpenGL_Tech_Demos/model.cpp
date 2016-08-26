@@ -5,7 +5,6 @@ Model::Model()
 	
 }
 
-// NOTE(Darren): May implement instance Draw method.
 void Model::Draw(Shader &shader)
 {
 	for (GLuint i = 0; i < this->meshes.size(); i++)
@@ -37,7 +36,7 @@ void Model::LoadModel(string path, bool loadTangent)
 	}
 	else
 	{
-		std::cout << "MODEL LOADED: " << path << std::endl;
+		std::cout << "MODEL LOADED: " << path << "\n" << std::endl;
 	}
 
 	this->directory = path.substr(0, path.find_last_of('/')); // Retrieve the directory path of the filepath

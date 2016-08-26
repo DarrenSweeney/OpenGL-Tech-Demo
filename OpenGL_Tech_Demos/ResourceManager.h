@@ -23,8 +23,7 @@ public:
 	static Shader* GetShader(std::string name);
 	static void LoadModel(const string path, bool loadTangent, std::string name);
 	static Model* GetModel(std::string name);
-	static GLuint LoadTexture(GLchar *path, GLboolean gammaCorrection = true,
-		GLboolean alpha = false, GLboolean anisotropicFilter = true);
+	static GLuint LoadTexture(GLchar *path, GLboolean alpha = false);
 	static GLuint LoadCubeMap(std::vector<const GLchar*> faces);
 	static void LoadAllDemoResources();
 	// Properly de-allocates all loaded resources

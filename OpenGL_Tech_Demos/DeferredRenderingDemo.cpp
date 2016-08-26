@@ -207,7 +207,7 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 
-	// Also send light relevant uniforms
+	// Send light relevant uniforms
 	for (GLuint i = 0; i < lightPositions.size(); i++)
 	{
 		// Get the light position data.
@@ -218,8 +218,6 @@ void DeferredRenderingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 		glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Position").c_str()), 1, &lightPosData[0]);
 		glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Color").c_str()), 1, &lightColorData[0]);
 		// Update attenuation parameters and calculate radius
-		// const GLfloat constant = 1.0; // Note that we don't send this to the shader, we assume it is always 1.0 (in our case)
-		// TODO(Darren): Sort this out.
 		const GLfloat linear = 0.7;
 		const GLfloat quadratic = 1.8;
 		glUniform1f(glGetUniformLocation(shaderLightingPass->Program, ("lights[" + std::to_string(i) + "].Linear").c_str()), linear);

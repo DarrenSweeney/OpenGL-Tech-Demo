@@ -115,6 +115,10 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 
 void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, GLfloat deltaTime)
 {
+	// Set up texture sampler unit.
+	//shaderEnviromentObject->Use();
+	glUniform1i(glGetUniformLocation(shaderEnviromentObject->Program, "diffuseTexture"), 1);
+
 	if (animateScene)
 	{
 		redPos.y += cos(glfwGetTime()) * 3.0f * deltaTime;
@@ -287,4 +291,5 @@ void CubeMapDemo::RenderScene(Shader &shader, GLfloat deltaTime)
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &model.data[0]);
 	glBindTexture(GL_TEXTURE_2D, pinkTex);
 	SceneModels::RenderCube();
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

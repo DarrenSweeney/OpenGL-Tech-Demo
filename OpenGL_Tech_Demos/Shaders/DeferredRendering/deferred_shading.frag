@@ -40,7 +40,6 @@ void main()
         // Attenuation
         float distance = length(lights[i].Position - FragPos);
         float attenuation = 1.0 / (1.0 + lights[i].Linear * distance + lights[i].Quadratic * distance * distance);
-		// TODO(Darren): Sort this out.
         diffuse *= attenuation * 20.0f;
         specular *= attenuation * 20.0f;
         lighting += diffuse + specular;

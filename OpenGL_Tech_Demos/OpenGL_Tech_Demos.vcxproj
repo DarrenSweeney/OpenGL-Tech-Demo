@@ -218,13 +218,6 @@
     <ClInclude Include="StencilReflectionsDemo.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="debugQuad.frag" />
-    <None Include="debugQuad.vert" />
-    <None Include="dynamicCubeMap.gs" />
-    <None Include="dynamicCubeMap.vert" />
-    <None Include="dynamicCubMap.frag" />
-    <None Include="light_box_bloom.frag" />
-    <None Include="light_box_blur.frag" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.frag" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.gs" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.vert" />

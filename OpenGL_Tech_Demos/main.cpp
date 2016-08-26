@@ -27,6 +27,12 @@
 
 // Camera movement for all the scene demos.
 Camera camera(vector3(0.0f, 1.5f, 4.0f));
+GLfloat lastX, lastY;
+bool keys[1024];
+bool activeCamera;
+bool windowResized;
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
 
 // GLFW Callback functions.
 static void error_callback(int error, const char* description);
@@ -35,30 +41,12 @@ void mouse_callback(GLFWwindow *window, double xPos, double yPos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
 
-/*
-	-------------------------------------------------------------------------------
-*/
-	// TODO(Darren): Take this out.
-	bool keys[1024];
-	GLfloat lastX = 400, lastY = 300;
-	bool activeCamera;
-	bool windowResized;
-	bool setUpWindow;
-
-	GLfloat deltaTime = 0.0f;
-	GLfloat lastFrame = 0.0f;
-/*
-	-------------------------------------------------------------------------------
-*/
-
-// Take out white theme.
-inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
+inline void SetupImGuiStyle(float alpha_)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	//ImGuiIO& io = ImGui::GetIO();
 	//io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Regular.ttf", 16.5f);
 
-	// light style from Pacôme Danhiez (user itamago) https://github.com/ocornut/imgui/pull/511#issuecomment-175719267
 	style.Alpha = 1.8f;
 	style.FrameRounding = 3.0f;
 	style.WindowRounding = 0.0f;
@@ -107,37 +95,20 @@ inline void SetupImGuiStyle(bool bStyleDark_, float alpha_)
 	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
 	style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 
-	if (bStyleDark_)
+	for (int i = 0; i <= ImGuiCol_COUNT; i++)
 	{
-		for (int i = 0; i <= ImGuiCol_COUNT; i++)
-		{
-			ImVec4& col = style.Colors[i];
-			float H, S, V;
-			ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
+		ImVec4& col = style.Colors[i];
+		float H, S, V;
+		ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
 
-			if (S < 0.1f)
-			{
-				V = 1.0f - V;
-			}
-			ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
-			if (col.w < 1.00f)
-			{
-				col.w *= alpha_;
-			}
-		}
-	}
-	else
-	{
-		for (int i = 0; i <= ImGuiCol_COUNT; i++)
+		if (S < 0.1f)
 		{
-			ImVec4& col = style.Colors[i];
-			if (col.w < 1.00f)
-			{
-				col.x *= alpha_;
-				col.y *= alpha_;
-				col.z *= alpha_;
-				col.w *= alpha_;
-			}
+			V = 1.0f - V;
+		}
+		ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
+		if (col.w < 1.00f)
+		{
+			col.w *= alpha_;
 		}
 	}
 }
@@ -164,6 +135,9 @@ int main(int, char**)
 	int screenHeight = vidMode->height;
 	bool fullscreen = false;
 
+	lastX = (GLfloat)screenWidth / 2.0f;
+	lastY = (GLfloat)screenHeight / 2.0f;
+
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Tech Demo - Darren Sweeney",
 		fullscreen ? monitor : NULL, NULL);
 
@@ -187,7 +161,7 @@ int main(int, char**)
     // Setup ImGui binding
 	// Set the install_callbacks to false as i am setting up the GLFW input callbacks myself above.
     ImGui_ImplGlfwGL3_Init(window, false);
-	SetupImGuiStyle(true, 1.0f);
+	SetupImGuiStyle(1.0f);
 	bool ImGui_WindowOpened = true;
 
 	// Demos
@@ -208,22 +182,19 @@ int main(int, char**)
 		cubeMap,
 		directionalShadow,
 		hdr,
-		stencilReflection,						//	> Fix culling issue.
+		stencilReflection,
 		instancing,
-		deferredRendering,						//	> Sort out linear and quadratic variables input for lighting.
+		deferredRendering,
 		objectOutline,
-		ssao,									//	> Add in kernel size and radius adjustement.
+		ssao,
 		parallaxingMapping,
 		omnidirectionalShadow,
 		modelLoading
 	};
 
 	// The first demo will be the dynamic enviroment cube map demo.
-	Demos currentDemo = Demos::objectOutline;
+	Demos currentDemo = Demos::directionalShadow;
 	const char* demoInfo = "Enviroment cube mapping done by rendering the scene each frame from the models orgin to each face of a cube map and subsequently applying that cubemap texture to the model.";
-
-	// Scene opitions.
-	bool wireframeMode = false;
 
 	// Load all the shaders and models required for all the demos.
 	// All resources deallocated on program exiting.
@@ -239,8 +210,6 @@ int main(int, char**)
 
 		camera.KeyboardMovement(keys, deltaTime);
 		camera.ControllerMovement();
-
-		SetupImGuiStyle(true, 1.0f);
 
 		glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -410,9 +379,8 @@ int main(int, char**)
 				ImGui::PushItemWidth(-80);
 				//ImGui::Checkbox("Render SSAO", &ssao_Demo->renderSSAO);
 				ImGui::SliderInt("Kernel Size", &ssao_Demo->kernelSize, 0, 64, "%.3f");
-				ImGui::SliderFloat("Radius", &ssao_Demo->radius, 0.0f, 4.0f, "%.3f");
-				ImGui::SliderInt("Samples", &ssao_Demo->samples, 0, 64, "%.3f");
-				ImGui::SliderInt("Noise Scale", &ssao_Demo->noiseScale, 0, 8, "%.3f");
+				ImGui::SliderFloat("Radius", &ssao_Demo->radius, 0.0f, 16.0f, "%.3f");
+				ImGui::SliderFloat("Noise Scale", &ssao_Demo->noiseScale, 0, 16.0f, "%.3f");
 				ImGui::TreePop();
 			}
 		}
@@ -536,12 +504,10 @@ int main(int, char**)
 		}
 #pragma endregion
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDisable(GL_STENCIL_TEST);
 		// Render the GUI pannel.
 		ImGui::Render();
 		glEnable(GL_STENCIL_TEST);
-		glPolygonMode(GL_FRONT_AND_BACK, wireframeMode ? GL_LINE : GL_FILL);
 
 		windowResized = false;
 

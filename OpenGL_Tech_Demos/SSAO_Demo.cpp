@@ -1,7 +1,7 @@
 #include "SSAO_Demo.h"
 
 SSAO_Demo::SSAO_Demo()
-	: initalizeScene(true), kernelSize(64), radius(1.0f), samples(64), noiseScale(4)
+	: initalizeScene(true), kernelSize(64), radius(1.0f), noiseScale(4.0f)
 {
 
 }
@@ -15,11 +15,11 @@ SSAO_Demo::~SSAO_Demo()
 	if(gBuffer)
 		glDeleteBuffers(1, &gBuffer);
 	if (gPositionDepth)
-		glDeleteBuffers(1, &gPositionDepth);
+		glDeleteTextures(1, &gPositionDepth);
 	if(gNormal)
-		glDeleteBuffers(1, &gNormal);
+		glDeleteTextures(1, &gNormal);
 	if (gAlbedo)
-		glDeleteBuffers(1, &gAlbedo);
+		glDeleteTextures(1, &gAlbedo);
 	if (rboDepth)
 		glDeleteBuffers(1, &rboDepth);
 	if (ssaoFBO)
@@ -27,9 +27,9 @@ SSAO_Demo::~SSAO_Demo()
 	if (ssaoBlurFBO)
 		glDeleteBuffers(1, &ssaoBlurFBO);
 	if (ssaoColorBuffer)
-		glDeleteBuffers(1, &ssaoColorBuffer);
+		glDeleteTextures(1, &ssaoColorBuffer);
 	if (ssaoColorBufferBlur)
-		glDeleteBuffers(1, &ssaoColorBufferBlur);
+		glDeleteTextures(1, &ssaoColorBufferBlur);
 }
 
 void SSAO_Demo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
@@ -240,9 +240,9 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 	glClear(GL_COLOR_BUFFER_BIT);
 	shaderSSAO->Use();
-	// TODO(Darren): Add this in.
-	//glUniform1i(glGetUniformLocation(shaderSSAO->Program, "kernelSize"), kernelSize);
-	//glUniform1i(glGetUniformLocation(shaderSSAO->Program, "radius"), radius);
+	glUniform1i(glGetUniformLocation(shaderSSAO->Program, "kernelSize"), kernelSize);
+	glUniform1f(glGetUniformLocation(shaderSSAO->Program, "radius"), radius);
+	glUniform1f(glGetUniformLocation(shaderSSAO->Program, "noiseScaleCount"), noiseScale);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, gPositionDepth);
 	glActiveTexture(GL_TEXTURE1);
@@ -287,7 +287,6 @@ void SSAO_Demo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenHeight
 	GLfloat lightColorData[] = { lightColor.x, lightColor.y, lightColor.z };
 	glUniform3fv(glGetUniformLocation(shaderLightingPass->Program, "light.Color"), 1, &lightColorData[0]);
 	// Update attenuation parameters
-	const GLfloat constant = 1.0; // Note that we don't send this to the shader, we assume it is always 1.0 (in our case)
 	const GLfloat linear = 0.09;
 	const GLfloat quadratic = 0.032;
 	glUniform1f(glGetUniformLocation(shaderLightingPass->Program, "light.Linear"), linear);

@@ -6,11 +6,6 @@
 #include "MathHelper.h"
 #include <math.h>
 
-/*
-	TODO: Take out binary operators + because copy of object. (Decide this.)
-	TODO: Return a reference?
-*/
-
 // This is a column-major 4x4 matrix.
 class Matrix4
 {

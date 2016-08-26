@@ -7,24 +7,10 @@ vector3::vector3()
 	
 }
 
-// TODO: Figure out why it's not to init with ':'
 vector3::vector3(float _x, float _y, float _z)
 	: x(_x), y(_y), z(_z)
 {
 	
-}
-
-// TODO: Return an array of the first 3 memebers. Use a pointer here.
-float* vector3::data()
-{
-	float values[3] =
-	{
-		x,
-		y,
-		z
-	};
-
-	return values;
 }
 
 vector3 vector3::operator+(vector3 &vec3)
@@ -88,7 +74,6 @@ float vector3::dotProduct(vector3 &vec3)
 	return x * vec3.x + y * vec3.y + z * vec3.z;
 }
 
-// TODO: Do i need?
 vector3 vector3::vectorProduct(vector3 &vec3)
 {
 	return vector3(y*vec3.z - z*vec3.y, z*vec3.x - x*vec3.z, x*vec3.y - y*vec3.x);

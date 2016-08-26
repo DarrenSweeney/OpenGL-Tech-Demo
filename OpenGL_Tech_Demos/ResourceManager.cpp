@@ -66,6 +66,8 @@ Shader ResourceManager::loadShaderFromFile(const GLchar *vertexPath, const GLcha
 		fragmentCode = fShaderStream.str();
 		if (geometryPath != NULL)
 			geometryCode = gShaderStream.str();
+
+		std::cout << "SHADER LOADED: " << vertexPath << "\n " << fragmentPath << "\n " <<  (geometryPath != NULL ? geometryPath : "") << "\n" << std::endl;
 	}
 	catch (std::ifstream::failure e)
 	{
@@ -89,7 +91,7 @@ Model ResourceManager::loadModel(const string path, bool loadTangent)
 	return model;
 }
 
-GLuint ResourceManager::LoadTexture(GLchar *path, GLboolean gammaCorrection, GLboolean alpha, GLboolean anisotropicFilter)
+GLuint ResourceManager::LoadTexture(GLchar *path, GLboolean alpha)
 {
 	// Generate a texture ID and load texture data
 	GLuint textureID;
@@ -100,8 +102,6 @@ GLuint ResourceManager::LoadTexture(GLchar *path, GLboolean gammaCorrection, GLb
 		std::cout << "ERROR_RESOUCRE_MANAGER::Image was not loaded!" << std::endl;
 	// Assign texture to ID
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	// TODO(Darren): Fix this.
-	//glTexImage2D(GL_TEXTURE_2D, 0, gammaCorrection ? GL_SRGB : GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glTexImage2D(GL_TEXTURE_2D, 0, alpha ? GL_RGBA : GL_RGB, width, height, 0, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -238,8 +238,6 @@ void ResourceManager::LoadAllDemoResources()
 		"ssao");
 	LoadShader("Shaders/SSAO_Demo/ssao.vert", "Shaders/SSAO_Demo/ssao_blur.frag", NULL, 
 		"ssao_blur");
-	LoadModel("Resources/nanosuit/nanosuit.obj", false, 
-		"nanosuit");
 	LoadModel("Resources/statue.obj", false,
 		"Statue");
 

@@ -16,11 +16,10 @@ public:
 	SSAO_Demo();
 	~SSAO_Demo();
 
-	bool renderSSAO;
+	// Parameters used to tweak the ssao uniform variables. Samples is defined as 64.
 	int kernelSize;
 	float radius;
-	int samples;	// TODO(Darre): I need to make use of this.
-	int noiseScale;
+	float noiseScale;
 
 	bool initalizeScene;
 	void InitalizeScene(GLsizei screenWidth, GLsizei screenHeight);

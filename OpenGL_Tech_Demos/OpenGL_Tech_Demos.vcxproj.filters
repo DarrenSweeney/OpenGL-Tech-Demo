@@ -390,11 +390,6 @@
     <None Include="Shaders\StencilReflectionDemo\lighting.vert">
       <Filter>Shaders\StencilReflectionDemo</Filter>
     </None>
-    <None Include="debugQuad.frag" />
-    <None Include="debugQuad.vert" />
-    <None Include="dynamicCubeMap.vert" />
-    <None Include="dynamicCubeMap.gs" />
-    <None Include="dynamicCubMap.frag" />
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.vert">
       <Filter>Shaders\CubeMapDemo</Filter>
     </None>
@@ -404,8 +399,6 @@
     <None Include="Shaders\CubeMapDemo\dynamicCubeMap.frag">
       <Filter>Shaders\CubeMapDemo</Filter>
     </None>
-    <None Include="light_box_blur.frag" />
-    <None Include="light_box_bloom.frag" />
     <None Include="Shaders\HDR_Demo\light_box_bloom.frag">
       <Filter>Shaders\HDR_Demo</Filter>
     </None>

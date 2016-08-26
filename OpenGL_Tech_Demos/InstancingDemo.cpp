@@ -34,14 +34,19 @@ void InstancingDemo::InitalizeScene()
 	if (initalizeScene)
 	{
 		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
 		shaderInstancing = ResourceManager::GetShader("Instancing");
+		shaderInstancing->Use();
+		glUniform1i(glGetUniformLocation(shaderInstancing->Program, "texture1"), 1);
 		shaderDirtGround = ResourceManager::GetShader("EnviromentObject");
+		shaderDirtGround->Use();
+		glUniform1i(glGetUniformLocation(shaderDirtGround->Program, "diffuseTexture"), 0);
 
 		modelRock = ResourceManager::GetModel("Rock");
 
-		grassTextureID = ResourceManager::LoadTexture("Resources/grass.png", false, true);
-		groundTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg", false, false);
+		grassTextureID = ResourceManager::LoadTexture("Resources/grass.png", true);
+		groundTextureID = ResourceManager::LoadTexture("Resources/brickwall.jpg");
 
 		srand(glfwGetTime());
 		GLfloat radius = 5.0f;
@@ -149,6 +154,9 @@ void InstancingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenH
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	shaderDirtGround->Use();
+	glUniform1i(glGetUniformLocation(shaderDirtGround->Program, "diffuseTexture"), 0);
+
 	Matrix4 projection = Matrix4();
 	projection = projection.perspectiveProjection(camera.zoom, (GLfloat)screenWidth / (GLfloat)screenHeight, 1.0f, 3000.0f);
 	Matrix4 view;
@@ -162,6 +170,7 @@ void InstancingDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei screenH
 	glUniformMatrix4fv(glGetUniformLocation(shaderInstancing->Program, "view"), 1, GL_FALSE, &view.data[0]);
 
 	// Render the grass quads.
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, grassTextureID);
 	glBindVertexArray(grassBlade.grassVAO);
 	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, amount);
