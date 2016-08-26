@@ -138,6 +138,8 @@ void StencilReflectionDemo::Update(Camera &camera, GLsizei screenWidth, GLsizei 
 	glClear(GL_STENCIL_BUFFER_BIT);
 
 	shaderObject->Use();
+	glUniform1i(glGetUniformLocation(shaderObject->Program, "diffuseTexture"), 0);
+	glActiveTexture(GL_TEXTURE0);
 	if (!planeTextureOff)
 		glBindTexture(GL_TEXTURE_2D, planeTextureID);
 	else

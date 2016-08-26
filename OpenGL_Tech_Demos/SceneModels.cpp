@@ -207,7 +207,7 @@ void SceneModels::RenderCube(GLfloat xScale, GLfloat yScale, GLfloat zScale)
 GLuint planeVAO = 0, planeVBO = 0;
 void SceneModels::RenderPlane(GLfloat pos, GLfloat texCoord)
 {
-	if (planeVAO == 0)
+	//if (planeVAO == 0)
 	{
 		GLfloat planeVertices[] = {
 			 // Positions		// Normals			// Texture Coords

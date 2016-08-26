@@ -40,10 +40,6 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 		shaderSkyBox = ResourceManager::GetShader("Skybox");
 		shaderEnviromentObject = ResourceManager::GetShader("EnviromentObject");
 
-		// Set up texture sampler unit.
-		shaderEnviromentObject->Use();
-		glUniform1i(glGetUniformLocation(shaderEnviromentObject->Program, "diffuseTexture"), 1);
-
 		modelUtahTeaPot = ResourceManager::GetModel("Utah_Teapot");
 		modelSphere = ResourceManager::GetModel("Sphere");
 		modelBunny = ResourceManager::GetModel("Monkey");
@@ -115,10 +111,6 @@ void CubeMapDemo::InitalizeScene(GLsizei screenWidth, GLsizei screenHeight)
 
 void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei screenHeight, GLfloat deltaTime)
 {
-	// Set up texture sampler unit.
-	//shaderEnviromentObject->Use();
-	glUniform1i(glGetUniformLocation(shaderEnviromentObject->Program, "diffuseTexture"), 1);
-
 	if (animateScene)
 	{
 		redPos.y += cos(glfwGetTime()) * 3.0f * deltaTime;
@@ -184,6 +176,7 @@ void CubeMapDemo::UpdateScene(Camera &camera, GLsizei screenWidth, GLsizei scree
 		SceneModels::RenderSkybox();
 
 		shaderEnviromentObject->Use();
+		glUniform1i(glGetUniformLocation(shaderEnviromentObject->Program, "diffuseTexture"), 1);
 		model = Matrix4();
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "view"), 1, GL_FALSE, &currentCubeMapView.data[0]);
 		glUniformMatrix4fv(glGetUniformLocation(shaderEnviromentObject->Program, "projection"), 1, GL_FALSE, &projection.data[0]);

@@ -34,6 +34,9 @@ bool windowResized;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
+// Reset to deault stencil operations when going out of a stencil buffer demo.
+void DefaultStencilOps();
+
 // GLFW Callback functions.
 static void error_callback(int error, const char* description);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -193,7 +196,7 @@ int main(int, char**)
 	};
 
 	// The first demo will be the dynamic enviroment cube map demo.
-	Demos currentDemo = Demos::directionalShadow;
+	Demos currentDemo = Demos::cubeMap;
 	const char* demoInfo = "Enviroment cube mapping done by rendering the scene each frame from the models orgin to each face of a cube map and subsequently applying that cubemap texture to the model.";
 
 	// Load all the shaders and models required for all the demos.
@@ -230,6 +233,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Cube Mapping Demo");
 				if (clicked)
 				{
+					DefaultStencilOps();
+
 					currentDemo = Demos::cubeMap;
 					demoInfo = "Enviroment cube mapping done by rendering the scene each frame from the models orgin to each face of a cube map and subsequently applying that cubemap texture to the model.";
 				}
@@ -252,6 +257,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Instancing Demo");
 				if (clicked)
 				{
+					DefaultStencilOps();
+
 					currentDemo = Demos::instancing;
 					demoInfo = "Example showing rendering of 6,000 objects, 3,000 grass and 3,000 rock objects though instancing";
 				}
@@ -262,6 +269,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Defered Rendering Demo");
 				if (clicked)
 				{
+					DefaultStencilOps();
+
 					currentDemo = Demos::deferredRendering;
 					demoInfo = "Example showing deferred Rendering of 300 Light sources around 100 models\n";
 				}
@@ -274,6 +283,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Model Loading Demo");
 				if (clicked)
 				{
+					DefaultStencilOps();
+
 					currentDemo = Demos::modelLoading;
 					demoInfo = "Loading of a .obj model using the assimp libiary, demonstrating applying diffuse, specular, bump and reflection maps.\n";
 				}
@@ -314,6 +325,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("Parralxing Mapping Demo");
 				if (clicked)
 				{
+					DefaultStencilOps();
+
 					currentDemo = Demos::parallaxingMapping;
 					demoInfo = "Demonstates steep parallax mapping allowing for steep viewing angles inside a cube made up of 6 planes.";
 				}
@@ -328,6 +341,11 @@ int main(int, char**)
 				bool clicked = ImGui::Button("HDR Demo");
 				if (clicked)
 				{
+					glDisable(GL_CULL_FACE);
+					glEnable(GL_DEPTH_TEST);
+
+					DefaultStencilOps();
+
 					currentDemo = Demos::hdr;
 					demoInfo = "Demonstates high dynamic range lighting with bloom lights in a stretch of tunnel with bright and dark areas.";
 				}
@@ -344,6 +362,8 @@ int main(int, char**)
 					bool clicked = ImGui::Button("Directional Shadow Demo");
 					if (clicked)
 					{
+						DefaultStencilOps();
+
 						currentDemo = Demos::directionalShadow;
 						demoInfo = "Demonstrates directional shadow mapping from a point light source, a depth map is generated from the lights perspective to calculate the shadow.";
 					}
@@ -357,6 +377,8 @@ int main(int, char**)
 					bool clicked = ImGui::Button("Omnidirectional Shadow Demo");
 					if (clicked)
 					{ 
+						DefaultStencilOps();
+
 						currentDemo = Demos::omnidirectionalShadow;
 						demoInfo = "Demonstrates omnidirectional shadow mapping where a depth cube map is generated from the ligths position, the cube map is the sampled to generated the enviroment shadows.";
 					}
@@ -372,6 +394,8 @@ int main(int, char**)
 				bool clicked = ImGui::Button("SSAO Demo");
 				if (clicked)
 				{
+					DefaultStencilOps();
+
 					currentDemo = Demos::ssao;
 					demoInfo = "Demonstrates screen based ambient occlusion by sampling a normal oriented hemisphere kernel on the depth buffer to generate a per-pixel occlusion factor in screen space, which is then used as an input to the lighting model.";
 				}
@@ -531,6 +555,15 @@ int main(int, char**)
 	glfwTerminate();
 
     return 0;
+}
+
+void DefaultStencilOps()
+{
+	glDisable(GL_BLEND);
+	glDisable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilMask(0x00);
 }
 
 #pragma region "GLFW callbacks"
